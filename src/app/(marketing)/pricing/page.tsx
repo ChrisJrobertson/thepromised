@@ -1,63 +1,78 @@
-import Link from "next/link";
+import { createClient } from "@/lib/supabase/server";
 
-import { Badge } from "@/components/ui/badge";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { PricingClient } from "./PricingClient";
 
-export default function PricingPage() {
+export const metadata = { title: "Pricing — TheyPromised" };
+
+const FAQ_SCHEMA = {
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  mainEntity: [
+    {
+      "@type": "Question",
+      name: "Can I cancel at any time?",
+      acceptedAnswer: {
+        "@type": "Answer",
+        text: "Yes — cancel any time from your billing settings. You keep access until the end of your paid period. No lock-ins.",
+      },
+    },
+    {
+      "@type": "Question",
+      name: "What counts as a 'case'?",
+      acceptedAnswer: {
+        "@type": "Answer",
+        text: "Each complaint you're tracking is a case — for example, a billing dispute with British Gas is one case, and a PIP appeal with DWP is another. On the free plan, you can have 1 active case at a time.",
+      },
+    },
+    {
+      "@type": "Question",
+      name: "Are AI credits shared between features?",
+      acceptedAnswer: {
+        "@type": "Answer",
+        text: "No — AI case analyses and AI letter drafts have separate limits. Your credits reset on your billing date each month.",
+      },
+    },
+    {
+      "@type": "Question",
+      name: "Will my data be deleted if I downgrade?",
+      acceptedAnswer: {
+        "@type": "Answer",
+        text: "No. All your case data, interactions, and evidence are preserved when you downgrade. You'll just lose access to paid features for future use.",
+      },
+    },
+    {
+      "@type": "Question",
+      name: "Is the PDF export accepted by ombudsmen?",
+      acceptedAnswer: {
+        "@type": "Answer",
+        text: "Our full case file PDF is designed to present your complaint chronologically in a professional format. However, ombudsman requirements vary — always check what your specific ombudsman accepts.",
+      },
+    },
+    {
+      "@type": "Question",
+      name: "Do you offer discounts for vulnerable customers?",
+      acceptedAnswer: {
+        "@type": "Answer",
+        text: "Yes. If you're experiencing financial hardship, please contact us at support@theypromised.app and we'll find a way to help.",
+      },
+    },
+  ],
+};
+
+export default async function PricingPage() {
+  // Check if user is logged in to determine button behaviour
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
   return (
-    <main className="mx-auto max-w-6xl space-y-8 px-4 py-12">
-      <div className="space-y-2 text-center">
-        <h1 className="text-4xl font-bold">Simple pricing for stronger complaints</h1>
-        <p className="text-muted-foreground">Choose monthly or annual billing any time.</p>
-      </div>
-
-      <div className="grid gap-4 md:grid-cols-3">
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center justify-between">
-              Free <Badge variant="secondary">£0</Badge>
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-2 text-sm">
-            <p>1 active case</p>
-            <p>Basic interaction logging</p>
-            <p>No PDF export</p>
-            <Link className="block rounded-md bg-primary px-3 py-2 text-center text-white" href="/register">
-              Start Free
-            </Link>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center justify-between">
-              Basic <Badge>£4.99/mo</Badge>
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-2 text-sm">
-            <p>Unlimited cases</p>
-            <p>Timeline PDF export</p>
-            <p>Email reminders</p>
-            <Link className="block rounded-md bg-primary px-3 py-2 text-center text-white" href="/register">
-              Upgrade
-            </Link>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center justify-between">
-              Pro <Badge className="bg-accent text-accent-foreground">£9.99/mo</Badge>
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-2 text-sm">
-            <p>Everything in Basic</p>
-            <p>AI complaint guidance</p>
-            <p>Full ombudsman-ready export</p>
-            <Link className="block rounded-md bg-primary px-3 py-2 text-center text-white" href="/register">
-              Go Pro
-            </Link>
-          </CardContent>
-        </Card>
-      </div>
-    </main>
+    <>
+      <script
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(FAQ_SCHEMA) }}
+        type="application/ld+json"
+      />
+      <PricingClient isLoggedIn={!!user} />
+    </>
   );
 }

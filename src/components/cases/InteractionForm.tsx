@@ -1,0 +1,564 @@
+"use client";
+
+import { zodResolver } from "@hookform/resolvers/zod";
+import { format } from "date-fns";
+import {
+  Laptop,
+  Mail,
+  MessageCircle,
+  Paperclip,
+  Phone,
+  Send,
+  Users,
+  Wifi,
+} from "lucide-react";
+import { useRouter } from "next/navigation";
+import { useEffect, useState, useTransition } from "react";
+import { useForm } from "react-hook-form";
+import { toast } from "sonner";
+
+import { EvidenceUpload } from "@/components/cases/EvidenceUpload";
+import { Button } from "@/components/ui/button";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Textarea } from "@/components/ui/textarea";
+import { logInteraction } from "@/lib/actions/interactions";
+import { createClient } from "@/lib/supabase/client";
+import {
+  INTERACTION_CHANNEL_LABELS,
+  INTERACTION_CHANNELS,
+  INTERACTION_OUTCOME_LABELS,
+  INTERACTION_OUTCOMES,
+  interactionSchema,
+  type InteractionFormData,
+} from "@/lib/validation/cases";
+import type { Case } from "@/types/database";
+
+const CHANNEL_ICONS: Record<string, React.ReactNode> = {
+  phone: <Phone className="h-3.5 w-3.5" />,
+  email: <Mail className="h-3.5 w-3.5" />,
+  letter: <Send className="h-3.5 w-3.5" />,
+  webchat: <MessageCircle className="h-3.5 w-3.5" />,
+  in_person: <Users className="h-3.5 w-3.5" />,
+  social_media: <Wifi className="h-3.5 w-3.5" />,
+  app: <Laptop className="h-3.5 w-3.5" />,
+  other: <MessageCircle className="h-3.5 w-3.5" />,
+};
+
+type InteractionFormProps = {
+  preselectedCaseId?: string;
+  cases?: Pick<Case, "id" | "title">[];
+  onSuccess?: () => void;
+  redirectOnSuccess?: boolean;
+};
+
+export function InteractionForm({
+  preselectedCaseId,
+  cases,
+  onSuccess,
+  redirectOnSuccess = true,
+}: InteractionFormProps) {
+  const router = useRouter();
+  const [isPending, startTransition] = useTransition();
+  const [authUserId, setAuthUserId] = useState<string>("");
+  const [savedInteraction, setSavedInteraction] = useState<{
+    id: string;
+    caseId: string;
+  } | null>(null);
+
+  useEffect(() => {
+    createClient()
+      .auth.getUser()
+      .then(({ data }) => {
+        if (data.user) setAuthUserId(data.user.id);
+      });
+  }, []);
+
+  const form = useForm<InteractionFormData>({
+    resolver: zodResolver(interactionSchema),
+    defaultValues: {
+      case_id: preselectedCaseId ?? "",
+      interaction_date: format(new Date(), "yyyy-MM-dd'T'HH:mm"),
+      channel: "phone",
+      direction: "outbound",
+      summary: "",
+      contact_name: "",
+      contact_department: "",
+      contact_role: "",
+      reference_number: "",
+      duration_minutes: "",
+      has_promise: false,
+      promises_made: "",
+      promise_deadline: "",
+      outcome: undefined,
+      next_steps: "",
+      mood: undefined,
+    },
+  });
+
+  const watchChannel = form.watch("channel");
+  const watchHasPromise = form.watch("has_promise");
+
+  function onSubmit(data: InteractionFormData) {
+    startTransition(async () => {
+      const result = await logInteraction({
+        case_id: data.case_id,
+        interaction_date: data.interaction_date,
+        channel: data.channel,
+        direction: data.direction,
+        summary: data.summary,
+        contact_name: data.contact_name || null,
+        contact_department: data.contact_department || null,
+        contact_role: data.contact_role || null,
+        reference_number: data.reference_number || null,
+        duration_minutes: data.duration_minutes
+          ? parseInt(data.duration_minutes, 10)
+          : null,
+        has_promise: data.has_promise,
+        promises_made: data.promises_made || null,
+        promise_deadline: data.promise_deadline || null,
+        outcome: data.outcome ?? null,
+        next_steps: data.next_steps || null,
+        mood: data.mood ?? null,
+      });
+
+      if (result.error) {
+        toast.error(result.error);
+        return;
+      }
+
+      if (data.channel === "phone" && !data.has_promise) {
+        toast.success("Interaction logged", {
+          description:
+            "Pro tip: note down the exact time. Phone records can be requested as evidence.",
+          duration: 6000,
+        });
+      } else {
+        toast.success("Interaction logged successfully");
+      }
+
+      if (data.has_promise && data.promise_deadline) {
+        toast.info("Reminders set for the promise deadline", {
+          duration: 4000,
+        });
+      }
+
+      // Show evidence section if we have the interaction ID
+      if (result.interactionId) {
+        setSavedInteraction({
+          id: result.interactionId,
+          caseId: data.case_id,
+        });
+        return;
+      }
+
+      form.reset();
+      onSuccess?.();
+
+      if (redirectOnSuccess && data.case_id) {
+        router.push(`/cases/${data.case_id}?tab=timeline`);
+        router.refresh();
+      }
+    });
+  }
+
+  function handleDone() {
+    const caseId = savedInteraction?.caseId;
+    form.reset();
+    setSavedInteraction(null);
+    onSuccess?.();
+    if (redirectOnSuccess && caseId) {
+      router.push(`/cases/${caseId}?tab=timeline`);
+      router.refresh();
+    }
+  }
+
+  if (savedInteraction) {
+    return (
+      <div className="space-y-4">
+        <div className="rounded-md border border-green-200 bg-green-50 p-4 text-sm">
+          <p className="font-medium text-green-800">✅ Interaction logged successfully</p>
+          <p className="mt-0.5 text-green-700">
+            Attach any supporting evidence below, or click Done to finish.
+          </p>
+        </div>
+
+        {authUserId && (
+          <div className="space-y-2">
+            <div className="flex items-center gap-2">
+              <Paperclip className="h-4 w-4 text-muted-foreground" />
+              <p className="text-sm font-medium">Attach Evidence (optional)</p>
+            </div>
+            <EvidenceUpload
+              caseId={savedInteraction.caseId}
+              interactionId={savedInteraction.id}
+              userId={authUserId}
+            />
+          </div>
+        )}
+
+        <Button className="w-full" onClick={handleDone} type="button">
+          Done
+        </Button>
+      </div>
+    );
+  }
+
+  return (
+    <Form {...form}>
+      <form className="space-y-5" onSubmit={form.handleSubmit(onSubmit)}>
+        {/* Case selector (only shown if no preselected case) */}
+        {!preselectedCaseId && cases && cases.length > 0 && (
+          <FormField
+            control={form.control}
+            name="case_id"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Case *</FormLabel>
+                <Select onValueChange={field.onChange} value={field.value}>
+                  <FormControl>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select a case" />
+                    </SelectTrigger>
+                  </FormControl>
+                  <SelectContent>
+                    {cases.map((c) => (
+                      <SelectItem key={c.id} value={c.id}>
+                        {c.title}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        )}
+
+        {/* Date & time + Direction */}
+        <div className="grid gap-4 sm:grid-cols-2">
+          <FormField
+            control={form.control}
+            name="interaction_date"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Date & time *</FormLabel>
+                <FormControl>
+                  <Input type="datetime-local" {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            control={form.control}
+            name="direction"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Direction *</FormLabel>
+                <div className="flex gap-2">
+                  <button
+                    className={`flex-1 rounded-md border px-2 py-2 text-xs font-medium transition-colors ${field.value === "outbound" ? "border-primary bg-primary/5 text-primary" : "border-muted text-muted-foreground hover:border-muted-foreground"}`}
+                    onClick={() => field.onChange("outbound")}
+                    type="button"
+                  >
+                    I contacted them →
+                  </button>
+                  <button
+                    className={`flex-1 rounded-md border px-2 py-2 text-xs font-medium transition-colors ${field.value === "inbound" ? "border-primary bg-primary/5 text-primary" : "border-muted text-muted-foreground hover:border-muted-foreground"}`}
+                    onClick={() => field.onChange("inbound")}
+                    type="button"
+                  >
+                    ← They contacted me
+                  </button>
+                </div>
+              </FormItem>
+            )}
+          />
+        </div>
+
+        {/* Channel */}
+        <FormField
+          control={form.control}
+          name="channel"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Channel *</FormLabel>
+              <div className="flex flex-wrap gap-2">
+                {INTERACTION_CHANNELS.map((ch) => (
+                  <button
+                    className={`flex items-center gap-1.5 rounded-md border px-3 py-1.5 text-xs font-medium transition-colors ${field.value === ch ? "border-secondary bg-secondary/10 text-secondary" : "border-muted text-muted-foreground hover:border-muted-foreground"}`}
+                    key={ch}
+                    onClick={() => field.onChange(ch)}
+                    type="button"
+                  >
+                    {CHANNEL_ICONS[ch]}
+                    {INTERACTION_CHANNEL_LABELS[ch]}
+                  </button>
+                ))}
+              </div>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        {watchChannel === "phone" && (
+          <FormField
+            control={form.control}
+            name="duration_minutes"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Call duration (minutes)</FormLabel>
+                <FormControl>
+                  <Input min="1" placeholder="e.g. 25" type="number" {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        )}
+
+        {/* Summary */}
+        <FormField
+          control={form.control}
+          name="summary"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>What happened? * (min. 20 characters)</FormLabel>
+              <FormControl>
+                <Textarea
+                  className="min-h-[120px]"
+                  placeholder="Describe the interaction in detail — who you spoke to, what was said, any reference numbers given, exactly what was promised..."
+                  {...field}
+                />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        {/* Contact details */}
+        <div className="space-y-3">
+          <p className="text-sm font-medium text-muted-foreground">
+            Contact details (optional)
+          </p>
+          <div className="grid gap-3 sm:grid-cols-3">
+            <FormField
+              control={form.control}
+              name="contact_name"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Name</FormLabel>
+                  <FormControl>
+                    <Input placeholder="e.g. Sarah" {...field} />
+                  </FormControl>
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="contact_department"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Department</FormLabel>
+                  <FormControl>
+                    <Input placeholder="e.g. Billing" {...field} />
+                  </FormControl>
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="contact_role"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Role / title</FormLabel>
+                  <FormControl>
+                    <Input placeholder="e.g. Agent" {...field} />
+                  </FormControl>
+                </FormItem>
+              )}
+            />
+          </div>
+          <FormField
+            control={form.control}
+            name="reference_number"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Reference number given</FormLabel>
+                <FormControl>
+                  <Input placeholder="Any reference they provided" {...field} />
+                </FormControl>
+              </FormItem>
+            )}
+          />
+        </div>
+
+        {/* Promises */}
+        <div className="space-y-3 rounded-md border p-4">
+          <FormField
+            control={form.control}
+            name="has_promise"
+            render={({ field }) => (
+              <FormItem>
+                <div className="flex items-center justify-between">
+                  <FormLabel className="text-sm">Did they promise anything?</FormLabel>
+                  <div className="flex gap-2">
+                    <button
+                      className={`rounded-md border px-3 py-1 text-xs font-medium transition-colors ${field.value ? "border-amber-400 bg-amber-50 text-amber-700" : "border-muted text-muted-foreground"}`}
+                      onClick={() => field.onChange(true)}
+                      type="button"
+                    >
+                      Yes
+                    </button>
+                    <button
+                      className={`rounded-md border px-3 py-1 text-xs font-medium transition-colors ${!field.value ? "border-muted bg-muted/50 text-muted-foreground" : "border-muted text-muted-foreground"}`}
+                      onClick={() => field.onChange(false)}
+                      type="button"
+                    >
+                      No
+                    </button>
+                  </div>
+                </div>
+              </FormItem>
+            )}
+          />
+
+          {watchHasPromise && (
+            <div className="space-y-3">
+              <FormField
+                control={form.control}
+                name="promises_made"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>What did they promise? *</FormLabel>
+                    <FormControl>
+                      <Textarea
+                        placeholder="e.g. They will call back within 3 working days with a full refund decision..."
+                        {...field}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="promise_deadline"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>By when?</FormLabel>
+                    <FormControl>
+                      <Input type="date" {...field} />
+                    </FormControl>
+                    <p className="text-xs text-muted-foreground">
+                      We&apos;ll set automatic reminders to check if the promise was kept.
+                    </p>
+                  </FormItem>
+                )}
+              />
+            </div>
+          )}
+        </div>
+
+        {/* Outcome + Next steps */}
+        <div className="grid gap-4 sm:grid-cols-2">
+          <FormField
+            control={form.control}
+            name="outcome"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Outcome</FormLabel>
+                <Select
+                  onValueChange={field.onChange}
+                  value={field.value ?? ""}
+                >
+                  <FormControl>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select outcome" />
+                    </SelectTrigger>
+                  </FormControl>
+                  <SelectContent>
+                    {INTERACTION_OUTCOMES.map((o) => (
+                      <SelectItem key={o} value={o}>
+                        {INTERACTION_OUTCOME_LABELS[o]}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </FormItem>
+            )}
+          />
+        </div>
+
+        <FormField
+          control={form.control}
+          name="next_steps"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Next steps</FormLabel>
+              <FormControl>
+                <Textarea
+                  placeholder="What will you do next? What are you waiting for?"
+                  {...field}
+                />
+              </FormControl>
+            </FormItem>
+          )}
+        />
+
+        {/* Mood / helpfulness */}
+        <FormField
+          control={form.control}
+          name="mood"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>How helpful were they?</FormLabel>
+              <div className="flex gap-2">
+                {(
+                  [
+                    { value: "helpful", emoji: "😊", label: "Helpful" },
+                    { value: "neutral", emoji: "😐", label: "Neutral" },
+                    { value: "unhelpful", emoji: "😤", label: "Unhelpful" },
+                    { value: "hostile", emoji: "😡", label: "Hostile" },
+                  ] as const
+                ).map(({ value, emoji, label }) => (
+                  <button
+                    className={`flex flex-1 flex-col items-center gap-1 rounded-md border px-2 py-2 text-xs transition-colors ${field.value === value ? "border-primary bg-primary/5" : "border-muted text-muted-foreground hover:border-muted-foreground"}`}
+                    key={value}
+                    onClick={() =>
+                      field.onChange(field.value === value ? undefined : value)
+                    }
+                    type="button"
+                  >
+                    <span className="text-xl">{emoji}</span>
+                    {label}
+                  </button>
+                ))}
+              </div>
+            </FormItem>
+          )}
+        />
+
+        <Button className="w-full" disabled={isPending} type="submit">
+          {isPending ? "Logging..." : "Log Interaction"}
+        </Button>
+      </form>
+    </Form>
+  );
+}

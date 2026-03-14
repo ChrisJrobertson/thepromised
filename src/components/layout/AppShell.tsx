@@ -2,6 +2,7 @@
 
 import { usePathname } from "next/navigation";
 
+import { BottomTabBar } from "@/components/layout/BottomTabBar";
 import { Header } from "@/components/layout/Header";
 import { Sidebar } from "@/components/layout/Sidebar";
 
@@ -30,9 +31,11 @@ export function AppShell({ children, userName, userEmail, tier }: AppShellProps)
         <Sidebar pathname={pathname} tier={tier} userEmail={userEmail} userName={userName} />
         <div className="flex min-h-screen min-w-0 flex-1 flex-col">
           <Header tier={tier} title={getTitle(pathname)} />
-          <div className="flex-1 p-4 md:p-6">{children}</div>
+          {/* Extra bottom padding on mobile for the tab bar */}
+          <div className="flex-1 p-4 pb-20 md:p-6 md:pb-6">{children}</div>
         </div>
       </div>
+      <BottomTabBar />
     </div>
   );
 }
