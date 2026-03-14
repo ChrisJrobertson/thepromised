@@ -125,7 +125,7 @@ export function ProfileForm({ email, profile }: ProfileFormProps) {
             >
               <div className="space-y-1.5">
                 <label className="text-sm font-medium">Email address</label>
-                <Input disabled type="email" value={email} />
+                <Input disabled inputMode="email" type="email" value={email} />
                 <p className="text-xs text-muted-foreground">
                   Email cannot be changed here. Contact support if needed.
                 </p>
@@ -152,7 +152,7 @@ export function ProfileForm({ email, profile }: ProfileFormProps) {
                   <FormItem>
                     <FormLabel>Phone number</FormLabel>
                     <FormControl>
-                      <Input placeholder="07700 900000" type="tel" {...field} />
+                      <Input inputMode="tel" placeholder="07700 900000" type="tel" {...field} />
                     </FormControl>
                   </FormItem>
                 )}

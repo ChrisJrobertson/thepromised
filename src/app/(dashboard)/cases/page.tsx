@@ -60,6 +60,7 @@ export default async function CasesPage({
   const activeStatus = (params.status as (typeof STATUS_TABS)[number]["value"]) ?? "all";
   const search = params.search ?? "";
   const sort = (params.sort as (typeof SORT_OPTIONS)[number]["value"]) ?? "recent";
+  const cursor = params.cursor ?? "";
 
   let query = supabase
     .from("cases")
@@ -70,7 +71,8 @@ export default async function CasesPage({
       first_contact_date, created_at, updated_at, category,
       organisation_id, custom_organisation_name,
       organisations (id, name, category)
-    `
+    `,
+      { count: "exact" }
     )
     .eq("user_id", user.id);
 
@@ -82,6 +84,10 @@ export default async function CasesPage({
     query = query.or(
       `title.ilike.%${search}%,organisations.name.ilike.%${search}%`
     );
+  }
+
+  if (cursor) {
+    query = query.lt("created_at", cursor);
   }
 
   switch (sort) {
@@ -97,12 +103,12 @@ export default async function CasesPage({
       query = query.order("interaction_count", { ascending: false });
       break;
     default:
-      query = query.order("updated_at", { ascending: false });
+      query = query.order("created_at", { ascending: false });
   }
 
   query = query.limit(20);
 
-  const { data: casesRaw } = await query;
+  const { data: casesRaw, count: totalCount } = await query;
   type CaseRow = import("@/types/cases").CaseWithOrganisation & {
     last_interaction_date: string | null;
     amount_in_dispute: number | null;
@@ -137,7 +143,20 @@ export default async function CasesPage({
     pendingPromises: promiseCounts[c.id] ?? 0,
   }));
 
+  const nextCursor =
+    enrichedCases.length === 20
+      ? (enrichedCases[enrichedCases.length - 1]?.created_at ?? null)
+      : null;
+  const totalCases = totalCount ?? enrichedCases.length;
+
   const canCreate = canCreateCase(profile);
+
+  const loadMoreParams = new URLSearchParams();
+  if (activeStatus !== "all") loadMoreParams.set("status", activeStatus);
+  if (search) loadMoreParams.set("search", search);
+  if (sort !== "recent") loadMoreParams.set("sort", sort);
+  if (nextCursor) loadMoreParams.set("cursor", nextCursor);
+  const loadMoreHref = `/cases?${loadMoreParams.toString()}`;
 
   return (
     <div className="space-y-6">
@@ -145,7 +164,8 @@ export default async function CasesPage({
         <div>
           <h1 className="text-2xl font-semibold">My Cases</h1>
           <p className="text-sm text-muted-foreground">
-            {enrichedCases.length} case{enrichedCases.length !== 1 ? "s" : ""}
+            Showing {enrichedCases.length} of {totalCases} case
+            {totalCases !== 1 ? "s" : ""}
             {activeStatus !== "all" ? ` · ${activeStatus}` : ""}
           </p>
         </div>
@@ -170,6 +190,14 @@ export default async function CasesPage({
         sortOptions={SORT_OPTIONS}
         statusTabs={STATUS_TABS}
       />
+
+      {nextCursor && (
+        <div className="flex justify-center">
+          <Link className={buttonVariants({ variant: "outline" })} href={loadMoreHref}>
+            Load More
+          </Link>
+        </div>
+      )}
 
       {enrichedCases.length === 0 && activeStatus === "all" && !search && (
         <Card>

@@ -95,6 +95,7 @@ export default function LoginPage() {
           <Label htmlFor="email">Email</Label>
           <Input
             id="email"
+            inputMode="email"
             type="email"
             autoComplete="email"
             {...form.register("email")}

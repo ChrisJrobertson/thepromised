@@ -13,7 +13,8 @@ import {
   Trash2,
   X,
 } from "lucide-react";
-import { useCallback, useMemo, useState, useTransition } from "react";
+import Link from "next/link";
+import { useCallback, useEffect, useMemo, useState, useTransition } from "react";
 import { toast } from "sonner";
 
 import { Badge } from "@/components/ui/badge";
@@ -37,6 +38,7 @@ import {
   INTERACTION_CHANNEL_LABELS,
   INTERACTION_OUTCOME_LABELS,
 } from "@/lib/validation/cases";
+import { createClient } from "@/lib/supabase/client";
 import type { Evidence, Interaction } from "@/types/database";
 
 type InteractionWithEvidence = Interaction & { evidence?: Evidence[] };
@@ -231,7 +233,45 @@ export function CaseTimeline({
   const [confirmDelete, setConfirmDelete] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
   const [searchText, setSearchText] = useState("");
+  const [signedImageUrls, setSignedImageUrls] = useState<Record<string, string>>({});
   const debouncedSearch = useDebounce(searchText, 300);
+
+  useEffect(() => {
+    const allImageEvidence = interactions.flatMap((interaction) =>
+      (interaction.evidence ?? []).filter((evidence) =>
+        evidence.file_type.startsWith("image/")
+      )
+    );
+    const missing = allImageEvidence.filter((item) => !signedImageUrls[item.id]);
+    if (missing.length === 0) return;
+
+    let cancelled = false;
+    const supabase = createClient();
+
+    Promise.all(
+      missing.map(async (item) => {
+        const { data } = await supabase.storage
+          .from("evidence")
+          .createSignedUrl(item.storage_path, 3600);
+        return { id: item.id, url: data?.signedUrl ?? "" };
+      })
+    ).then((results) => {
+      if (cancelled) return;
+      setSignedImageUrls((prev) => {
+        const next = { ...prev };
+        for (const result of results) {
+          if (result.url) {
+            next[result.id] = result.url;
+          }
+        }
+        return next;
+      });
+    });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [interactions, signedImageUrls]);
 
   const milestones = useMemo(
     () => (caseInfo ? buildMilestones(caseInfo, interactions) : []),
@@ -475,100 +515,156 @@ export function CaseTimeline({
               const otherEvidence = (interaction.evidence ?? []).filter(
                 (e) => !e.file_type.startsWith("image/")
               );
+              const currentDateKey = format(
+                new Date(interaction.interaction_date),
+                "yyyy-MM-dd"
+              );
+              let previousInteractionDateKey: string | null = null;
+              for (let prevIndex = index - 1; prevIndex >= 0; prevIndex -= 1) {
+                const previousItem = timelineItems[prevIndex];
+                if (previousItem.type === "interaction") {
+                  previousInteractionDateKey = format(
+                    new Date(previousItem.data.interaction_date),
+                    "yyyy-MM-dd"
+                  );
+                  break;
+                }
+              }
+              const showMobileDateHeader =
+                previousInteractionDateKey !== currentDateKey;
+              const isMobileExpanded = expandedIds.has(interaction.id);
+              const mobileSummary =
+                interaction.summary.length > 60
+                  ? `${interaction.summary.slice(0, 60)}…`
+                  : interaction.summary;
 
               return (
-                <div className="relative flex gap-4 print:gap-2" key={interaction.id}>
-                  {/* Timeline node */}
-                  <div
-                    className={`relative z-10 flex h-10 w-10 shrink-0 items-center justify-center rounded-full border-2 text-lg shadow-sm print:h-8 print:w-8 print:text-base ${CHANNEL_COLOURS[interaction.channel] ?? "bg-muted"} border-white`}
-                  >
-                    {CHANNEL_EMOJIS[interaction.channel] ?? "📋"}
-                  </div>
-
-                  {/* Content card */}
-                  <div className="min-w-0 flex-1 rounded-lg border bg-card p-4 shadow-sm print:border-slate-300 print:p-3">
-                    {/* Header */}
-                    <div className="flex flex-wrap items-start justify-between gap-2">
-                      <div className="space-y-0.5">
-                        <div className="flex flex-wrap items-center gap-2">
-                          <span className="text-sm font-medium">
-                            {format(
-                              new Date(interaction.interaction_date),
-                              "d MMMM yyyy, h:mm a",
-                              { locale: enGB }
-                            )}
-                          </span>
-                        </div>
-                        <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
-                          <span>
-                            {CHANNEL_EMOJIS[interaction.channel]}{" "}
-                            {INTERACTION_CHANNEL_LABELS[interaction.channel]}
-                          </span>
-                          <span>
-                            {interaction.direction === "outbound"
-                              ? "→ You contacted them"
-                              : "← They contacted you"}
-                          </span>
-                          {interaction.contact_name && (
-                            <span>
-                              {interaction.contact_name}
-                              {interaction.contact_department
-                                ? `, ${interaction.contact_department}`
-                                : ""}
-                            </span>
-                          )}
-                          {interaction.reference_number && (
-                            <span className="font-mono">
-                              Ref: {interaction.reference_number}
-                            </span>
-                          )}
-                          {interaction.duration_minutes && (
-                            <span>{interaction.duration_minutes} min</span>
-                          )}
-                          {interaction.mood && (
-                            <span title={interaction.mood}>
-                              {MOOD_EMOJIS[interaction.mood]}
-                            </span>
-                          )}
-                        </div>
-                      </div>
-
-                      {/* Outcome badge */}
-                      <div className="flex items-center gap-2 print:hidden">
-                        {interaction.outcome && (
-                          <Badge
-                            className={OUTCOME_COLOURS[interaction.outcome] ?? ""}
-                            variant="outline"
-                          >
-                            {INTERACTION_OUTCOME_LABELS[interaction.outcome]}
-                          </Badge>
-                        )}
-                      </div>
-                    </div>
-
-                    {/* Summary */}
-                    <div className="mt-3">
-                      <p className={`text-sm ${!isExpanded && isLong ? "line-clamp-3" : ""}`}>
-                        {interaction.summary}
-                      </p>
-                      {isLong && (
-                        <button
-                          className="mt-1 flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground print:hidden"
-                          onClick={() => toggleExpanded(interaction.id)}
-                          type="button"
-                        >
-                          {isExpanded ? (
-                            <>
-                              <ChevronUp className="h-3 w-3" /> Show less
-                            </>
-                          ) : (
-                            <>
-                              <ChevronDown className="h-3 w-3" /> Show more
-                            </>
-                          )}
-                        </button>
+                <div key={interaction.id}>
+                  {showMobileDateHeader && (
+                    <div className="sticky top-0 z-10 -mx-2 mb-2 bg-background/95 px-2 py-1 text-xs font-medium text-muted-foreground backdrop-blur md:hidden">
+                      {format(
+                        new Date(interaction.interaction_date),
+                        "EEEE d MMMM yyyy",
+                        { locale: enGB }
                       )}
                     </div>
+                  )}
+                  <div className="relative flex gap-4 print:gap-2">
+                    {/* Timeline node */}
+                    <div
+                      className={`relative z-10 flex h-10 w-10 shrink-0 items-center justify-center rounded-full border-2 text-lg shadow-sm print:h-8 print:w-8 print:text-base ${CHANNEL_COLOURS[interaction.channel] ?? "bg-muted"} border-white`}
+                    >
+                      {CHANNEL_EMOJIS[interaction.channel] ?? "📋"}
+                    </div>
+
+                    {/* Content card */}
+                    <div className="min-w-0 flex-1 rounded-lg border bg-card p-4 shadow-sm print:border-slate-300 print:p-3">
+                      <button
+                        className="mb-2 flex w-full items-center justify-between gap-2 rounded-md border px-2 py-2 text-left md:hidden"
+                        onClick={() => toggleExpanded(interaction.id)}
+                        type="button"
+                      >
+                        <div className="space-y-1">
+                          <p className="text-xs font-medium text-muted-foreground">
+                            {format(
+                              new Date(interaction.interaction_date),
+                              "dd/MM/yyyy HH:mm",
+                              { locale: enGB }
+                            )}{" "}
+                            · {CHANNEL_EMOJIS[interaction.channel]}
+                          </p>
+                          <p className="text-sm">{mobileSummary}</p>
+                        </div>
+                        {isMobileExpanded ? (
+                          <ChevronUp className="h-4 w-4 text-muted-foreground" />
+                        ) : (
+                          <ChevronDown className="h-4 w-4 text-muted-foreground" />
+                        )}
+                      </button>
+
+                      <div className={isMobileExpanded ? "block" : "hidden md:block"}>
+                        {/* Header */}
+                        <div className="flex flex-wrap items-start justify-between gap-2">
+                          <div className="space-y-0.5">
+                            <div className="flex flex-wrap items-center gap-2">
+                              <span className="text-sm font-medium">
+                                {format(
+                                  new Date(interaction.interaction_date),
+                                  "d MMMM yyyy, h:mm a",
+                                  { locale: enGB }
+                                )}
+                              </span>
+                            </div>
+                            <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
+                              <span>
+                                {CHANNEL_EMOJIS[interaction.channel]}{" "}
+                                {INTERACTION_CHANNEL_LABELS[interaction.channel]}
+                              </span>
+                              <span>
+                                {interaction.direction === "outbound"
+                                  ? "→ You contacted them"
+                                  : "← They contacted you"}
+                              </span>
+                              {interaction.contact_name && (
+                                <span>
+                                  {interaction.contact_name}
+                                  {interaction.contact_department
+                                    ? `, ${interaction.contact_department}`
+                                    : ""}
+                                </span>
+                              )}
+                              {interaction.reference_number && (
+                                <span className="font-mono">
+                                  Ref: {interaction.reference_number}
+                                </span>
+                              )}
+                              {interaction.duration_minutes && (
+                                <span>{interaction.duration_minutes} min</span>
+                              )}
+                              {interaction.mood && (
+                                <span title={interaction.mood}>
+                                  {MOOD_EMOJIS[interaction.mood]}
+                                </span>
+                              )}
+                            </div>
+                          </div>
+
+                          {/* Outcome badge */}
+                          <div className="flex items-center gap-2 print:hidden">
+                            {interaction.outcome && (
+                              <Badge
+                                className={OUTCOME_COLOURS[interaction.outcome] ?? ""}
+                                variant="outline"
+                              >
+                                {INTERACTION_OUTCOME_LABELS[interaction.outcome]}
+                              </Badge>
+                            )}
+                          </div>
+                        </div>
+
+                        {/* Summary */}
+                        <div className="mt-3">
+                          <p className={`text-sm ${!isExpanded && isLong ? "line-clamp-3" : ""}`}>
+                            {interaction.summary}
+                          </p>
+                          {isLong && (
+                            <button
+                              className="mt-1 flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground print:hidden"
+                              onClick={() => toggleExpanded(interaction.id)}
+                              type="button"
+                            >
+                              {isExpanded ? (
+                                <>
+                                  <ChevronUp className="h-3 w-3" /> Show less
+                                </>
+                              ) : (
+                                <>
+                                  <ChevronDown className="h-3 w-3" /> Show more
+                                </>
+                              )}
+                            </button>
+                          )}
+                        </div>
 
                     {/* AI Summary */}
                     {interaction.ai_summary && (
@@ -655,59 +751,76 @@ export function CaseTimeline({
                     )}
 
                     {/* Evidence */}
-                    {(imageEvidence.length > 0 || otherEvidence.length > 0) && (
-                      <div className="mt-3 space-y-2 print:hidden">
-                        {/* Image thumbnails */}
-                        {imageEvidence.length > 0 && (
-                          <div className="flex flex-wrap gap-2">
-                            {imageEvidence.slice(0, 4).map((ev) => (
-                              <div
-                                className="h-12 w-12 overflow-hidden rounded-md border bg-muted"
-                                key={ev.id}
-                                title={ev.file_name}
-                              >
-                                {/* Thumbnail placeholder — signed URLs require client-side fetch */}
-                                <div className="flex h-full w-full items-center justify-center text-xs text-muted-foreground">
-                                  📷
-                                </div>
+                        {(imageEvidence.length > 0 || otherEvidence.length > 0) && (
+                          <div className="mt-3 space-y-2 print:hidden">
+                            {/* Image thumbnails */}
+                            {imageEvidence.length > 0 && (
+                              <div className="flex flex-wrap gap-2">
+                                {imageEvidence.slice(0, 4).map((ev) => {
+                                  const thumbnailUrl = signedImageUrls[ev.id];
+                                  return (
+                                    <Link
+                                      className="block h-12 w-12 overflow-hidden rounded-md border bg-muted"
+                                      href={`/cases/${caseId}?tab=evidence`}
+                                      key={ev.id}
+                                      title={ev.file_name}
+                                    >
+                                      {thumbnailUrl ? (
+                                        // eslint-disable-next-line @next/next/no-img-element
+                                        <img
+                                          alt={ev.file_name}
+                                          className="h-full w-full object-cover"
+                                          src={thumbnailUrl}
+                                        />
+                                      ) : (
+                                        <div className="flex h-full w-full items-center justify-center text-xs text-muted-foreground">
+                                          📷
+                                        </div>
+                                      )}
+                                    </Link>
+                                  );
+                                })}
+                                {imageEvidence.length > 4 && (
+                                  <Link
+                                    className="flex h-12 w-12 items-center justify-center rounded-md border bg-muted text-xs text-muted-foreground"
+                                    href={`/cases/${caseId}?tab=evidence`}
+                                  >
+                                    +{imageEvidence.length - 4}
+                                  </Link>
+                                )}
                               </div>
-                            ))}
-                            {imageEvidence.length > 4 && (
-                              <div className="flex h-12 w-12 items-center justify-center rounded-md border bg-muted text-xs text-muted-foreground">
-                                +{imageEvidence.length - 4}
+                            )}
+                            {/* Non-image evidence badges */}
+                            {otherEvidence.length > 0 && (
+                              <div className="flex flex-wrap gap-2">
+                                {otherEvidence.map((ev) => (
+                                  <div
+                                    className="flex items-center gap-1 rounded-md border bg-muted/50 px-2 py-1 text-xs"
+                                    key={ev.id}
+                                  >
+                                    <FileText className="h-3 w-3 text-muted-foreground" />
+                                    <span className="max-w-[100px] truncate">{ev.file_name}</span>
+                                  </div>
+                                ))}
                               </div>
                             )}
                           </div>
                         )}
-                        {/* Non-image evidence badges */}
-                        {otherEvidence.length > 0 && (
-                          <div className="flex flex-wrap gap-2">
-                            {otherEvidence.map((ev) => (
-                              <div
-                                className="flex items-center gap-1 rounded-md border bg-muted/50 px-2 py-1 text-xs"
-                                key={ev.id}
-                              >
-                                <FileText className="h-3 w-3 text-muted-foreground" />
-                                <span className="max-w-[100px] truncate">{ev.file_name}</span>
-                              </div>
-                            ))}
-                          </div>
-                        )}
-                      </div>
-                    )}
 
-                    {/* Action buttons */}
-                    <div className="mt-3 flex gap-2 print:hidden">
-                      <Button
-                        className="h-7 px-2 text-xs"
-                        onClick={() => setConfirmDelete(interaction.id)}
-                        size="sm"
-                        type="button"
-                        variant="ghost"
-                      >
-                        <Trash2 className="mr-1 h-3 w-3 text-red-400" />
-                        Delete
-                      </Button>
+                        {/* Action buttons */}
+                        <div className="mt-3 flex gap-2 print:hidden">
+                          <Button
+                            className="h-7 px-2 text-xs"
+                            onClick={() => setConfirmDelete(interaction.id)}
+                            size="sm"
+                            type="button"
+                            variant="ghost"
+                          >
+                            <Trash2 className="mr-1 h-3 w-3 text-red-400" />
+                            Delete
+                          </Button>
+                        </div>
+                      </div>
                     </div>
                   </div>
                 </div>

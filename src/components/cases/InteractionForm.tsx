@@ -39,6 +39,7 @@ import {
 import { Textarea } from "@/components/ui/textarea";
 import { UpgradePrompt } from "@/components/ui/UpgradePrompt";
 import { logInteraction } from "@/lib/actions/interactions";
+import { analytics } from "@/lib/analytics/posthog";
 import { canRecordVoiceMemo } from "@/lib/stripe/feature-gates";
 import { createClient } from "@/lib/supabase/client";
 import {
@@ -173,6 +174,8 @@ export function InteractionForm({
           duration: 4000,
         });
       }
+
+      analytics.interactionLogged(data.channel, data.has_promise);
 
       form.reset();
       onSuccess?.();

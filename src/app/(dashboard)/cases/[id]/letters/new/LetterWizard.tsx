@@ -13,6 +13,7 @@ import { Label } from "@/components/ui/label";
 import { Progress } from "@/components/ui/progress";
 import { Textarea } from "@/components/ui/textarea";
 import type { LetterTemplate } from "@/lib/ai/letter-templates";
+import { analytics } from "@/lib/analytics/posthog";
 
 type LetterWizardProps = {
   caseId: string;
@@ -79,6 +80,7 @@ export function LetterWizard({
         subject: data.subject,
         body: data.body,
       });
+      analytics.letterGenerated(selectedType);
       setEditedBody(data.body);
       setStep("edit");
     } catch {

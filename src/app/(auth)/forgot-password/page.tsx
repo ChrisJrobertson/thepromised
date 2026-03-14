@@ -45,7 +45,13 @@ export default function ForgotPasswordPage() {
       <form className="space-y-4" onSubmit={form.handleSubmit(onSubmit)}>
         <div className="space-y-2">
           <Label htmlFor="email">Email</Label>
-          <Input id="email" type="email" autoComplete="email" {...form.register("email")} />
+          <Input
+            id="email"
+            inputMode="email"
+            type="email"
+            autoComplete="email"
+            {...form.register("email")}
+          />
           {form.formState.errors.email ? (
             <p className="text-xs text-destructive">
               {form.formState.errors.email.message}

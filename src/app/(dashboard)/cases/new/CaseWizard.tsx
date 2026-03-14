@@ -11,6 +11,7 @@ import {
   FileText,
   MessageSquare,
 } from "lucide-react";
+import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
@@ -36,6 +37,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
+import { analytics } from "@/lib/analytics/posthog";
 import { createCase } from "@/lib/actions/cases";
 import {
   CASE_PRIORITIES,
@@ -74,6 +76,7 @@ const STEPS = [
 ];
 
 export function CaseWizard() {
+  const router = useRouter();
   const [step, setStep] = useState(0);
   const [selectedOrg, setSelectedOrg] = useState<SelectedOrg | null>(null);
   const [isPending, startTransition] = useTransition();
@@ -194,8 +197,20 @@ export function CaseWizard() {
 
       if (result?.error) {
         toast.error(result.error);
+        return;
       }
-      // On success, createCase calls redirect() so no further code runs
+
+      if (result?.caseId) {
+        analytics.caseCreated(selectedOrg.category, details.priority);
+        if (!interaction.skip && interaction.channel) {
+          analytics.interactionLogged(
+            interaction.channel,
+            Boolean(interaction.promises_made)
+          );
+        }
+        router.push(`/cases/${result.caseId}?created=true`);
+        router.refresh();
+      }
     });
   }
 

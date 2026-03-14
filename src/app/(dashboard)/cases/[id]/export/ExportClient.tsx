@@ -9,6 +9,7 @@ import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { UpgradePrompt } from "@/components/ui/UpgradePrompt";
+import { analytics } from "@/lib/analytics/posthog";
 
 type ExportType = "full_case" | "timeline_only" | "letters_only";
 
@@ -127,6 +128,7 @@ export function ExportClient({
       URL.revokeObjectURL(url);
 
       toast.success("Case file downloaded successfully");
+      analytics.pdfExported(selectedType);
     } catch {
       toast.error("Export failed. Please check your connection and try again.");
     } finally {

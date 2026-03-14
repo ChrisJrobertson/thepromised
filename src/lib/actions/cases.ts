@@ -2,7 +2,6 @@
 
 import { addDays } from "date-fns";
 import { revalidatePath } from "next/cache";
-import { redirect } from "next/navigation";
 
 import { createClient } from "@/lib/supabase/server";
 import { canCreateCase } from "@/lib/stripe/feature-gates";
@@ -200,7 +199,7 @@ export async function createCase(input: CreateCaseInput) {
   }
 
   revalidatePath("/cases");
-  redirect(`/cases/${newCase.id}?created=true`);
+  return { success: true, caseId: newCase.id };
 }
 
 export async function updateCaseStatus(

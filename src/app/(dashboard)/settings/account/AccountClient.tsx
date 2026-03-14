@@ -161,6 +161,7 @@ export function AccountClient({ email }: AccountClientProps) {
                 Type your email address to confirm: <strong>{email}</strong>
               </label>
               <Input
+                inputMode="email"
                 onChange={(e) => setConfirmEmail(e.target.value)}
                 placeholder={email}
                 type="email"

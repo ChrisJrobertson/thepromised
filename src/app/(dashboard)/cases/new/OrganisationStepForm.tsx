@@ -313,6 +313,7 @@ export function OrganisationStepForm({ onNext }: OrganisationStepFormProps) {
                         <FormLabel>Complaint email</FormLabel>
                         <FormControl>
                           <Input
+                            inputMode="email"
                             placeholder="complaints@example.com"
                             type="email"
                             {...field}
@@ -331,7 +332,7 @@ export function OrganisationStepForm({ onNext }: OrganisationStepFormProps) {
                     <FormItem>
                       <FormLabel>Complaint phone number</FormLabel>
                       <FormControl>
-                        <Input placeholder="0800 000 0000" type="tel" {...field} />
+                        <Input inputMode="tel" placeholder="0800 000 0000" type="tel" {...field} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>

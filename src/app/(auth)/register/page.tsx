@@ -13,6 +13,7 @@ import { AuthShell } from "@/components/layout/AuthShell";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { analytics } from "@/lib/analytics/posthog";
 import { createClient } from "@/lib/supabase/client";
 import { getAuthCallbackUrl } from "@/lib/supabase/auth";
 import { registerSchema } from "@/lib/validation/auth";
@@ -64,6 +65,7 @@ export default function RegisterPage() {
       return;
     }
 
+    analytics.signUp("email");
     toast.success("Account created. Please check your email to verify.");
     router.push("/login");
   };
@@ -106,7 +108,13 @@ export default function RegisterPage() {
 
         <div className="space-y-2">
           <Label htmlFor="email">Email</Label>
-          <Input id="email" type="email" autoComplete="email" {...form.register("email")} />
+          <Input
+            id="email"
+            inputMode="email"
+            type="email"
+            autoComplete="email"
+            {...form.register("email")}
+          />
           {form.formState.errors.email ? (
             <p className="text-xs text-destructive">
               {form.formState.errors.email.message}

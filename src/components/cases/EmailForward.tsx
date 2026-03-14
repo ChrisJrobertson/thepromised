@@ -9,6 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { UpgradePrompt } from "@/components/ui/UpgradePrompt";
 import { extractInteractionEntities, logInteraction } from "@/lib/actions/interactions";
+import { analytics } from "@/lib/analytics/posthog";
 import { createClient } from "@/lib/supabase/client";
 import type { Profile } from "@/types/database";
 
@@ -201,6 +202,7 @@ function EmailForwardInner({
       }
 
       toast.success("Email logged as an interaction");
+      analytics.interactionLogged("email", false);
       setEmailText("");
       setParsed(null);
       setContactName("");

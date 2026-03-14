@@ -89,6 +89,36 @@ const styles = StyleSheet.create({
     textAlign: "center",
   },
 
+  // Contents page
+  tocTitle: {
+    fontSize: 20,
+    fontFamily: "Helvetica-Bold",
+    color: NAVY,
+    marginBottom: 16,
+  },
+  tocIntro: {
+    fontSize: 9,
+    color: MUTED,
+    marginBottom: 14,
+    lineHeight: 1.5,
+  },
+  tocRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    borderBottomWidth: 0.5,
+    borderBottomColor: MID_GREY,
+    paddingVertical: 6,
+  },
+  tocLabel: {
+    fontSize: 10,
+    color: TEXT,
+  },
+  tocPageHint: {
+    fontSize: 9,
+    color: MUTED,
+  },
+
   // Section headings
   sectionHeader: {
     backgroundColor: NAVY,
@@ -497,6 +527,18 @@ export function CasePdfDocument({ data }: { data: CasePdfData }) {
   const showTimeline = exportType === "full_case" || exportType === "timeline_only";
   const showLetters = exportType === "full_case" || exportType === "letters_only";
   const showFullCase = exportType === "full_case";
+  const contents = showFullCase
+    ? [
+        "Case Summary",
+        "Chronological Timeline",
+        "Promises & Commitments",
+        "Escalation History",
+        "Evidence Index",
+        "Correspondence",
+      ]
+    : showTimeline
+      ? ["Chronological Timeline"]
+      : ["Correspondence"];
 
   return (
     <Document title={`Case File — ${caseTitle}`} author="TheyPromised.app">
@@ -541,6 +583,23 @@ export function CasePdfDocument({ data }: { data: CasePdfData }) {
         <Text style={styles.coverFooter}>
           Prepared using TheyPromised.app · {generatedAt}
         </Text>
+      </Page>
+
+      {/* ── CONTENTS PAGE ── */}
+      <Page size="A4" style={styles.page}>
+        <Text style={styles.tocTitle}>Contents</Text>
+        <Text style={styles.tocIntro}>
+          This overview lists the sections included in this export.
+        </Text>
+        {contents.map((section, index) => (
+          <View key={section} style={styles.tocRow}>
+            <Text style={styles.tocLabel}>
+              {index + 1}. {section}
+            </Text>
+            <Text style={styles.tocPageHint}>Section</Text>
+          </View>
+        ))}
+        <Footer caseTitle={caseTitle} generatedAt={generatedAt} />
       </Page>
 
       {/* ── SECTION 1: CASE SUMMARY ── */}
