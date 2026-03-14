@@ -65,7 +65,10 @@ export default async function LettersPage({
     .order("updated_at", { ascending: false });
 
   if (statusFilter !== "all") {
-    query = query.eq("status", statusFilter);
+    query = query.eq(
+      "status",
+      statusFilter as "draft" | "sent" | "acknowledged"
+    );
   }
 
   const { data: letters } = await query;

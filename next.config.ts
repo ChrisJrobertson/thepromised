@@ -11,7 +11,7 @@ export default withSentryConfig(nextConfig, {
   project: "thepromised",
   authToken: process.env.SENTRY_AUTH_TOKEN,
   widenClientFileUpload: true,
-  hideSourceMaps: true,
-  disableLogger: true,
-  automaticVercelMonitors: false,
+  sourcemaps: {
+    disable: !process.env.SENTRY_AUTH_TOKEN,
+  },
 });

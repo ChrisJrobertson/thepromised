@@ -78,7 +78,17 @@ export default async function DashboardPage() {
       .eq("user_id", userId)
       .in("status", ["open", "escalated"])
       .not("first_contact_date", "is", null)
-      .limit(20),
+      .limit(20)
+      .returns<
+        {
+          id: string;
+          title: string;
+          first_contact_date: string | null;
+          escalation_deadline: string | null;
+          custom_organisation_name: string | null;
+          organisations: { name: string } | null;
+        }[]
+      >(),
   ]);
 
   const resolvedCount = resolvedData?.length ?? 0;
@@ -89,18 +99,24 @@ export default async function DashboardPage() {
 
   const today = new Date();
 
-  type EscalationAlert = {
+  type EscalationCandidate = {
     id: string;
     title: string;
     first_contact_date: string | null;
     escalation_deadline: string | null;
     custom_organisation_name: string | null;
     organisations: { name: string } | null;
-    daysSinceContact: number;
-    urgency: "deadline_passed" | "deadline_soon" | "approaching_window";
   };
 
-  const escalationAlerts: EscalationAlert[] = (escalationCandidates ?? [])
+  type EscalationAlert = EscalationCandidate & {
+    daysSinceContact: number;
+    urgency: "deadline_passed" | "deadline_soon" | "approaching_window";
+    orgName: string;
+  };
+
+  const candidates = (escalationCandidates ?? []) as EscalationCandidate[];
+
+  const escalationAlerts: EscalationAlert[] = candidates
     .map((c) => {
       const firstContact = c.first_contact_date
         ? new Date(c.first_contact_date)
@@ -112,12 +128,9 @@ export default async function DashboardPage() {
         ? new Date(c.escalation_deadline)
         : null;
       const orgName =
-        (c.organisations as { name: string } | null)?.name ??
-        c.custom_organisation_name ??
-        "";
+        c.organisations?.name ?? c.custom_organisation_name ?? "";
 
-      const deadlinePassed =
-        escalationDeadline && escalationDeadline < today;
+      const deadlinePassed = escalationDeadline && escalationDeadline < today;
       const deadlineSoon =
         escalationDeadline &&
         escalationDeadline <= new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
@@ -133,19 +146,9 @@ export default async function DashboardPage() {
           ? "deadline_soon"
           : "approaching_window";
 
-      return {
-        id: c.id,
-        title: c.title,
-        first_contact_date: c.first_contact_date,
-        escalation_deadline: c.escalation_deadline,
-        custom_organisation_name: c.custom_organisation_name,
-        organisations: c.organisations as { name: string } | null,
-        daysSinceContact,
-        urgency,
-        orgName,
-      };
+      return { ...c, daysSinceContact, urgency, orgName };
     })
-    .filter(Boolean) as EscalationAlert[];
+    .filter((x): x is EscalationAlert => x !== null);
 
   return (
     <div className="space-y-6">
@@ -172,10 +175,6 @@ export default async function DashboardPage() {
           <CardContent>
             <ul className="space-y-3">
               {escalationAlerts.map((alert) => {
-                const orgName =
-                  alert.organisations?.name ??
-                  alert.custom_organisation_name ??
-                  "";
                 return (
                   <li
                     className="flex items-start justify-between gap-3 rounded-md border border-amber-200 bg-white px-3 py-2 dark:bg-amber-900/20"
@@ -183,8 +182,8 @@ export default async function DashboardPage() {
                   >
                     <div>
                       <p className="text-sm font-medium">{alert.title}</p>
-                      {orgName && (
-                        <p className="text-xs text-muted-foreground">{orgName}</p>
+                      {alert.orgName && (
+                        <p className="text-xs text-muted-foreground">{alert.orgName}</p>
                       )}
                       <p className="mt-0.5 text-xs">
                         {alert.urgency === "deadline_passed" ? (

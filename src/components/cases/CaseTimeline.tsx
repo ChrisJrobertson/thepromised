@@ -13,7 +13,7 @@ import {
   Trash2,
   X,
 } from "lucide-react";
-import { useCallback, useMemo, useState, useTransition } from "react";
+import { useCallback, useEffect, useMemo, useState, useTransition } from "react";
 import { toast } from "sonner";
 
 import { Badge } from "@/components/ui/badge";
@@ -202,18 +202,11 @@ function buildMilestones(
 
 function useDebounce<T>(value: T, delay: number): T {
   const [debouncedValue, setDebouncedValue] = useState<T>(value);
-  const timeoutRef = useState<ReturnType<typeof setTimeout> | null>(null);
 
-  const update = useCallback(
-    (v: T) => {
-      if (timeoutRef[0]) clearTimeout(timeoutRef[0]);
-      timeoutRef[1](setTimeout(() => setDebouncedValue(v), delay));
-    },
-    [delay, timeoutRef]
-  );
-
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  useMemo(() => update(value), [value]);
+  useEffect(() => {
+    const timer = setTimeout(() => setDebouncedValue(value), delay);
+    return () => clearTimeout(timer);
+  }, [value, delay]);
 
   return debouncedValue;
 }
