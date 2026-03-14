@@ -93,7 +93,10 @@ export function QuickLogButton() {
             </DialogDescription>
           </DialogHeader>
           <div className="py-2">
-            <Select onValueChange={setSelectedCaseId} value={selectedCaseId}>
+            <Select
+              onValueChange={(value) => setSelectedCaseId(value ?? "")}
+              value={selectedCaseId}
+            >
               <SelectTrigger>
                 <SelectValue placeholder="Select a case" />
               </SelectTrigger>
