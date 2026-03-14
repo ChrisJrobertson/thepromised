@@ -19,6 +19,9 @@ import { createClient } from "@/lib/supabase/server";
 
 export const metadata = { title: "Letters — TheyPromised" };
 
+const LETTER_STATUS_FILTERS = ["all", "draft", "sent", "acknowledged"] as const;
+type LetterStatusFilter = (typeof LETTER_STATUS_FILTERS)[number];
+
 const LETTER_TYPE_LABELS: Record<string, string> = {
   initial_complaint: "Initial Complaint",
   follow_up: "Follow-up",
@@ -49,7 +52,12 @@ export default async function LettersPage({
 
   if (!user) redirect("/login");
 
-  const statusFilter = params.status ?? "all";
+  const requestedStatus = params.status;
+  const statusFilter: LetterStatusFilter = LETTER_STATUS_FILTERS.includes(
+    requestedStatus as LetterStatusFilter
+  )
+    ? (requestedStatus as LetterStatusFilter)
+    : "all";
 
   let query = supabase
     .from("letters")
@@ -110,7 +118,7 @@ export default async function LettersPage({
 
       {/* Status filter tabs */}
       <div className="flex gap-2">
-        {(["all", "draft", "sent", "acknowledged"] as const).map((s) => (
+        {LETTER_STATUS_FILTERS.map((s) => (
           <Link
             className={`rounded-md border px-3 py-1.5 text-xs font-medium transition-colors ${
               statusFilter === s
