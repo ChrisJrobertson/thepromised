@@ -1,0 +1,53 @@
+---
+# TheyPromised.app — Cursor Rules
+
+## Project Context
+This is TheyPromised.app — a consumer complaint tracking platform built for UK users. It helps people log every interaction with organisations they're in dispute with (energy companies, banks, HMRC, landlords, councils, NHS, etc.) and guides them through escalation to ombudsmen and courts.
+
+## Tech Stack
+- Next.js 15 (App Router, Server Components by default)
+- TypeScript (strict mode)
+- Supabase (auth, database, storage, realtime)
+- Stripe (payments, subscriptions)
+- Claude API via @anthropic-ai/sdk (AI features)
+- Tailwind CSS v4
+- shadcn/ui components
+- React Hook Form + Zod for forms
+- TanStack Query for data fetching
+- Framer Motion for animations
+
+## Code Style
+- Use UK English in all user-facing text (organisation, colour, licence, etc.)
+- Server Components by default; only use 'use client' when needed
+- Prefer Server Actions for mutations
+- Use Zod schemas for all form validation AND API input validation
+- Every database query must use Row Level Security — never bypass with service role unless in a webhook/cron
+- All dates stored as UTC, displayed in UK format (DD/MM/YYYY)
+- Error handling: always use try/catch with user-friendly error messages via sonner toast
+- Use TypeScript strict mode — no 'any' types
+
+## File Conventions
+- Components: PascalCase (CaseCard.tsx)
+- Utilities: camelCase (formatDate.ts)
+- Types: PascalCase interfaces (CaseInteraction)
+- Constants: SCREAMING_SNAKE_CASE
+- API routes: kebab-case folders
+
+## Supabase Conventions
+- Always use the server client for Server Components/Actions
+- Always use the browser client for Client Components
+- Type all queries with the generated database types
+- Use RLS policies for ALL tables — no exceptions
+
+## Stripe Conventions
+- All Stripe operations server-side only
+- Webhook verification required on all webhook endpoints
+- Use Stripe metadata to link to Supabase user IDs
+- Products/prices created via Stripe MCP or dashboard, never in code
+
+## AI Conventions
+- All AI calls go through API routes, never client-side
+- Always validate AI output before displaying to user
+- Include disclaimer: "AI suggestions are for guidance only. Always verify with official sources."
+- Rate limit AI endpoints per user
+---
