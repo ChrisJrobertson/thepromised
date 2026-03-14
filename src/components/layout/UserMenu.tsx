@@ -1,7 +1,6 @@
 "use client";
 
 import { LogOut, User, Wallet } from "lucide-react";
-import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 
@@ -22,6 +21,10 @@ type UserMenuProps = {
 
 export function UserMenu({ name, email }: UserMenuProps) {
   const router = useRouter();
+
+  const navigate = (href: string) => {
+    router.push(href);
+  };
 
   const onLogout = async () => {
     const supabase = createClient();
@@ -44,15 +47,11 @@ export function UserMenu({ name, email }: UserMenuProps) {
       <DropdownMenuContent align="end" className="w-56">
         <DropdownMenuLabel>My account</DropdownMenuLabel>
         <DropdownMenuSeparator />
-        <DropdownMenuItem asChild>
-          <Link href="/settings/profile">
-            <User className="mr-2 size-4" /> Profile
-          </Link>
+        <DropdownMenuItem onClick={() => navigate("/settings/profile")}>
+          <User className="mr-2 size-4" /> Profile
         </DropdownMenuItem>
-        <DropdownMenuItem asChild>
-          <Link href="/settings/billing">
-            <Wallet className="mr-2 size-4" /> Billing
-          </Link>
+        <DropdownMenuItem onClick={() => navigate("/settings/billing")}>
+          <Wallet className="mr-2 size-4" /> Billing
         </DropdownMenuItem>
         <DropdownMenuSeparator />
         <DropdownMenuItem onClick={onLogout}>

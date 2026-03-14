@@ -1,6 +1,6 @@
 import { format } from "date-fns";
 import { enGB } from "date-fns/locale";
-import { AlertTriangle, FolderKanban, HandCoins, ShieldCheck } from "lucide-react";
+import { AlertTriangle, FolderKanban, ShieldCheck } from "lucide-react";
 import Link from "next/link";
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";

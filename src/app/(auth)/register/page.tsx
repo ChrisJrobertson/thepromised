@@ -30,7 +30,6 @@ function getPasswordStrength(password: string) {
 
 export default function RegisterPage() {
   const router = useRouter();
-  const supabase = createClient();
   const [isGoogleLoading, setIsGoogleLoading] = useState(false);
 
   const form = useForm<FormValues>({
@@ -48,6 +47,7 @@ export default function RegisterPage() {
   const strengthLabel = ["Very weak", "Weak", "Fair", "Good", "Strong"][strength];
 
   const onSubmit = async (values: FormValues) => {
+    const supabase = createClient();
     const { error } = await supabase.auth.signUp({
       email: values.email,
       password: values.password,
@@ -69,6 +69,7 @@ export default function RegisterPage() {
   };
 
   const signInWithGoogle = async () => {
+    const supabase = createClient();
     setIsGoogleLoading(true);
     const { error } = await supabase.auth.signInWithOAuth({
       provider: "google",

@@ -28,7 +28,7 @@ export function OrganisationSearch({ onSelect }: OrganisationSearchProps) {
         .select("*")
         .ilike("name", `%${query}%`)
         .limit(8);
-      setResults(data ?? []);
+      setResults((data as Organisation[] | null) ?? []);
       setLoading(false);
     }, 300);
 

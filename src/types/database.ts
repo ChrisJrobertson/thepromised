@@ -656,6 +656,31 @@ export type Database = {
   };
 };
 
+type WithRelationships<T> = {
+  [K in keyof T]: T[K] extends {
+    Row: infer R;
+    Insert: infer I;
+    Update: infer U;
+  }
+    ? {
+        Row: R;
+        Insert: I;
+        Update: U;
+        Relationships: [];
+      }
+    : T[K];
+};
+
+export type SupabaseDatabase = {
+  public: {
+    Tables: WithRelationships<Database["public"]["Tables"]>;
+    Views: Database["public"]["Views"];
+    Functions: Database["public"]["Functions"];
+    Enums: Database["public"]["Enums"];
+    CompositeTypes: Database["public"]["CompositeTypes"];
+  };
+};
+
 export type Profile = Database["public"]["Tables"]["profiles"]["Row"];
 export type Case = Database["public"]["Tables"]["cases"]["Row"];
 export type Interaction = Database["public"]["Tables"]["interactions"]["Row"];

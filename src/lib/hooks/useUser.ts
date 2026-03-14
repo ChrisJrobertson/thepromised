@@ -21,11 +21,12 @@ async function getUserWithProfile(): Promise<UserWithProfile> {
     return { userId: null, email: null, profile: null };
   }
 
-  const { data: profile } = await supabase
+  const { data: profileData } = await supabase
     .from("profiles")
     .select("*")
     .eq("id", user.id)
     .maybeSingle();
+  const profile = profileData as Profile | null;
 
   return {
     userId: user.id,

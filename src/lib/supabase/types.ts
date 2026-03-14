@@ -1,1 +1,1 @@
-export type { Database } from "@/types/database";
+export type { Database, SupabaseDatabase } from "@/types/database";

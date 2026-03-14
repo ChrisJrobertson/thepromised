@@ -1,7 +1,6 @@
 import Link from "next/link";
 
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { Button } from "@/components/ui/button";
 
 type UpgradePromptProps = {
   title?: string;
@@ -19,9 +18,9 @@ export function UpgradePrompt({
       <AlertTitle>{title}</AlertTitle>
       <AlertDescription className="mt-2 space-y-3">
         <p>{description}</p>
-        <Button asChild size="sm">
-          <Link href="/pricing">Upgrade to {requiredTier === "pro" ? "Pro" : "Basic"}</Link>
-        </Button>
+        <Link className="inline-flex rounded-md bg-primary px-3 py-2 text-sm text-white" href="/pricing">
+          Upgrade to {requiredTier === "pro" ? "Pro" : "Basic"}
+        </Link>
       </AlertDescription>
     </Alert>
   );

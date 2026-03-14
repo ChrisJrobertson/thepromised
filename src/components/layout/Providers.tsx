@@ -17,7 +17,7 @@ export function Providers({ children }: ProvidersProps) {
   return (
     <ThemeProvider attribute="class" defaultTheme="light" enableSystem>
       <QueryClientProvider client={queryClient}>
-        <TooltipProvider delayDuration={100}>
+        <TooltipProvider delay={100}>
           {children}
           <Toaster richColors position="top-right" />
         </TooltipProvider>

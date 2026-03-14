@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Loader2 } from "lucide-react";
 import { useState } from "react";
@@ -21,9 +21,7 @@ type FormValues = z.infer<typeof loginSchema>;
 
 export default function LoginPage() {
   const router = useRouter();
-  const searchParams = useSearchParams();
-  const nextPath = searchParams.get("next") || "/dashboard";
-  const supabase = createClient();
+  const nextPath = "/dashboard";
   const [isMagicLoading, setIsMagicLoading] = useState(false);
   const [isGoogleLoading, setIsGoogleLoading] = useState(false);
 
@@ -33,6 +31,7 @@ export default function LoginPage() {
   });
 
   const onSubmit = async (values: FormValues) => {
+    const supabase = createClient();
     const { error } = await supabase.auth.signInWithPassword(values);
 
     if (error) {
@@ -46,6 +45,7 @@ export default function LoginPage() {
   };
 
   const sendMagicLink = async () => {
+    const supabase = createClient();
     const email = form.getValues("email");
     if (!email) {
       toast.error("Enter your email first.");
@@ -70,6 +70,7 @@ export default function LoginPage() {
   };
 
   const signInWithGoogle = async () => {
+    const supabase = createClient();
     setIsGoogleLoading(true);
     const { error } = await supabase.auth.signInWithOAuth({
       provider: "google",

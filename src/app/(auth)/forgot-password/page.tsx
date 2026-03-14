@@ -18,14 +18,13 @@ import { forgotPasswordSchema } from "@/lib/validation/auth";
 type FormValues = z.infer<typeof forgotPasswordSchema>;
 
 export default function ForgotPasswordPage() {
-  const supabase = createClient();
-
   const form = useForm<FormValues>({
     resolver: zodResolver(forgotPasswordSchema),
     defaultValues: { email: "" },
   });
 
   const onSubmit = async (values: FormValues) => {
+    const supabase = createClient();
     const { error } = await supabase.auth.resetPasswordForEmail(values.email, {
       redirectTo: getAuthCallbackUrl("/settings/profile"),
     });

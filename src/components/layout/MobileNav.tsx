@@ -5,7 +5,6 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
 
-import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { cn } from "@/lib/utils";
 
@@ -24,11 +23,9 @@ export function MobileNav() {
 
   return (
     <Sheet onOpenChange={setIsOpen} open={isOpen}>
-      <SheetTrigger asChild>
-        <Button size="icon" variant="outline">
-          <Menu className="size-4" />
-          <span className="sr-only">Open navigation menu</span>
-        </Button>
+      <SheetTrigger className="inline-flex size-8 items-center justify-center rounded-md border bg-white text-slate-900">
+        <Menu className="size-4" />
+        <span className="sr-only">Open navigation menu</span>
       </SheetTrigger>
       <SheetContent className="w-80 bg-primary text-white">
         <SheetHeader>
