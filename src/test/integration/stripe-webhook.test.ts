@@ -2,9 +2,15 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { stripeEventFixtures } from "../../../tests/fixtures/stripe-events";
 
-const mockConstructEventAsync = vi.fn();
-const mockRetrieveSubscription = vi.fn();
-const mockTrackServerEvent = vi.fn();
+const {
+  mockConstructEventAsync,
+  mockRetrieveSubscription,
+  mockTrackServerEvent,
+} = vi.hoisted(() => ({
+  mockConstructEventAsync: vi.fn(),
+  mockRetrieveSubscription: vi.fn(),
+  mockTrackServerEvent: vi.fn(),
+}));
 const updateCalls: Array<{
   table: string;
   values: Record<string, unknown>;

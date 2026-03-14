@@ -2,8 +2,10 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { claudeSuggestionResponse } from "../../../tests/fixtures/claude-responses";
 
-const mockAnthropicCreate = vi.fn();
-const mockTrackServerEvent = vi.fn();
+const { mockAnthropicCreate, mockTrackServerEvent } = vi.hoisted(() => ({
+  mockAnthropicCreate: vi.fn(),
+  mockTrackServerEvent: vi.fn(),
+}));
 
 let mockProfile = {
   id: "user-test-123",
