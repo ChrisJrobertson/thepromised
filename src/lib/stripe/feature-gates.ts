@@ -34,7 +34,7 @@ export function canViewAISuggestions(profile: Profile): boolean {
 }
 
 // ── Voice memos (Pro only) ─────────────────────────────────────────────────────
-export function canRecordVoiceMemo(profile: Profile): boolean {
+export function canRecordVoiceMemo(profile: Pick<Profile, "subscription_tier">): boolean {
   return profile.subscription_tier === "pro";
 }
 

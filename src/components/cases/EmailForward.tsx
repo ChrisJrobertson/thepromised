@@ -5,9 +5,10 @@ import { useState, useTransition } from "react";
 import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { UpgradePrompt } from "@/components/ui/UpgradePrompt";
-import { logInteraction } from "@/lib/actions/interactions";
+import { extractInteractionEntities, logInteraction } from "@/lib/actions/interactions";
 import { createClient } from "@/lib/supabase/client";
 import type { Profile } from "@/types/database";
 
@@ -87,15 +88,50 @@ function EmailForwardInner({
 }) {
   const [emailText, setEmailText] = useState("");
   const [parsed, setParsed] = useState<ParsedEmail | null>(null);
+  const [contactName, setContactName] = useState("");
+  const [referenceNumber, setReferenceNumber] = useState("");
+  const [extractedNames, setExtractedNames] = useState<string[]>([]);
+  const [extractedReferences, setExtractedReferences] = useState<string[]>([]);
+  const [isParsing, setIsParsing] = useState(false);
   const [isPending, startTransition] = useTransition();
 
-  function handleParse() {
+  async function handleParse() {
     if (!emailText.trim()) {
       toast.error("Please paste an email first");
       return;
     }
+
     const result = parseForwardedEmail(emailText);
     setParsed(result);
+    setContactName(result.from || "");
+    setReferenceNumber("");
+    setExtractedNames([]);
+    setExtractedReferences([]);
+
+    setIsParsing(true);
+    try {
+      const extracted = await extractInteractionEntities(result.body || emailText);
+      if (extracted.error) {
+        toast.error(extracted.error);
+        return;
+      }
+
+      const names = extracted.entities?.names ?? [];
+      const references = extracted.entities?.references ?? [];
+      setExtractedNames(names);
+      setExtractedReferences(references);
+
+      if (extracted.contactName) {
+        setContactName(extracted.contactName);
+      }
+      if (extracted.referenceNumber) {
+        setReferenceNumber(extracted.referenceNumber);
+      }
+    } catch {
+      toast.error("Could not extract entities from the email");
+    } finally {
+      setIsParsing(false);
+    }
   }
 
   function handleLog() {
@@ -131,8 +167,8 @@ function EmailForwardInner({
         channel: "email",
         direction: parsed.from.toLowerCase().includes("@") ? "inbound" : "outbound",
         summary: summary.length > 20 ? summary : `Email received: ${parsed.subject || "No subject"}. ${parsed.body}`,
-        contact_name: parsed.from || null,
-        reference_number: null,
+        contact_name: contactName.trim() || null,
+        reference_number: referenceNumber.trim() || null,
       });
 
       if (result.error) {
@@ -167,6 +203,10 @@ function EmailForwardInner({
       toast.success("Email logged as an interaction");
       setEmailText("");
       setParsed(null);
+      setContactName("");
+      setReferenceNumber("");
+      setExtractedNames([]);
+      setExtractedReferences([]);
     });
   }
 
@@ -187,6 +227,10 @@ function EmailForwardInner({
         onChange={(e) => {
           setEmailText(e.target.value);
           setParsed(null);
+          setContactName("");
+          setReferenceNumber("");
+          setExtractedNames([]);
+          setExtractedReferences([]);
         }}
         placeholder="From: billing@example.com
 To: you@email.com
@@ -201,7 +245,7 @@ Thank you for your complaint dated...
       />
 
       {parsed && (
-        <div className="rounded-md border bg-muted/50 p-3 text-xs space-y-1">
+        <div className="space-y-3 rounded-md border bg-muted/50 p-3 text-xs">
           <p className="font-medium mb-2">Parsed email:</p>
           {parsed.from && <p><span className="text-muted-foreground">From:</span> {parsed.from}</p>}
           {parsed.to && <p><span className="text-muted-foreground">To:</span> {parsed.to}</p>}
@@ -213,23 +257,72 @@ Thank you for your complaint dated...
               <p className="mt-1 line-clamp-3 text-muted-foreground">{parsed.body}</p>
             </div>
           )}
+
+          <div className="grid gap-3 pt-2 sm:grid-cols-2">
+            <div className="space-y-1">
+              <p className="text-[11px] font-medium text-muted-foreground">
+                Contact name (editable)
+              </p>
+              <Input
+                onChange={(event) => setContactName(event.target.value)}
+                placeholder="Contact name"
+                value={contactName}
+              />
+            </div>
+            <div className="space-y-1">
+              <p className="text-[11px] font-medium text-muted-foreground">
+                Reference number (editable)
+              </p>
+              <Input
+                onChange={(event) => setReferenceNumber(event.target.value)}
+                placeholder="Reference number"
+                value={referenceNumber}
+              />
+            </div>
+          </div>
+
+          {(extractedNames.length > 0 || extractedReferences.length > 0) && (
+            <div className="space-y-1 rounded-md border bg-background p-2">
+              <p className="text-[11px] font-medium text-muted-foreground">
+                Extracted entities
+              </p>
+              {extractedNames.length > 0 && (
+                <p>
+                  <span className="text-muted-foreground">Names:</span>{" "}
+                  {extractedNames.join(", ")}
+                </p>
+              )}
+              {extractedReferences.length > 0 && (
+                <p>
+                  <span className="text-muted-foreground">References:</span>{" "}
+                  {extractedReferences.join(", ")}
+                </p>
+              )}
+            </div>
+          )}
         </div>
       )}
 
       <div className="flex gap-2">
         {!parsed ? (
-          <Button disabled={!emailText.trim()} onClick={handleParse} size="sm" type="button" variant="outline">
-            Parse Email
+          <Button
+            disabled={!emailText.trim() || isParsing}
+            onClick={handleParse}
+            size="sm"
+            type="button"
+            variant="outline"
+          >
+            {isParsing ? "Extracting..." : "Parse Email"}
           </Button>
         ) : (
           <>
             <Button
-              disabled={isPending}
+              disabled={isPending || isParsing}
               onClick={handleLog}
               size="sm"
               type="button"
             >
-              {isPending ? "Logging..." : "Log as Interaction"}
+              {isPending ? "Logging..." : isParsing ? "Extracting..." : "Log as Interaction"}
             </Button>
             <Button
               onClick={() => setParsed(null)}

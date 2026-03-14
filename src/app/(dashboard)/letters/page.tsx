@@ -55,7 +55,7 @@ export default async function LettersPage({
     .from("letters")
     .select(
       `
-      id, letter_type, subject, status, sent_date, created_at, updated_at, ai_generated,
+      id, letter_type, recipient_name, subject, status, sent_date, created_at, updated_at, ai_generated,
       case_id,
       cases!inner(id, title, organisation_id, custom_organisation_name,
         organisations(name))
@@ -73,6 +73,7 @@ export default async function LettersPage({
   type LetterRow = {
     id: string;
     letter_type: string;
+    recipient_name: string | null;
     subject: string;
     status: "draft" | "sent" | "acknowledged";
     sent_date: string | null;
@@ -149,9 +150,8 @@ export default async function LettersPage({
                 <TableHead>Date</TableHead>
                 <TableHead>Case</TableHead>
                 <TableHead>Type</TableHead>
-                <TableHead>Subject</TableHead>
+                <TableHead>Recipient</TableHead>
                 <TableHead>Status</TableHead>
-                <TableHead className="sr-only">Actions</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -160,6 +160,8 @@ export default async function LettersPage({
                   letter.cases.organisations?.name ??
                   letter.cases.custom_organisation_name ??
                   letter.cases.title;
+                const destination = `/cases/${letter.case_id}/letters`;
+                const recipient = letter.recipient_name ?? orgName;
 
                 return (
                   <TableRow
@@ -167,37 +169,39 @@ export default async function LettersPage({
                     key={letter.id}
                   >
                     <TableCell className="text-sm text-muted-foreground">
-                      {letter.updated_at
-                        ? format(new Date(letter.updated_at), "dd/MM/yyyy", { locale: enGB })
-                        : "—"}
+                      <Link className="block w-full" href={destination}>
+                        {letter.updated_at
+                          ? format(new Date(letter.updated_at), "dd/MM/yyyy", { locale: enGB })
+                          : "—"}
+                      </Link>
                     </TableCell>
                     <TableCell>
-                      <p className="text-sm font-medium">{orgName}</p>
-                      <p className="text-xs text-muted-foreground">{letter.cases.title}</p>
+                      <Link className="block w-full" href={destination}>
+                        <p className="text-sm font-medium">{orgName}</p>
+                        <p className="text-xs text-muted-foreground">{letter.cases.title}</p>
+                      </Link>
                     </TableCell>
                     <TableCell className="text-sm">
-                      {LETTER_TYPE_LABELS[letter.letter_type] ?? letter.letter_type}
-                      {letter.ai_generated && (
-                        <span className="ml-1 text-xs text-muted-foreground">· AI</span>
-                      )}
+                      <Link className="block w-full" href={destination}>
+                        {LETTER_TYPE_LABELS[letter.letter_type] ?? letter.letter_type}
+                        {letter.ai_generated && (
+                          <span className="ml-1 text-xs text-muted-foreground">· AI</span>
+                        )}
+                      </Link>
                     </TableCell>
                     <TableCell className="max-w-[240px]">
-                      <p className="truncate text-sm">{letter.subject}</p>
+                      <Link className="block w-full" href={destination}>
+                        <p className="truncate text-sm">{recipient}</p>
+                      </Link>
                     </TableCell>
                     <TableCell>
-                      <Badge
-                        className={STATUS_COLOURS[letter.status] ?? ""}
-                        variant="outline"
-                      >
-                        {letter.status.charAt(0).toUpperCase() + letter.status.slice(1)}
-                      </Badge>
-                    </TableCell>
-                    <TableCell>
-                      <Link
-                        className="text-xs text-primary underline"
-                        href={`/cases/${letter.case_id}/letters`}
-                      >
-                        View →
+                      <Link className="block w-full" href={destination}>
+                        <Badge
+                          className={STATUS_COLOURS[letter.status] ?? ""}
+                          variant="outline"
+                        >
+                          {letter.status.charAt(0).toUpperCase() + letter.status.slice(1)}
+                        </Badge>
                       </Link>
                     </TableCell>
                   </TableRow>

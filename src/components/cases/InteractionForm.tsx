@@ -18,6 +18,7 @@ import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 
 import { EvidenceUpload } from "@/components/cases/EvidenceUpload";
+import { VoiceMemoRecorder } from "@/components/cases/VoiceMemoRecorder";
 import { Button } from "@/components/ui/button";
 import {
   Form,
@@ -36,7 +37,9 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
+import { UpgradePrompt } from "@/components/ui/UpgradePrompt";
 import { logInteraction } from "@/lib/actions/interactions";
+import { canRecordVoiceMemo } from "@/lib/stripe/feature-gates";
 import { createClient } from "@/lib/supabase/client";
 import {
   INTERACTION_CHANNEL_LABELS,
@@ -47,6 +50,7 @@ import {
   type InteractionFormData,
 } from "@/lib/validation/cases";
 import type { Case } from "@/types/database";
+import type { Profile } from "@/types/database";
 
 const CHANNEL_ICONS: Record<string, React.ReactNode> = {
   phone: <Phone className="h-3.5 w-3.5" />,
@@ -75,10 +79,7 @@ export function InteractionForm({
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
   const [authUserId, setAuthUserId] = useState<string>("");
-  const [savedInteraction, setSavedInteraction] = useState<{
-    id: string;
-    caseId: string;
-  } | null>(null);
+  const [subscriptionTier, setSubscriptionTier] = useState<Profile["subscription_tier"]>("free");
 
   useEffect(() => {
     createClient()
@@ -87,6 +88,22 @@ export function InteractionForm({
         if (data.user) setAuthUserId(data.user.id);
       });
   }, []);
+
+  useEffect(() => {
+    if (!authUserId) return;
+
+    const supabase = createClient();
+    supabase
+      .from("profiles")
+      .select("subscription_tier")
+      .eq("id", authUserId)
+      .maybeSingle()
+      .then(({ data }) => {
+        if (data?.subscription_tier) {
+          setSubscriptionTier(data.subscription_tier);
+        }
+      });
+  }, [authUserId]);
 
   const form = useForm<InteractionFormData>({
     resolver: zodResolver(interactionSchema),
@@ -157,15 +174,6 @@ export function InteractionForm({
         });
       }
 
-      // Show evidence section if we have the interaction ID
-      if (result.interactionId) {
-        setSavedInteraction({
-          id: result.interactionId,
-          caseId: data.case_id,
-        });
-        return;
-      }
-
       form.reset();
       onSuccess?.();
 
@@ -175,48 +183,7 @@ export function InteractionForm({
       }
     });
   }
-
-  function handleDone() {
-    const caseId = savedInteraction?.caseId;
-    form.reset();
-    setSavedInteraction(null);
-    onSuccess?.();
-    if (redirectOnSuccess && caseId) {
-      router.push(`/cases/${caseId}?tab=timeline`);
-      router.refresh();
-    }
-  }
-
-  if (savedInteraction) {
-    return (
-      <div className="space-y-4">
-        <div className="rounded-md border border-green-200 bg-green-50 p-4 text-sm">
-          <p className="font-medium text-green-800">✅ Interaction logged successfully</p>
-          <p className="mt-0.5 text-green-700">
-            Attach any supporting evidence below, or click Done to finish.
-          </p>
-        </div>
-
-        {authUserId && (
-          <div className="space-y-2">
-            <div className="flex items-center gap-2">
-              <Paperclip className="h-4 w-4 text-muted-foreground" />
-              <p className="text-sm font-medium">Attach Evidence (optional)</p>
-            </div>
-            <EvidenceUpload
-              caseId={savedInteraction.caseId}
-              interactionId={savedInteraction.id}
-              userId={authUserId}
-            />
-          </div>
-        )}
-
-        <Button className="w-full" onClick={handleDone} type="button">
-          Done
-        </Button>
-      </div>
-    );
-  }
+  const selectedCaseId = preselectedCaseId ?? form.watch("case_id");
 
   return (
     <Form {...form}>
@@ -554,6 +521,51 @@ export function InteractionForm({
             </FormItem>
           )}
         />
+
+        {/* Attach evidence */}
+        <div className="space-y-3 rounded-md border p-4">
+          <div className="flex items-center gap-2">
+            <Paperclip className="h-4 w-4 text-muted-foreground" />
+            <p className="text-sm font-medium">Attach Evidence</p>
+          </div>
+          <p className="text-xs text-muted-foreground">
+            You can add files and voice notes now. They will be attached to this case.
+          </p>
+
+          {!selectedCaseId ? (
+            <p className="text-xs text-muted-foreground">
+              Select a case first to attach evidence.
+            </p>
+          ) : !authUserId ? (
+            <p className="text-xs text-muted-foreground">Loading your account...</p>
+          ) : (
+            <div className="space-y-4">
+              <EvidenceUpload
+                caseId={selectedCaseId}
+                interactionId={null}
+                userId={authUserId}
+              />
+
+              <div className="space-y-2">
+                <p className="text-sm font-medium">Voice memo</p>
+                {canRecordVoiceMemo({ subscription_tier: subscriptionTier }) ? (
+                  <VoiceMemoRecorder
+                    caseId={selectedCaseId}
+                    interactionId={null}
+                    profile={{ subscription_tier: subscriptionTier }}
+                    userId={authUserId}
+                  />
+                ) : (
+                  <UpgradePrompt
+                    description="Voice memo recording is available on the Pro plan."
+                    requiredTier="pro"
+                    title="Voice memos require Pro"
+                  />
+                )}
+              </div>
+            </div>
+          )}
+        </div>
 
         <Button className="w-full" disabled={isPending} type="submit">
           {isPending ? "Logging..." : "Log Interaction"}

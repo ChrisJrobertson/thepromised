@@ -3,7 +3,7 @@
 import { addDays } from "date-fns";
 import { revalidatePath } from "next/cache";
 
-import { quickSummary } from "@/lib/ai/huggingface";
+import { extractEntities, quickSummary } from "@/lib/ai/huggingface";
 
 import { createClient } from "@/lib/supabase/server";
 import type { InteractionInsert, ReminderInsert } from "@/types/database";
@@ -132,6 +132,39 @@ export async function logInteraction(input: LogInteractionInput) {
   }
 
   return { success: true, interactionId: interaction.id };
+}
+
+export async function extractInteractionEntities(text: string) {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) {
+    return {
+      error: "You must be signed in to use entity extraction",
+      entities: null,
+      contactName: null,
+      referenceNumber: null,
+    };
+  }
+
+  const entities = await extractEntities(text);
+  if (!entities) {
+    return {
+      error: null,
+      entities: null,
+      contactName: null,
+      referenceNumber: null,
+    };
+  }
+
+  return {
+    error: null,
+    entities,
+    contactName: entities.names[0] ?? null,
+    referenceNumber: entities.references[0] ?? null,
+  };
 }
 
 export async function deleteInteraction(interactionId: string, caseId: string) {

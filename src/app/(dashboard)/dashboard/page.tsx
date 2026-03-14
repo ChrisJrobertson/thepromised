@@ -53,7 +53,7 @@ export default async function DashboardPage() {
       .eq("user_id", userId)
       .not("promises_made", "is", null)
       .neq("promises_made", "")
-      .is("promise_fulfilled", null)
+      .or("promise_fulfilled.is.null,promise_fulfilled.eq.false")
       .not("promise_deadline", "is", null),
     // Overdue: has promise, not fulfilled, deadline has passed
     supabase
@@ -77,8 +77,7 @@ export default async function DashboardPage() {
       )
       .eq("user_id", userId)
       .in("status", ["open", "escalated"])
-      .not("first_contact_date", "is", null)
-      .limit(20),
+      .limit(100),
   ]);
 
   const resolvedCount = resolvedData?.length ?? 0;
@@ -122,7 +121,7 @@ export default async function DashboardPage() {
         escalationDeadline &&
         escalationDeadline <= new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
       const approachingWindow =
-        daysSinceContact >= 42 && daysSinceContact <= 63;
+        daysSinceContact >= 42 && daysSinceContact <= 56;
 
       const isAlert = deadlinePassed || deadlineSoon || approachingWindow;
       if (!isAlert) return null;
@@ -185,6 +184,11 @@ export default async function DashboardPage() {
                       <p className="text-sm font-medium">{alert.title}</p>
                       {orgName && (
                         <p className="text-xs text-muted-foreground">{orgName}</p>
+                      )}
+                      {alert.first_contact_date && (
+                        <p className="mt-0.5 text-xs text-muted-foreground">
+                          {alert.daysSinceContact} days since first complaint
+                        </p>
                       )}
                       <p className="mt-0.5 text-xs">
                         {alert.urgency === "deadline_passed" ? (
