@@ -88,6 +88,15 @@ export default async function DashboardPage() {
 
   const today = new Date();
 
+  type EscalationCandidate = {
+    id: string;
+    title: string;
+    first_contact_date: string | null;
+    escalation_deadline: string | null;
+    custom_organisation_name: string | null;
+    organisations: { name: string } | { name: string }[] | null;
+  };
+
   type EscalationAlert = {
     id: string;
     title: string;
@@ -99,7 +108,9 @@ export default async function DashboardPage() {
     urgency: "deadline_passed" | "deadline_soon" | "approaching_window";
   };
 
-  const escalationAlerts: EscalationAlert[] = (escalationCandidates ?? [])
+  const typedEscalationCandidates = (escalationCandidates ?? []) as EscalationCandidate[];
+
+  const escalationAlerts: EscalationAlert[] = typedEscalationCandidates
     .map((c) => {
       const firstContact = c.first_contact_date
         ? new Date(c.first_contact_date)
@@ -110,8 +121,11 @@ export default async function DashboardPage() {
       const escalationDeadline = c.escalation_deadline
         ? new Date(c.escalation_deadline)
         : null;
+      const organisationRow = Array.isArray(c.organisations)
+        ? c.organisations[0] ?? null
+        : c.organisations;
       const orgName =
-        (c.organisations as { name: string } | null)?.name ??
+        organisationRow?.name ??
         c.custom_organisation_name ??
         "";
 
@@ -138,7 +152,7 @@ export default async function DashboardPage() {
         first_contact_date: c.first_contact_date,
         escalation_deadline: c.escalation_deadline,
         custom_organisation_name: c.custom_organisation_name,
-        organisations: c.organisations as { name: string } | null,
+        organisations: organisationRow,
         daysSinceContact,
         urgency,
         orgName,
