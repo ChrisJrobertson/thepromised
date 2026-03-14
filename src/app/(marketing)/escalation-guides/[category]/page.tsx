@@ -1,4 +1,4 @@
-import { ArrowRight, CheckCircle2, Circle, ExternalLink } from "lucide-react";
+import { ArrowRight, ExternalLink } from "lucide-react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
@@ -127,7 +127,7 @@ export default async function EscalationGuideCategoryPage({
                 regulatory_body: string | null;
                 regulatory_url: string | null;
                 tips: string | null;
-              }>).map((rule, i) => (
+              }>).map((rule) => (
                 <div
                   className="flex gap-4 rounded-xl border bg-white p-5 shadow-sm"
                   key={rule.id}

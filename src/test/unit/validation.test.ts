@@ -2,7 +2,6 @@ import { describe, expect, it } from "vitest";
 
 import {
   caseDetailsSchema,
-  firstInteractionSchema,
   interactionSchema,
   ORGANISATION_CATEGORIES,
   CASE_PRIORITIES,
