@@ -5,6 +5,7 @@ import Stripe from "stripe";
 
 import { getStripeClient } from "@/lib/stripe/client";
 import { getTierFromSubscription } from "@/lib/stripe/webhooks";
+import { trackServerEvent } from "@/lib/analytics/posthog-server";
 import { createClient } from "@/lib/supabase/server";
 
 export const runtime = "nodejs";
@@ -69,6 +70,8 @@ export async function POST(request: Request) {
             ai_credits_reset_at: addMonths(now, 1).toISOString(),
           })
           .eq("id", userId);
+
+        trackServerEvent(userId, "subscription_started", { tier });
 
         // Send welcome/confirmation email (imported lazily to avoid import issues)
         try {

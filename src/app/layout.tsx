@@ -82,7 +82,7 @@ const orgSchema = {
   url: APP_URL,
   description:
     "UK consumer complaint tracking platform by SynqForge Ltd",
-  logo: `${APP_URL}/icons/icon-512.png`,
+  logo: `${APP_URL}/icons/icon-512x512.png`,
 };
 
 const softwareSchema = {
@@ -137,7 +137,7 @@ export default function RootLayout({
         />
         <meta content="TheyPromised" name="apple-mobile-web-app-title" />
         <meta content="#1e3a5f" name="theme-color" />
-        <link href="/icons/icon-192.png" rel="apple-touch-icon" />
+        <link href="/icons/apple-touch-icon.png" rel="apple-touch-icon" />
         <script
           dangerouslySetInnerHTML={{ __html: JSON.stringify(orgSchema) }}
           type="application/ld+json"

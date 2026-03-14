@@ -75,7 +75,7 @@ export async function POST(request: Request) {
           creditsUsed: profile.ai_credits_used,
           limit,
         },
-        { status: 429 }
+        { status: 403 }
       );
     }
 

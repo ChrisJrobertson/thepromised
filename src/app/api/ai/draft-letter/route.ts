@@ -61,7 +61,7 @@ export async function POST(request: Request) {
           error: "credits_exhausted",
           message: "You've reached your letter drafting limit for this month.",
         },
-        { status: 429 }
+        { status: 403 }
       );
     }
 
