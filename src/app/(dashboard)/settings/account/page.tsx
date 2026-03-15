@@ -4,7 +4,7 @@ import { createClient } from "@/lib/supabase/server";
 
 import { AccountClient } from "./AccountClient";
 
-export const metadata = { title: "Account Settings — TheyPromised" };
+export const metadata = { title: "Settings | TheyPromised" };
 
 export default async function AccountSettingsPage() {
   const supabase = await createClient();

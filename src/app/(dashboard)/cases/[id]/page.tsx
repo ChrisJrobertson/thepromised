@@ -14,6 +14,7 @@ import { AISuggestion } from "@/components/cases/AISuggestion";
 import { CaseTimeline } from "@/components/cases/CaseTimeline";
 import { EscalationGuide } from "@/components/cases/EscalationGuide";
 import { EvidenceGallery } from "@/components/cases/EvidenceGallery";
+import { ShareCaseButton } from "@/components/cases/ShareCaseButton";
 import { Badge } from "@/components/ui/badge";
 import { buttonVariants } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -94,7 +95,7 @@ export default async function CasePage({
   // Fetch case + organisation in one query
   const { data: caseData } = await supabase
     .from("cases")
-    .select("*, organisations(*)")
+    .select("*, organisations(*), share_token, is_shared")
     .eq("id", id)
     .eq("user_id", user.id)
     .maybeSingle();
@@ -188,12 +189,19 @@ export default async function CasePage({
             <p className="text-muted-foreground">{theCase.title}</p>
           </div>
 
-          <CaseActions
-            caseId={id}
-            currentPriority={theCase.priority}
-            currentStage={theCase.escalation_stage}
-            currentStatus={theCase.status}
-          />
+          <div className="flex items-center gap-2">
+            <ShareCaseButton
+              caseId={id}
+              initialIsShared={(theCase as { is_shared?: boolean }).is_shared ?? false}
+              initialShareToken={(theCase as { share_token?: string | null }).share_token ?? null}
+            />
+            <CaseActions
+              caseId={id}
+              currentPriority={theCase.priority}
+              currentStage={theCase.escalation_stage}
+              currentStatus={theCase.status}
+            />
+          </div>
         </div>
 
         {/* Status + priority badges */}

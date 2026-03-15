@@ -17,7 +17,7 @@ import {
 } from "@/components/ui/table";
 import { createClient } from "@/lib/supabase/server";
 
-export const metadata = { title: "Letters — TheyPromised" };
+export const metadata = { title: "Letters | TheyPromised" };
 
 const LETTER_TYPE_LABELS: Record<string, string> = {
   initial_complaint: "Initial Complaint",

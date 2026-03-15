@@ -18,7 +18,7 @@ import type { Metadata } from "next";
 import { ORG_GUIDES } from "@/lib/guides/organisations";
 
 export const metadata: Metadata = {
-  title: "UK Escalation Guides — Complaint Procedures for Every Industry",
+  title: "Escalation Guides | TheyPromised",
   description:
     "Free step-by-step UK complaint escalation guides. Know exactly when and how to escalate to the ombudsman for energy, banking, broadband, housing, NHS, and more.",
 };
