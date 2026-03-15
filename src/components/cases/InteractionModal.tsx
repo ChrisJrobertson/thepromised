@@ -20,15 +20,17 @@ export function InteractionModal({
 }: InteractionModalProps) {
   return (
     <Sheet onOpenChange={onOpenChange} open={open}>
-      <SheetContent className="w-full overflow-y-auto sm:max-w-xl">
-        <SheetHeader className="pb-4">
+      <SheetContent className="flex h-full w-full flex-col overflow-hidden sm:max-w-xl">
+        <SheetHeader className="shrink-0 pb-4">
           <SheetTitle>Log Interaction</SheetTitle>
         </SheetHeader>
-        <InteractionForm
-          cases={cases}
-          onSuccess={() => onOpenChange(false)}
-          preselectedCaseId={preselectedCase?.id}
-        />
+        <div className="flex-1 overflow-y-auto pb-safe">
+          <InteractionForm
+            cases={cases}
+            onSuccess={() => onOpenChange(false)}
+            preselectedCaseId={preselectedCase?.id}
+          />
+        </div>
       </SheetContent>
     </Sheet>
   );

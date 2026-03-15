@@ -1,5 +1,7 @@
 import type { MetadataRoute } from "next";
 
+import { ORG_GUIDES } from "@/lib/guides/organisations";
+
 const baseUrl = process.env.NEXT_PUBLIC_APP_URL ?? "https://www.theypromised.app";
 const ESCALATION_CATEGORIES = [
   "energy",
@@ -39,5 +41,12 @@ export default function sitemap(): MetadataRoute.Sitemap {
     priority: 0.75,
   }));
 
-  return [...staticRoutes, ...escalationRoutes];
+  const orgGuideRoutes: MetadataRoute.Sitemap = ORG_GUIDES.map((guide) => ({
+    url: `${baseUrl}/guides/${guide.slug}`,
+    lastModified: new Date(),
+    changeFrequency: "monthly" as const,
+    priority: 0.85,
+  }));
+
+  return [...staticRoutes, ...escalationRoutes, ...orgGuideRoutes];
 }

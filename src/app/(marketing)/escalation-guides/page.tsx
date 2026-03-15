@@ -15,6 +15,8 @@ import {
 import Link from "next/link";
 import type { Metadata } from "next";
 
+import { ORG_GUIDES } from "@/lib/guides/organisations";
+
 export const metadata: Metadata = {
   title: "UK Escalation Guides — Complaint Procedures for Every Industry",
   description:
@@ -185,6 +187,31 @@ export default function EscalationGuidesPage() {
                 </Link>
               );
             })}
+          </div>
+        </div>
+      </section>
+
+      {/* Company-specific guides */}
+      <section className="border-t py-16">
+        <div className="mx-auto max-w-5xl px-4">
+          <h2 className="mb-2 text-2xl font-bold">Guides for specific companies</h2>
+          <p className="mb-8 text-muted-foreground">
+            Detailed complaint guides with contact details, ombudsman info, and tips for specific organisations.
+          </p>
+          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+            {ORG_GUIDES.map((guide) => (
+              <Link
+                className="group flex items-center justify-between rounded-lg border bg-white px-4 py-3 shadow-sm transition-all hover:border-primary/50 hover:shadow-md"
+                href={`/guides/${guide.slug}`}
+                key={guide.slug}
+              >
+                <div>
+                  <p className="text-sm font-medium">{guide.name}</p>
+                  <p className="text-xs text-muted-foreground">{guide.category}</p>
+                </div>
+                <ArrowRight className="h-4 w-4 text-muted-foreground/50 transition-transform group-hover:translate-x-1 group-hover:text-primary" />
+              </Link>
+            ))}
           </div>
         </div>
       </section>

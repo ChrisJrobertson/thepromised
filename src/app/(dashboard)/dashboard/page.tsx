@@ -39,6 +39,7 @@ export default async function DashboardPage() {
 
   const [
     { count: activeCases },
+    { count: totalCases },
     { data: reminders },
     { data: recentInteractions },
     { count: openPromises },
@@ -53,6 +54,10 @@ export default async function DashboardPage() {
       .or(
         "status.eq.open,status.eq.escalated,status.eq.in_progress,status.eq.OPEN,status.eq.ESCALATED,status.eq.IN_PROGRESS,status.eq.REVIEW"
       ),
+    supabase
+      .from("cases")
+      .select("*", { count: "exact", head: true })
+      .eq("user_id", userId),
     supabase
       .from("reminders")
       .select("id, title, due_date, case_id")
@@ -258,8 +263,34 @@ export default async function DashboardPage() {
         </Card>
       )}
 
-      {/* Stat cards */}
-      <div className="grid grid-cols-2 gap-4 xl:grid-cols-4">
+      {/* Onboarding card for new users */}
+      {(totalCases ?? 0) === 0 && (
+        <Card className="overflow-hidden border-0 bg-gradient-to-r from-primary to-primary/80 text-white shadow-lg">
+          <CardContent className="p-8 text-center">
+            <h2 className="text-2xl font-bold mb-2">Ready to hold them to account?</h2>
+            <p className="text-white/80 mb-6 max-w-xl mx-auto">
+              Which company has let you down? Start a case and we&apos;ll help you track every call,
+              email, and broken promise — then build the evidence to make them listen.
+            </p>
+            <div className="flex flex-col sm:flex-row justify-center gap-4">
+              <Link href="/cases/new">
+                <Button size="lg" className="bg-teal-500 hover:bg-teal-600 text-white w-full sm:w-auto">
+                  <PlusCircle className="mr-2 h-4 w-4" />
+                  Start Your First Case
+                </Button>
+              </Link>
+              <Link href="/escalation-guides">
+                <Button size="lg" variant="outline" className="border-white text-white hover:bg-white/10 w-full sm:w-auto">
+                  Browse Escalation Guides
+                </Button>
+              </Link>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Stat cards — only show when user has cases */}
+      {(totalCases ?? 0) > 0 && <div className="grid grid-cols-2 gap-4 xl:grid-cols-4">
         <Card className="border-l-4 border-blue-500 bg-blue-50">
           <CardHeader className="pb-2">
             <CardTitle className="flex items-center gap-2 text-sm text-slate-600">
@@ -305,7 +336,7 @@ export default async function DashboardPage() {
             )}
           </CardContent>
         </Card>
-      </div>
+      </div>}
 
       <div className="grid gap-4 lg:grid-cols-2">
         <Card>

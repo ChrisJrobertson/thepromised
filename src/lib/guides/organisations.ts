@@ -1,0 +1,448 @@
+export type OrgGuide = {
+  slug: string;
+  name: string;
+  category: string;
+  categorySlug: string;
+  commonComplaints: string[];
+  complaintEmail?: string;
+  complaintPhone?: string;
+  complaintAddress?: string;
+  complaintUrl?: string;
+  ombudsman: string;
+  ombudsmanUrl: string;
+  escalationDeadline: string;
+  tips: string[];
+  intro: string;
+};
+
+export const ORG_GUIDES: OrgGuide[] = [
+  {
+    slug: "british-gas",
+    name: "British Gas",
+    category: "Energy",
+    categorySlug: "energy",
+    intro:
+      "British Gas is the UK's largest domestic energy supplier. Common complaints include billing errors, smart meter problems, missed engineer appointments, and poor customer service.",
+    commonComplaints: [
+      "Incorrect energy bills or overcharging",
+      "Smart meter installation or reading problems",
+      "Missed or cancelled engineer appointments",
+      "Difficulty switching tariff or supplier",
+      "Poor customer service and long wait times",
+      "Direct debit increases without notice",
+    ],
+    complaintPhone: "0333 202 9802",
+    complaintEmail: "complaints@britishgas.co.uk",
+    complaintAddress: "British Gas, Millstream, Maidenhead Road, Windsor, Berkshire SL4 5GD",
+    complaintUrl: "https://www.britishgas.co.uk/the-source/help/making-a-complaint.html",
+    ombudsman: "Energy Ombudsman",
+    ombudsmanUrl: "https://www.energyombudsman.org",
+    escalationDeadline: "8 weeks from your initial complaint, or if you receive a deadlock letter",
+    tips: [
+      "Always get a complaint reference number and write down the name of who you speak to",
+      "Request a 'deadlock letter' if they say they cannot resolve your issue — this lets you go straight to the ombudsman",
+      "Keep copies of all bills that show incorrect charges as evidence",
+      "The Energy Ombudsman can award up to £10,000 in compensation",
+      "If your supply is at risk of being cut off unfairly, contact Citizens Advice immediately",
+    ],
+  },
+  {
+    slug: "edf-energy",
+    name: "EDF Energy",
+    category: "Energy",
+    categorySlug: "energy",
+    intro:
+      "EDF Energy is one of the UK's largest energy companies. Customers frequently complain about billing errors, smart meter problems, and difficulty reaching customer service.",
+    commonComplaints: [
+      "Inaccurate energy bills",
+      "Smart meter malfunctions",
+      "Delayed meter readings",
+      "Unexpected direct debit changes",
+      "Difficulty cancelling or switching",
+      "Poor complaint handling",
+    ],
+    complaintPhone: "0333 200 5100",
+    complaintUrl: "https://www.edfenergy.com/help/complaints",
+    complaintAddress: "EDF Energy, 90 Whitfield Street, London W1T 4EZ",
+    ombudsman: "Energy Ombudsman",
+    ombudsmanUrl: "https://www.energyombudsman.org",
+    escalationDeadline: "8 weeks from your complaint, or upon receiving a deadlock letter",
+    tips: [
+      "Log every call with a reference number — EDF's call centres often have long wait times",
+      "Submit complaints in writing (email) so you have a paper trail",
+      "The Energy Ombudsman is free to use and independent",
+      "EDF must respond to formal complaints within 8 weeks",
+    ],
+  },
+  {
+    slug: "ovo-energy",
+    name: "OVO Energy",
+    category: "Energy",
+    categorySlug: "energy",
+    intro:
+      "OVO Energy is a major UK energy supplier that also acquired SSE's retail business. Common complaints involve billing issues, meter problems, and customer service delays.",
+    commonComplaints: [
+      "Billing errors after switching to OVO",
+      "Issues inherited from SSE accounts",
+      "Incorrect smart meter readings",
+      "Delays in processing refunds",
+      "Difficulty contacting customer service",
+    ],
+    complaintPhone: "0330 175 9669",
+    complaintUrl: "https://www.ovoenergy.com/help/complaints",
+    complaintAddress: "OVO Energy, 1 Rivergate, Temple Quay, Bristol, BS1 6ED",
+    ombudsman: "Energy Ombudsman",
+    ombudsmanUrl: "https://www.energyombudsman.org",
+    escalationDeadline: "8 weeks from your complaint, or upon receiving a deadlock letter",
+    tips: [
+      "Keep records of all correspondence — OVO has had issues with account migration from SSE",
+      "If your account was recently transferred from SSE, mention this in your complaint",
+      "Request a 'deadlock letter' after 8 weeks if unresolved",
+    ],
+  },
+  {
+    slug: "bt",
+    name: "BT",
+    category: "Broadband & Phone",
+    categorySlug: "broadband_phone",
+    intro:
+      "BT is the UK's largest telecommunications provider. Common complaints include broadband outages, incorrect billing, slow speeds, and engineer no-shows.",
+    commonComplaints: [
+      "Broadband outages or slow speeds",
+      "Incorrect charges on bills",
+      "Engineer missed appointments",
+      "Difficulty cancelling contracts",
+      "Poor customer service and long hold times",
+      "Line fault delays",
+    ],
+    complaintPhone: "0800 800 150",
+    complaintUrl: "https://www.bt.com/help/articles/complaints.html",
+    complaintAddress: "BT Consumer, Department MPC 1, Hartford Manor, Greenbank Lane, Northwich CW8 1HW",
+    ombudsman: "Communications Ombudsman",
+    ombudsmanUrl: "https://www.commsombudsman.org",
+    escalationDeadline:
+      "8 weeks from your complaint, or if you receive a deadlock letter from BT",
+    tips: [
+      "BT must compensate automatically under Ofcom rules if an engineer misses an appointment",
+      "Keep a log of broadband speed test results as evidence of slow speeds",
+      "Ask for a 'deadlock letter' after 8 weeks if unresolved",
+      "The Communications Ombudsman is free and can award compensation",
+    ],
+  },
+  {
+    slug: "sky",
+    name: "Sky",
+    category: "Broadband & Phone",
+    categorySlug: "broadband_phone",
+    intro:
+      "Sky is a major UK provider of broadband, TV, and phone services. Customers commonly complain about billing errors, service outages, and difficulty leaving contracts.",
+    commonComplaints: [
+      "Unexpected price increases mid-contract",
+      "Billing errors or double charges",
+      "Broadband outages",
+      "Difficulty cancelling subscriptions",
+      "Poor customer service",
+      "TV box or equipment failures",
+    ],
+    complaintPhone: "0333 7591 018",
+    complaintUrl: "https://www.sky.com/shop/support/make-a-complaint",
+    complaintAddress: "Sky, Grant Way, Isleworth, TW7 5QD",
+    ombudsman: "Communications Ombudsman (CISAS)",
+    ombudsmanUrl: "https://www.cisas.org.uk",
+    escalationDeadline: "8 weeks from your complaint, or upon deadlock letter",
+    tips: [
+      "Sky's automatic compensation applies if your broadband is out for more than 2 working days",
+      "Note down the date and time of all outages with speed test results",
+      "When leaving Sky, get written confirmation of your cancellation date",
+    ],
+  },
+  {
+    slug: "virgin-media",
+    name: "Virgin Media",
+    category: "Broadband & Phone",
+    categorySlug: "broadband_phone",
+    intro:
+      "Virgin Media (now merged with O2) provides broadband, TV, and phone services. Common complaints include outages, billing errors, and difficulty cancelling.",
+    commonComplaints: [
+      "Broadband outages in your area",
+      "Charges after cancellation",
+      "Engineer no-shows",
+      "Speed drops compared to advertised rates",
+      "Difficulty cancelling or leaving",
+      "Price hikes mid-contract",
+    ],
+    complaintPhone: "0345 454 1111",
+    complaintUrl: "https://www.virginmedia.com/help/complaints",
+    complaintAddress: "Virgin Media, 500 Brook Drive, Reading RG2 6UU",
+    ombudsman: "Communications Ombudsman (CISAS)",
+    ombudsmanUrl: "https://www.cisas.org.uk",
+    escalationDeadline: "8 weeks from your complaint, or upon deadlock letter",
+    tips: [
+      "Virgin Media must pay automatic compensation if your service is down for 2+ working days",
+      "Document every outage with dates, times, and support reference numbers",
+      "Request written confirmation of any price changes or contract terms",
+    ],
+  },
+  {
+    slug: "hsbc",
+    name: "HSBC",
+    category: "Financial Services",
+    categorySlug: "financial_services",
+    intro:
+      "HSBC UK is one of the country's largest banks. Common complaints involve account closures, fraud handling, mortgage issues, and poor customer service.",
+    commonComplaints: [
+      "Unfair account closure without explanation",
+      "Delayed or rejected fraud claims",
+      "Mortgage application problems",
+      "Incorrect charges or fees",
+      "Data sharing or privacy complaints",
+      "Poor service at branch or by phone",
+    ],
+    complaintPhone: "03457 404 404",
+    complaintUrl: "https://www.hsbc.co.uk/help/contact-us/how-to-make-a-complaint/",
+    complaintAddress: "HSBC Bank plc, Customer Relations, PO Box 6125, Coventry CV3 9GW",
+    ombudsman: "Financial Ombudsman Service",
+    ombudsmanUrl: "https://www.financial-ombudsman.org.uk",
+    escalationDeadline: "8 weeks from your complaint date",
+    tips: [
+      "The Financial Ombudsman can award up to £375,000 in compensation",
+      "Keep copies of all statements, letters, and transaction records as evidence",
+      "HSBC must acknowledge your complaint within 5 working days",
+      "You have 6 months from HSBC's final response to go to the ombudsman",
+    ],
+  },
+  {
+    slug: "barclays",
+    name: "Barclays",
+    category: "Financial Services",
+    categorySlug: "financial_services",
+    intro:
+      "Barclays is a major UK retail and investment bank. Customers frequently complain about account closures, credit card disputes, and mortgage issues.",
+    commonComplaints: [
+      "Account or credit card closures",
+      "Disputed transactions not resolved",
+      "Mortgage offer or completion delays",
+      "Interest charges on settled accounts",
+      "Fraud investigation delays",
+      "Online banking access problems",
+    ],
+    complaintPhone: "0800 282 390",
+    complaintUrl: "https://www.barclays.co.uk/help/complaints/",
+    complaintAddress: "Barclays, Customer Relations, 1 Churchill Place, London E14 5HP",
+    ombudsman: "Financial Ombudsman Service",
+    ombudsmanUrl: "https://www.financial-ombudsman.org.uk",
+    escalationDeadline: "8 weeks from your complaint date",
+    tips: [
+      "Submit your complaint in writing via their secure online form for a clear paper trail",
+      "Barclays must resolve complaints within 8 weeks or provide a final response letter",
+      "The Financial Ombudsman is free to use and can order Barclays to pay compensation",
+    ],
+  },
+  {
+    slug: "lloyds-bank",
+    name: "Lloyds Bank",
+    category: "Financial Services",
+    categorySlug: "financial_services",
+    intro:
+      "Lloyds Bank is one of the UK's largest high street banks. Common complaints relate to account management, fraud, mortgages, and customer service failures.",
+    commonComplaints: [
+      "Accounts closed without adequate notice",
+      "Unresolved fraud or dispute claims",
+      "Mortgage payment or rate problems",
+      "Incorrect credit reference reporting",
+      "Poor complaint handling",
+      "Difficulty accessing online banking",
+    ],
+    complaintPhone: "0345 300 0000",
+    complaintUrl: "https://www.lloydsbank.com/help-guidance/complaints.html",
+    complaintAddress: "Lloyds Bank, Customer Services, BX1 1LT",
+    ombudsman: "Financial Ombudsman Service",
+    ombudsmanUrl: "https://www.financial-ombudsman.org.uk",
+    escalationDeadline: "8 weeks from your complaint date",
+    tips: [
+      "Always get a complaint reference number when you call",
+      "Lloyds must send a 'final response' or 'holding response' within 8 weeks",
+      "You can complain to the FOS within 6 months of Lloyds' final response",
+    ],
+  },
+  {
+    slug: "hmrc",
+    name: "HMRC",
+    category: "HMRC",
+    categorySlug: "government_hmrc",
+    intro:
+      "HMRC handles UK tax collection and benefit payments. Common complaints include incorrect tax calculations, penalties, PAYE errors, and poor complaint handling.",
+    commonComplaints: [
+      "Incorrect tax code or PAYE calculation",
+      "Unfair or incorrect penalties",
+      "Self-assessment errors or delays",
+      "Child benefit or tax credit mistakes",
+      "Long wait times and difficulty contacting HMRC",
+      "Refund delays",
+    ],
+    complaintPhone: "0300 200 3300",
+    complaintUrl: "https://www.gov.uk/complain-about-hmrc",
+    complaintAddress: "HMRC Complaints, BX9 1AB",
+    ombudsman: "Adjudicator's Office",
+    ombudsmanUrl: "https://www.adjudicatorsoffice.gov.uk",
+    escalationDeadline:
+      "Allow HMRC reasonable time to respond, then escalate to the Adjudicator's Office after internal review",
+    tips: [
+      "HMRC has a formal complaints process — always start with their internal complaints team",
+      "After HMRC's internal review, you can escalate to the Adjudicator's Office (free)",
+      "Keep copies of all tax returns, correspondence, and payment records",
+      "You can also complain to your MP who can refer your case to the Parliamentary Ombudsman",
+      "Interest and penalties may be waived if HMRC caused unreasonable delays",
+    ],
+  },
+  {
+    slug: "dwp-universal-credit",
+    name: "DWP / Universal Credit",
+    category: "DWP (Benefits)",
+    categorySlug: "government_dwp",
+    intro:
+      "The Department for Work and Pensions (DWP) administers Universal Credit, PIP, ESA, and other benefits. Complaints often involve benefit reductions, appeals, and administrative errors.",
+    commonComplaints: [
+      "Universal Credit payment delays or errors",
+      "PIP or ESA assessment decisions",
+      "Benefits stopped or reduced unfairly",
+      "Mistakes in rent or housing payments",
+      "Poor communication from case workers",
+      "Sanctions applied incorrectly",
+    ],
+    complaintPhone: "0800 328 5644",
+    complaintUrl: "https://www.gov.uk/contact-jobcentre-plus/make-a-complaint",
+    complaintAddress: "DWP Complaints Team, PO Box 14, Pontefract WF9 1WR",
+    ombudsman: "Parliamentary & Health Service Ombudsman (via MP)",
+    ombudsmanUrl: "https://www.ombudsman.org.uk",
+    escalationDeadline:
+      "12 months from the date of the issue you are complaining about (via your MP to PHSO)",
+    tips: [
+      "For benefit decisions (not service complaints), use the mandatory reconsideration and appeal process",
+      "To escalate to the Parliamentary Ombudsman, you MUST go via your MP",
+      "Keep every letter, journal note, and text message as evidence",
+      "Citizens Advice can help you appeal DWP decisions for free",
+      "The First-tier Tribunal is independent and overturns many PIP/ESA decisions on appeal",
+    ],
+  },
+  {
+    slug: "nhs-england",
+    name: "NHS England",
+    category: "NHS",
+    categorySlug: "nhs",
+    intro:
+      "NHS England complaints cover GPs, hospitals, dentists, mental health services, and ambulance trusts. The process differs from private sector complaints.",
+    commonComplaints: [
+      "Delayed diagnosis or missed diagnosis",
+      "Long waiting times for treatment",
+      "Poor communication from medical staff",
+      "Prescription errors",
+      "Cancelled operations or appointments",
+      "Mental health care delays",
+    ],
+    complaintPhone: "0300 311 22 33",
+    complaintUrl: "https://www.nhs.uk/using-the-nhs/about-the-nhs/how-to-complain-to-the-nhs/",
+    complaintAddress: "NHS England, PO Box 16738, Redditch, B97 9PT",
+    ombudsman: "Parliamentary & Health Service Ombudsman",
+    ombudsmanUrl: "https://www.ombudsman.org.uk",
+    escalationDeadline:
+      "Within 12 months of the incident or of becoming aware of the problem",
+    tips: [
+      "Start by complaining directly to the GP surgery, hospital, or NHS Trust involved",
+      "Ask for an NHS Complaints Advocacy service — they are free and independent",
+      "If unsatisfied, escalate to the Parliamentary & Health Service Ombudsman",
+      "Keep a timeline of appointments, letters, and medical records",
+      "The NHS must respond within 25 working days of receiving your complaint",
+    ],
+  },
+  {
+    slug: "amazon-uk",
+    name: "Amazon UK",
+    category: "Retail",
+    categorySlug: "retail",
+    intro:
+      "Amazon UK is the country's largest online retailer. Common complaints involve missing deliveries, defective products, unauthorised charges, and difficulty getting refunds.",
+    commonComplaints: [
+      "Packages marked delivered but not received",
+      "Defective or counterfeit products",
+      "Unauthorised Prime charges",
+      "Refund delays or rejections",
+      "Account suspensions",
+      "Third-party seller disputes",
+    ],
+    complaintPhone: "0800 279 7234",
+    complaintUrl: "https://www.amazon.co.uk/gp/help/contact-us",
+    complaintAddress: "Amazon UK Services Ltd, 1 Principal Place, Worship Street, London EC2A 2FA",
+    ombudsman: "Retail ADR (Alternative Dispute Resolution) or Small Claims Court",
+    ombudsmanUrl: "https://www.retailadr.org.uk",
+    escalationDeadline: "6 years under the Consumer Rights Act 2015 for faulty goods",
+    tips: [
+      "Use Amazon's A-to-z Guarantee for marketplace purchases — raise a claim within 90 days",
+      "Under the Consumer Rights Act, goods must be fit for purpose — you can claim a refund within 30 days for faulty items",
+      "If Amazon rejects your claim, use a chargeback through your bank or credit card",
+      "The Small Claims Court is effective for amounts under £10,000",
+      "Always keep your order confirmation emails and any photos of defective goods",
+    ],
+  },
+  {
+    slug: "currys",
+    name: "Currys",
+    category: "Retail",
+    categorySlug: "retail",
+    intro:
+      "Currys is the UK's largest electrical retailer. Common complaints involve faulty goods, repair delays, misleading sales practices, and poor customer service.",
+    commonComplaints: [
+      "Faulty products not repaired or replaced",
+      "Lengthy repair times exceeding estimates",
+      "Misleading product descriptions or sales",
+      "Extended warranty refusal to honour",
+      "Delivery problems or damage",
+      "Poor in-store customer service",
+    ],
+    complaintPhone: "0344 561 1234",
+    complaintUrl: "https://www.currys.co.uk/help/contact-us.html",
+    complaintAddress: "Currys, 1 Portal Way, London, W3 6RS",
+    ombudsman: "Retail ADR or Small Claims Court",
+    ombudsmanUrl: "https://www.retailadr.org.uk",
+    escalationDeadline:
+      "Within 30 days for a full refund on faulty goods; within 6 months for repair/replacement",
+    tips: [
+      "Under the Consumer Rights Act 2015, you have 30 days to reject faulty goods for a full refund",
+      "After 30 days, Currys has one chance to repair or replace — if unsuccessful, you can demand a refund",
+      "Keep your receipt and any communication about faults",
+      "If using Currys' repair service, get a written estimate and timeline",
+    ],
+  },
+  {
+    slug: "talktalk",
+    name: "TalkTalk",
+    category: "Broadband & Phone",
+    categorySlug: "broadband_phone",
+    intro:
+      "TalkTalk is a major UK broadband provider. Customers frequently complain about broadband speeds, billing issues, contract exit charges, and poor customer service.",
+    commonComplaints: [
+      "Broadband speeds consistently below advertised rates",
+      "Unexpected exit fees",
+      "Billing errors or unexpected charges",
+      "Difficulty cancelling service",
+      "Long wait times to reach customer service",
+      "Persistent outages",
+    ],
+    complaintPhone: "0345 172 0088",
+    complaintUrl: "https://www.talktalk.co.uk/support/complaints",
+    complaintAddress: "TalkTalk Customer Complaints, PO Box 346, Southampton SO30 2PW",
+    ombudsman: "Communications Ombudsman (CISAS)",
+    ombudsmanUrl: "https://www.cisas.org.uk",
+    escalationDeadline: "8 weeks from your complaint date, or upon receiving a deadlock letter",
+    tips: [
+      "Run regular broadband speed tests (at least 3 per day) and save the results as evidence",
+      "You may be entitled to exit your contract without penalty if speeds are consistently below those guaranteed",
+      "TalkTalk must pay automatic compensation for missed engineer appointments",
+      "The Communications Ombudsman (CISAS) is free and independent",
+    ],
+  },
+];
+
+export function getOrgGuide(slug: string): OrgGuide | undefined {
+  return ORG_GUIDES.find((g) => g.slug === slug);
+}
