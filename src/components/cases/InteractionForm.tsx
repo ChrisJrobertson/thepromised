@@ -256,7 +256,7 @@ export function InteractionForm({
             name="interaction_date"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Date & time *</FormLabel>
+                <FormLabel>When did this happen? *</FormLabel>
                 <FormControl>
                   <Input type="datetime-local" {...field} />
                 </FormControl>
@@ -270,7 +270,7 @@ export function InteractionForm({
             name="direction"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Direction *</FormLabel>
+                <FormLabel>Who contacted whom? *</FormLabel>
                 <div className="flex gap-2">
                   <button
                     className={`flex-1 rounded-md border px-2 py-2 text-xs font-medium transition-colors ${field.value === "outbound" ? "border-primary bg-primary/5 text-primary" : "border-muted text-muted-foreground hover:border-muted-foreground"}`}
@@ -298,7 +298,7 @@ export function InteractionForm({
           name="channel"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Channel *</FormLabel>
+              <FormLabel>How did you communicate? *</FormLabel>
               <div className="flex flex-wrap gap-2">
                 {INTERACTION_CHANNELS.map((ch) => (
                   <button
@@ -355,7 +355,7 @@ export function InteractionForm({
         {/* Contact details */}
         <div className="space-y-3">
           <p className="text-sm font-medium text-muted-foreground">
-            Contact details (optional)
+            Who did you speak to? (optional)
           </p>
           <div className="grid gap-3 sm:grid-cols-3">
             <FormField
@@ -483,7 +483,7 @@ export function InteractionForm({
             name="outcome"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Outcome</FormLabel>
+                <FormLabel>What was the result?</FormLabel>
                 <Select
                   onValueChange={field.onChange}
                   value={field.value ?? ""}

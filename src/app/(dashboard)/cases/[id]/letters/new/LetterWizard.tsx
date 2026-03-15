@@ -362,6 +362,9 @@ export function LetterWizard({
           <div className="rounded-md border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-800">
             <strong>Remember:</strong> AI-generated letters may contain errors. Always review before sending to ensure all facts are accurate.
           </div>
+          <p className="text-xs italic text-muted-foreground text-center">
+            AI suggestions are for guidance only and do not constitute legal advice. Always verify information with the relevant ombudsman or a qualified adviser.
+          </p>
 
           <div className="flex gap-3">
             <Button

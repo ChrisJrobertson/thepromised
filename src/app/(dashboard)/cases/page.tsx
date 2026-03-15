@@ -10,7 +10,7 @@ import type { CaseWithOrganisation } from "@/types/cases";
 
 import { CasesClient } from "./CasesClient";
 
-export const metadata = { title: "My Cases — TheyPromised" };
+export const metadata = { title: "My Cases | TheyPromised" };
 
 type SearchParams = Promise<{
   status?: string;
@@ -178,12 +178,12 @@ export default async function CasesPage({
           </CardHeader>
           <CardContent className="space-y-4">
             <p className="text-sm text-muted-foreground">
-              Start your first case and begin logging every interaction. A detailed record is your
-              strongest tool in any dispute.
+              When a company lets you down, start a case here. We&apos;ll help you track everything
+              and guide you through the complaints process.
             </p>
             {canCreate && (
               <Link className={buttonVariants()} href="/cases/new">
-                Start your first case
+                Create Your First Case
               </Link>
             )}
           </CardContent>

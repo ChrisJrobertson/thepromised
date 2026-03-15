@@ -187,6 +187,14 @@ export default function RegisterPage() {
           Log in
         </Link>
       </p>
+
+      <p className="mt-4 text-xs text-muted-foreground text-center leading-relaxed">
+        Your data is stored securely in the UK. We never share your information with the companies
+        you&apos;re complaining about.{" "}
+        <Link className="underline hover:text-primary" href="/privacy">
+          See our privacy policy.
+        </Link>
+      </p>
     </AuthShell>
   );
 }

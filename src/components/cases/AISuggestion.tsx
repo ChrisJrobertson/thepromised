@@ -310,8 +310,8 @@ export function AISuggestion({ caseId, tier = "free" }: AISuggestionProps) {
               Regenerate analysis
             </Button>
 
-            <p className="text-[10px] text-muted-foreground text-center leading-tight">
-              AI suggestions are for guidance only. Always verify with official sources.
+            <p className="text-[10px] italic text-muted-foreground text-center leading-tight">
+              AI suggestions are for guidance only and do not constitute legal advice. Always verify information with the relevant ombudsman or a qualified adviser.
             </p>
           </div>
         )}

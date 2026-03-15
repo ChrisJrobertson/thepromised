@@ -3,12 +3,16 @@
 import { motion } from "framer-motion";
 import {
   ArrowRight,
+  Building2,
+  ClipboardCheck,
   ClipboardList,
   Compass,
+  CreditCard,
   FileOutput,
   FileText,
   Home,
   Landmark,
+  MapPin,
   Phone,
   Shield,
   Sparkles,
@@ -183,6 +187,34 @@ export default function LandingPage() {
               Join thousands of UK consumers who stopped being ignored.
             </motion.p>
           </motion.div>
+        </div>
+      </section>
+
+      {/* ── TRUST BAR ─────────────────────────────────────────────────────────── */}
+      <section className="border-y border-slate-200 bg-slate-50 py-6">
+        <div className="mx-auto max-w-6xl px-4">
+          <div className="flex flex-wrap items-center justify-center gap-6 text-sm text-slate-600">
+            <span className="flex items-center gap-2">
+              <Shield className="h-4 w-4 text-primary" />
+              Bank-grade encryption
+            </span>
+            <span className="flex items-center gap-2">
+              <MapPin className="h-4 w-4 text-primary" />
+              UK data storage
+            </span>
+            <span className="flex items-center gap-2">
+              <ClipboardCheck className="h-4 w-4 text-primary" />
+              GDPR compliant
+            </span>
+            <span className="flex items-center gap-2">
+              <Building2 className="h-4 w-4 text-primary" />
+              SynqForge LTD (Company 16808271)
+            </span>
+            <span className="flex items-center gap-2">
+              <CreditCard className="h-4 w-4 text-primary" />
+              No credit card required
+            </span>
+          </div>
         </div>
       </section>
 

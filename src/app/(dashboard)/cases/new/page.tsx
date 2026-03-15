@@ -6,7 +6,7 @@ import { createClient } from "@/lib/supabase/server";
 
 import { CaseWizard } from "./CaseWizard";
 
-export const metadata = { title: "New Case — TheyPromised" };
+export const metadata = { title: "New Case | TheyPromised" };
 
 export default async function NewCasePage() {
   const supabase = await createClient();
@@ -30,9 +30,9 @@ export default async function NewCasePage() {
   return (
     <div className="mx-auto max-w-2xl space-y-6 pb-16">
       <div>
-        <h1 className="text-2xl font-semibold">Start a New Case</h1>
+        <h1 className="text-2xl font-semibold">What happened? Let&apos;s build your evidence.</h1>
         <p className="mt-1 text-sm text-muted-foreground">
-          Record every detail from the beginning — a complete log is your strongest asset.
+          Tell us which company let you down and we&apos;ll help you fight back.
         </p>
       </div>
 
