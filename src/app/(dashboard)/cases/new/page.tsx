@@ -1,10 +1,50 @@
-import { PagePlaceholder } from "@/components/layout/PagePlaceholder";
+import { redirect } from "next/navigation";
 
-export default function NewCasePage() {
+import { UpgradePrompt } from "@/components/ui/UpgradePrompt";
+import { canCreateCase } from "@/lib/stripe/feature-gates";
+import { createClient } from "@/lib/supabase/server";
+
+import { CaseWizard } from "./CaseWizard";
+
+export const metadata = { title: "New Case — TheyPromised" };
+
+export default async function NewCasePage() {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) redirect("/login");
+
+  const { data: profileData } = await supabase
+    .from("profiles")
+    .select("*")
+    .eq("id", user.id)
+    .maybeSingle();
+
+  if (!profileData) redirect("/login");
+
+  const profile = profileData as import("@/types/database").Profile;
+  const canCreate = canCreateCase(profile);
+
   return (
-    <PagePlaceholder
-      description="The full multi-step case creation wizard is scaffolded next in the build plan."
-      title="Create New Case"
-    />
+    <div className="mx-auto max-w-2xl space-y-6 pb-16">
+      <div>
+        <h1 className="text-2xl font-semibold">Start a New Case</h1>
+        <p className="mt-1 text-sm text-muted-foreground">
+          Record every detail from the beginning — a complete log is your strongest asset.
+        </p>
+      </div>
+
+      {canCreate ? (
+        <CaseWizard />
+      ) : (
+        <UpgradePrompt
+          title="Case limit reached"
+          description="You already have an active case on the free plan. Upgrade to Basic or Pro to manage multiple cases simultaneously."
+          requiredTier="basic"
+        />
+      )}
+    </div>
   );
 }

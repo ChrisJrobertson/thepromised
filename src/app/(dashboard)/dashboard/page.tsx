@@ -1,8 +1,12 @@
-import { format } from "date-fns";
+// NOTE: Run POST /api/seed with SEED_SECRET to populate organisations and escalation rules
+// NOTE: Run npx tsx src/lib/stripe/setup.ts to create Stripe products
+import { differenceInDays, format } from "date-fns";
 import { enGB } from "date-fns/locale";
 import { AlertTriangle, FolderKanban, ShieldCheck } from "lucide-react";
 import Link from "next/link";
 
+import { DashboardQuickActions } from "@/components/dashboard/DashboardQuickActions";
+import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { createClient } from "@/lib/supabase/server";
 
@@ -13,28 +17,138 @@ export default async function DashboardPage() {
   } = await supabase.auth.getUser();
 
   const userId = user?.id ?? "";
+  const now = new Date().toISOString();
 
-  const [{ count: activeCases }, { data: reminders }, { data: recentInteractions }] =
-    await Promise.all([
-      supabase
-        .from("cases")
-        .select("*", { count: "exact", head: true })
-        .eq("user_id", userId)
-        .in("status", ["open", "escalated"]),
-      supabase
-        .from("reminders")
-        .select("id, title, due_date, case_id")
-        .eq("user_id", userId)
-        .eq("is_dismissed", false)
-        .order("due_date", { ascending: true })
-        .limit(5),
-      supabase
-        .from("interactions")
-        .select("id, summary, interaction_date, case_id")
-        .eq("user_id", userId)
-        .order("interaction_date", { ascending: false })
-        .limit(10),
-    ]);
+  const [
+    { count: activeCases },
+    { data: reminders },
+    { data: recentInteractions },
+    { count: openPromises },
+    { count: overdueActions },
+    { data: resolvedData },
+    { data: escalationCandidates },
+  ] = await Promise.all([
+    supabase
+      .from("cases")
+      .select("*", { count: "exact", head: true })
+      .eq("user_id", userId)
+      .in("status", ["open", "escalated"]),
+    supabase
+      .from("reminders")
+      .select("id, title, due_date, case_id")
+      .eq("user_id", userId)
+      .eq("is_dismissed", false)
+      .order("due_date", { ascending: true })
+      .limit(5),
+    supabase
+      .from("interactions")
+      .select("id, summary, interaction_date, case_id")
+      .eq("user_id", userId)
+      .order("interaction_date", { ascending: false })
+      .limit(10),
+    // Open promises: has promises_made text, not fulfilled, and has a deadline
+    supabase
+      .from("interactions")
+      .select("*", { count: "exact", head: true })
+      .eq("user_id", userId)
+      .not("promises_made", "is", null)
+      .neq("promises_made", "")
+      .is("promise_fulfilled", null)
+      .not("promise_deadline", "is", null),
+    // Overdue: has promise, not fulfilled, deadline has passed
+    supabase
+      .from("interactions")
+      .select("*", { count: "exact", head: true })
+      .eq("user_id", userId)
+      .not("promises_made", "is", null)
+      .is("promise_fulfilled", null)
+      .lt("promise_deadline", now),
+    // Resolved cases with compensation
+    supabase
+      .from("cases")
+      .select("id, compensation_received")
+      .eq("user_id", userId)
+      .eq("status", "resolved"),
+    // Cases approaching or past the 8-week escalation window
+    supabase
+      .from("cases")
+      .select(
+        "id, title, first_contact_date, escalation_deadline, custom_organisation_name, organisations(name)"
+      )
+      .eq("user_id", userId)
+      .in("status", ["open", "escalated"])
+      .not("first_contact_date", "is", null)
+      .limit(20)
+      .returns<
+        {
+          id: string;
+          title: string;
+          first_contact_date: string | null;
+          escalation_deadline: string | null;
+          custom_organisation_name: string | null;
+          organisations: { name: string } | null;
+        }[]
+      >(),
+  ]);
+
+  const resolvedCount = resolvedData?.length ?? 0;
+  const compensationTotal = (resolvedData ?? []).reduce(
+    (sum, c) => sum + (c.compensation_received ?? 0),
+    0
+  );
+
+  const today = new Date();
+
+  type EscalationCandidate = {
+    id: string;
+    title: string;
+    first_contact_date: string | null;
+    escalation_deadline: string | null;
+    custom_organisation_name: string | null;
+    organisations: { name: string } | null;
+  };
+
+  type EscalationAlert = EscalationCandidate & {
+    daysSinceContact: number;
+    urgency: "deadline_passed" | "deadline_soon" | "approaching_window";
+    orgName: string;
+  };
+
+  const candidates = (escalationCandidates ?? []) as EscalationCandidate[];
+
+  const escalationAlerts: EscalationAlert[] = candidates
+    .map((c) => {
+      const firstContact = c.first_contact_date
+        ? new Date(c.first_contact_date)
+        : null;
+      const daysSinceContact = firstContact
+        ? differenceInDays(today, firstContact)
+        : 0;
+      const escalationDeadline = c.escalation_deadline
+        ? new Date(c.escalation_deadline)
+        : null;
+      const orgName =
+        c.organisations?.name ?? c.custom_organisation_name ?? "";
+
+      const deadlinePassed = escalationDeadline && escalationDeadline < today;
+      const deadlineSoon =
+        escalationDeadline &&
+        escalationDeadline <= new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
+      const approachingWindow =
+        daysSinceContact >= 42 && daysSinceContact <= 63;
+
+      const isAlert = deadlinePassed || deadlineSoon || approachingWindow;
+      if (!isAlert) return null;
+
+      const urgency: EscalationAlert["urgency"] = deadlinePassed
+        ? "deadline_passed"
+        : deadlineSoon
+          ? "deadline_soon"
+          : "approaching_window";
+
+      return { ...c, daysSinceContact, urgency, orgName };
+    })
+    .filter((x): x is EscalationAlert => x !== null);
 
   return (
     <div className="space-y-6">
@@ -49,6 +163,77 @@ export default async function DashboardPage() {
         </CardHeader>
       </Card>
 
+      {/* Escalation Alerts */}
+      {escalationAlerts.length > 0 && (
+        <Card className="border-amber-300 bg-amber-50 dark:bg-amber-950/20">
+          <CardHeader className="pb-2">
+            <CardTitle className="flex items-center gap-2 text-amber-800 dark:text-amber-400">
+              <AlertTriangle className="size-5" />
+              Escalation Alerts ({escalationAlerts.length})
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <ul className="space-y-3">
+              {escalationAlerts.map((alert) => {
+                return (
+                  <li
+                    className="flex items-start justify-between gap-3 rounded-md border border-amber-200 bg-white px-3 py-2 dark:bg-amber-900/20"
+                    key={alert.id}
+                  >
+                    <div>
+                      <p className="text-sm font-medium">{alert.title}</p>
+                      {alert.orgName && (
+                        <p className="text-xs text-muted-foreground">{alert.orgName}</p>
+                      )}
+                      <p className="mt-0.5 text-xs">
+                        {alert.urgency === "deadline_passed" ? (
+                          <span className="font-medium text-red-600">
+                            Deadline passed — take action now
+                          </span>
+                        ) : alert.urgency === "deadline_soon" ? (
+                          <span className="font-medium text-amber-700">
+                            Escalation deadline within 7 days
+                          </span>
+                        ) : (
+                          <span className="text-amber-700">
+                            {alert.daysSinceContact} days since first contact — you may now be able to escalate
+                          </span>
+                        )}
+                      </p>
+                    </div>
+                    <div className="shrink-0">
+                      <Badge
+                        className={
+                          alert.urgency === "deadline_passed"
+                            ? "border-red-200 bg-red-50 text-red-700"
+                            : "border-amber-200 bg-amber-50 text-amber-700"
+                        }
+                        variant="outline"
+                      >
+                        {alert.urgency === "deadline_passed"
+                          ? "Urgent"
+                          : alert.urgency === "deadline_soon"
+                            ? "Deadline Soon"
+                            : "Action Required"}
+                      </Badge>
+                      <div className="mt-1 text-right">
+                        <Link
+                          className="text-xs text-primary underline"
+                          href={`/cases/${alert.id}`}
+                        >
+                          View Case →
+                        </Link>
+                      </div>
+                    </div>
+                  </li>
+                );
+              })}
+            </ul>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Stat cards */}
       <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
         <Card>
           <CardHeader>
@@ -64,7 +249,7 @@ export default async function DashboardPage() {
               <AlertTriangle className="size-4 text-accent" /> Open Promises
             </CardTitle>
           </CardHeader>
-          <CardContent className="text-3xl font-bold">0</CardContent>
+          <CardContent className="text-3xl font-bold">{openPromises ?? 0}</CardContent>
         </Card>
         <Card>
           <CardHeader>
@@ -72,7 +257,7 @@ export default async function DashboardPage() {
               <AlertTriangle className="size-4 text-destructive" /> Overdue Actions
             </CardTitle>
           </CardHeader>
-          <CardContent className="text-3xl font-bold">0</CardContent>
+          <CardContent className="text-3xl font-bold">{overdueActions ?? 0}</CardContent>
         </Card>
         <Card>
           <CardHeader>
@@ -80,7 +265,14 @@ export default async function DashboardPage() {
               <ShieldCheck className="size-4 text-green-600" /> Cases Resolved
             </CardTitle>
           </CardHeader>
-          <CardContent className="text-3xl font-bold">0</CardContent>
+          <CardContent>
+            <p className="text-3xl font-bold">{resolvedCount}</p>
+            {compensationTotal > 0 && (
+              <p className="mt-0.5 text-xs text-green-600">
+                £{compensationTotal.toLocaleString("en-GB")} recovered
+              </p>
+            )}
+          </CardContent>
         </Card>
       </div>
 
@@ -143,9 +335,7 @@ export default async function DashboardPage() {
           <Link className="rounded-md bg-primary px-4 py-2 text-sm text-white" href="/cases/new">
             Start New Case
           </Link>
-          <Link className="rounded-md border px-4 py-2 text-sm" href="/cases">
-            Log an Interaction
-          </Link>
+          <DashboardQuickActions />
           <Link className="rounded-md border px-4 py-2 text-sm" href="/cases">
             Generate Letter
           </Link>

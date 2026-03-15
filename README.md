@@ -1,36 +1,139 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# TheyPromised
 
-## Getting Started
+A UK consumer complaints management platform. Log every interaction, track promises, follow UK-specific escalation paths, and generate professional letters — all with AI assistance.
 
-First, run the development server:
+## Stack
+
+- **Framework**: Next.js 15 (App Router, Server Components)
+- **Database**: Supabase (Postgres + RLS + Auth)
+- **Payments**: Stripe (Basic / Pro tiers)
+- **Email**: Resend + React Email
+- **AI**: Anthropic Claude + HuggingFace
+- **Styling**: Tailwind v4 + shadcn/ui
+- **Forms**: react-hook-form + Zod
+
+## Getting started
+
+### 1. Clone and install
+
+```bash
+npm install
+```
+
+### 2. Configure environment
+
+```bash
+cp .env.local.example .env.local
+```
+
+Fill in all values in `.env.local`.
+
+### 3. Set up Supabase
+
+1. Create a project at [supabase.com](https://supabase.com)
+2. Run the migration:
+
+```bash
+npx supabase db push
+# or paste supabase/migrations/20260314170000_initial_schema.sql directly in the SQL editor
+```
+
+3. Create the `evidence` Storage bucket (set to private, RLS enabled)
+
+### 4. Set up Stripe
+
+```bash
+npx tsx src/lib/stripe/setup.ts
+```
+
+Copy the resulting price IDs into `.env.local`.
+
+### 5. Seed the database
+
+Start the dev server, then run:
+
+```bash
+curl -X POST http://localhost:3000/api/seed \
+  -H "x-seed-secret: YOUR_SEED_SECRET"
+```
+
+This seeds:
+- **Organisations**: Common UK energy, telecoms, financial, and government bodies
+- **Escalation Rules**: Full UK complaints procedures for all 15 categories
+
+### 6. Run locally
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## Core features
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+### Cases
+- Multi-step wizard to create a case (organisation → details → first interaction → confirm)
+- Cases list with status tabs, search, and sort
+- Single case hub with timeline, evidence, letters, and escalation guide tabs
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+### Interactions
+- Detailed interaction logging (channel, direction, contact details, promises, mood)
+- Auto-reminders for promise deadlines (1 day before, on the day, 1 day after)
+- Quick Log from the header works from any page
 
-## Learn More
+### Evidence
+- Drag-and-drop file upload to Supabase Storage
+- Voice memo recording (Pro only, browser MediaRecorder API)
+- Email forward parser — paste an email, log it as an interaction (Basic/Pro)
+- Gallery with preview (images, PDFs, audio)
 
-To learn more about Next.js, take a look at the following resources:
+### Escalation engine
+- UK-specific escalation paths for 15 categories (energy, broadband, financial services, NHS, DWP, housing, employment, etc.)
+- Auto-calculated deadlines from first contact date
+- 8-week escalation window alerts via daily cron job
+- Advance stages manually with "Mark complete" button
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+### Letters
+- AI-generated complaint letters via Anthropic Claude
+- Letter types: initial complaint, escalation, final response request, ombudsman referral, subject access request, letter before action
+- PDF download
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+### Reminders
+- Daily digest emails via Resend
+- Promise deadline reminders (auto-created on interaction log)
+- Escalation window alerts (6-week, 7-week, 8-week warnings)
 
-## Deploy on Vercel
+## Subscription tiers
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+| Feature | Free | Basic | Pro |
+|---------|------|-------|-----|
+| Active cases | 1 | Unlimited | Unlimited |
+| Interactions | Unlimited | Unlimited | Unlimited |
+| PDF export | ✗ | Timeline/Letters | Full case |
+| AI analysis | ✗ | ✓ (limited) | ✓ (generous) |
+| Email reminders | ✗ | ✓ | ✓ |
+| Voice memos | ✗ | ✗ | ✓ |
+| Email forward parser | ✗ | ✓ | ✓ |
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## Cron job
+
+Set up a daily cron to hit:
+
+```
+GET /api/reminders/cron
+Authorization: Bearer YOUR_CRON_SECRET
+```
+
+On Vercel, add this to `vercel.json` (already configured).
+
+## Database seeding
+
+The seed API endpoint (`POST /api/seed`) inserts:
+- Major UK organisations (British Gas, EDF, BT, Sky, HMRC, DWP, Barclays, etc.)
+- Complete escalation rules for all 15 complaint categories
+
+## Architecture notes
+
+- All pages are Server Components by default; `"use client"` only where interactivity is needed
+- All database access goes through Supabase with RLS — user data is always filtered by `user_id`
+- Dates stored in UTC, displayed in `DD/MM/YYYY` UK format using `date-fns` with `enGB` locale
+- TypeScript strict mode throughout
+- UK English in all user-facing copy (organisation, colour, licence, behaviour)

@@ -3,13 +3,13 @@ import type Stripe from "stripe";
 import { STRIPE_PRICE_IDS, type SubscriptionTier } from "@/lib/stripe/config";
 
 const BASIC_PRICE_SET = new Set([
-  STRIPE_PRICE_IDS.basicMonthly,
-  STRIPE_PRICE_IDS.basicAnnual,
+  STRIPE_PRICE_IDS.basic.monthly,
+  STRIPE_PRICE_IDS.basic.annual,
 ]);
 
 const PRO_PRICE_SET = new Set([
-  STRIPE_PRICE_IDS.proMonthly,
-  STRIPE_PRICE_IDS.proAnnual,
+  STRIPE_PRICE_IDS.pro.monthly,
+  STRIPE_PRICE_IDS.pro.annual,
 ]);
 
 export function getTierFromSubscription(

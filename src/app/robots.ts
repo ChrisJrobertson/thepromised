@@ -7,8 +7,26 @@ export default function robots(): MetadataRoute.Robots {
     rules: [
       {
         userAgent: "*",
-        allow: ["/", "/pricing", "/how-it-works", "/escalation-guides", "/about", "/privacy", "/terms"],
-        disallow: ["/dashboard", "/cases", "/settings", "/api"],
+        allow: [
+          "/",
+          "/pricing",
+          "/how-it-works",
+          "/escalation-guides",
+          "/about",
+          "/privacy",
+          "/terms",
+          "/register",
+          "/login",
+        ],
+        disallow: [
+          "/dashboard",
+          "/cases",
+          "/settings",
+          "/api",
+          "/reminders",
+          "/letters",
+          "/callback",
+        ],
       },
     ],
     sitemap: `${baseUrl}/sitemap.xml`,

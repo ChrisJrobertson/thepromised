@@ -1,5 +1,6 @@
 import { NextResponse, type NextRequest } from "next/server";
 
+import { trackServerEvent } from "@/lib/analytics/posthog-server";
 import { createClient } from "@/lib/supabase/server";
 
 export async function GET(request: NextRequest) {
@@ -23,11 +24,35 @@ export async function GET(request: NextRequest) {
   } = await supabase.auth.getUser();
 
   if (user) {
+    const { data: existing } = await supabase
+      .from("profiles")
+      .select("id")
+      .eq("id", user.id)
+      .maybeSingle();
+
+    const isNewUser = !existing;
+
     await supabase.from("profiles").upsert({
       id: user.id,
       email: user.email ?? "",
       full_name: (user.user_metadata?.full_name as string | undefined) ?? null,
     });
+
+    // Track new sign-ups
+    if (isNewUser) {
+      trackServerEvent(user.id, "user_signed_up", { method: "email" });
+    }
+
+    // Send welcome email to new users (non-blocking)
+    if (isNewUser && user.email) {
+      const name =
+        (user.user_metadata?.full_name as string | undefined) ?? "there";
+      import("@/lib/email/send")
+        .then(({ sendWelcomeEmail }) => {
+          sendWelcomeEmail(user.email!, name).catch(() => {});
+        })
+        .catch(() => {});
+    }
   }
 
   return NextResponse.redirect(new URL(next, request.url));

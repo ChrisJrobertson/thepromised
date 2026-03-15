@@ -7,7 +7,8 @@
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-sans);
+  --font-sans: var(--font-inter);
+  --font-heading: var(--font-dm-sans);
   --font-mono: var(--font-geist-mono);
   --color-sidebar-ring: var(--sidebar-ring);
   --color-sidebar-border: var(--sidebar-border);
@@ -122,8 +123,72 @@
   }
   body {
     @apply bg-background text-foreground;
+    font-family: var(--font-inter), system-ui, sans-serif;
   }
   html {
     @apply font-sans;
+  }
+  h1,
+  h2,
+  h3 {
+    font-family: var(--font-dm-sans), var(--font-inter), system-ui, sans-serif;
+  }
+}
+
+@media print {
+  /* Hide interactive controls, navigation, and sidebars */
+  .print\:hidden,
+  nav,
+  aside,
+  header,
+  [data-sidebar],
+  button:not([data-print-keep]) {
+    display: none !important;
+  }
+
+  /* Show print-only content */
+  .print\:block {
+    display: block !important;
+  }
+
+  /* Page setup */
+  @page {
+    size: A4;
+    margin: 20mm 15mm;
+  }
+
+  body {
+    font-size: 11pt;
+    color: #000;
+    background: #fff;
+  }
+
+  /* Timeline print styles */
+  .timeline-card {
+    break-inside: avoid;
+    page-break-inside: avoid;
+    border: 1px solid #ccc !important;
+    margin-bottom: 12pt;
+    padding: 10pt;
+    border-radius: 4pt;
+  }
+
+  /* Preserve colours for badges in print */
+  .badge {
+    border: 1px solid #999 !important;
+    padding: 1pt 4pt;
+    border-radius: 3pt;
+    font-size: 9pt;
+  }
+
+  /* Vertical timeline line */
+  .timeline-line {
+    display: none;
+  }
+
+  a::after {
+    content: " (" attr(href) ")";
+    font-size: 8pt;
+    color: #666;
   }
 }
