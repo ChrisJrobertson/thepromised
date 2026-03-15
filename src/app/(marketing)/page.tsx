@@ -129,57 +129,58 @@ export default function LandingPage() {
     <main className="overflow-x-hidden">
       {/* ── HERO ──────────────────────────────────────────────────────────────── */}
       <section className="bg-gradient-to-b from-[#1e3a5f] via-[#1e3a5f]/90 to-white pb-20 pt-16 md:pb-32 md:pt-24">
-        <div className="mx-auto max-w-5xl px-4 text-center">
+        <div className="mx-auto max-w-4xl px-4 text-center">
           <motion.div
             animate="visible"
+            className="space-y-6"
             initial="hidden"
             variants={stagger}
           >
             <motion.p
-              className="mb-4 text-sm font-semibold uppercase tracking-widest text-teal-300"
+              className="text-base font-semibold text-teal-300 md:text-lg"
               variants={fadeUp}
             >
-              UK Consumer Complaint Tracker
+              Track every call. Log every promise. Prove everything.
             </motion.p>
             <motion.h1
-              className="text-4xl font-extrabold leading-tight tracking-tight text-white md:text-6xl lg:text-7xl"
+              className="text-5xl font-extrabold leading-tight tracking-tight text-white md:text-6xl lg:text-7xl"
               variants={fadeUp}
             >
               They Promised.
               <br />
-              <span className="text-teal-300">You Proved It.</span>
+              You Proved It.
             </motion.h1>
             <motion.p
-              className="mx-auto mt-6 max-w-2xl text-lg leading-relaxed text-blue-100 md:text-xl"
+              className="mx-auto max-w-2xl text-lg leading-relaxed text-slate-300 md:text-xl"
               variants={fadeUp}
             >
-              The UK&apos;s first complaint tracking tool that builds your case file
-              automatically. Log every call, email, and broken promise — then export a
-              professional document for the ombudsman.
+              When companies break their promises, you need more than anger — you need
+              evidence. TheyPromised helps you build a professional, timestamped case
+              file that ombudsmen and courts actually take seriously.
             </motion.p>
             <motion.div
-              className="mt-8 flex flex-col items-center gap-3 sm:flex-row sm:justify-center"
+              className="flex flex-col items-center gap-4 sm:flex-row sm:justify-center"
               variants={fadeUp}
             >
               <Link
-                className="inline-flex items-center gap-2 rounded-lg bg-teal-400 px-7 py-3.5 text-base font-semibold text-[#1e3a5f] shadow-lg transition-all hover:bg-teal-300 hover:shadow-xl"
+                className="inline-flex items-center gap-2 rounded-xl bg-teal-400 px-8 py-4 text-lg font-semibold text-white shadow-lg transition-all hover:bg-teal-500 hover:shadow-xl"
                 href="/register"
               >
-                Start Tracking Free
+                Start Your Case — Free
                 <ArrowRight className="h-4 w-4" />
               </Link>
               <Link
-                className="text-sm font-medium text-blue-200 underline underline-offset-4 hover:text-white"
+                className="text-base font-medium text-white underline underline-offset-4 hover:text-blue-100"
                 href="/how-it-works"
               >
-                See how it works →
+                See how it works
               </Link>
             </motion.div>
             <motion.p
-              className="mt-4 text-xs text-blue-300"
+              className="text-sm text-slate-300"
               variants={fadeUp}
             >
-              Free forever · No credit card · Cancel anytime
+              Join thousands of UK consumers who stopped being ignored.
             </motion.p>
           </motion.div>
         </div>
@@ -188,7 +189,7 @@ export default function LandingPage() {
       {/* ── SOCIAL PROOF BAR ──────────────────────────────────────────────────── */}
       <section className="border-y bg-slate-50 py-6">
         <div className="mx-auto max-w-5xl px-4">
-          <p className="mb-4 text-center text-xs font-semibold uppercase tracking-widest text-muted-foreground">
+          <p className="mb-4 text-center text-sm font-semibold text-muted-foreground">
             Helping UK consumers hold organisations to account
           </p>
           <div className="flex flex-wrap items-center justify-center gap-6">
@@ -378,7 +379,7 @@ export default function LandingPage() {
               {/* Mock letter card */}
               <div className="rounded-xl bg-white p-5 shadow-2xl">
                 <div className="mb-3 flex items-center justify-between">
-                  <span className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                  <span className="text-xs font-semibold text-muted-foreground">
                     AI-drafted letter
                   </span>
                   <span className="rounded-full bg-teal-50 px-2 py-0.5 text-xs font-medium text-teal-700">
@@ -496,7 +497,7 @@ export default function LandingPage() {
                 key={plan.name}
               >
                 {plan.highlight && (
-                  <p className="mb-2 text-xs font-bold text-primary">MOST POPULAR</p>
+                  <p className="mb-2 text-xs font-semibold text-primary">Most popular</p>
                 )}
                 <p className="font-bold">{plan.name}</p>
                 <p className="mt-1 text-2xl font-bold">{plan.price}</p>
