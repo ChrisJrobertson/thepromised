@@ -32,7 +32,9 @@ export default async function DashboardPage() {
       .from("cases")
       .select("*", { count: "exact", head: true })
       .eq("user_id", userId)
-      .in("status", ["open", "escalated"]),
+      .or(
+        "status.eq.open,status.eq.escalated,status.eq.in_progress,status.eq.OPEN,status.eq.ESCALATED,status.eq.IN_PROGRESS,status.eq.REVIEW"
+      ),
     supabase
       .from("reminders")
       .select("id, title, due_date, case_id")
@@ -46,29 +48,31 @@ export default async function DashboardPage() {
       .eq("user_id", userId)
       .order("interaction_date", { ascending: false })
       .limit(10),
-    // Open promises: has promises_made text, not fulfilled, and has a deadline
+    // Open promises: has promises_made text, not fulfilled (null or false), and has a deadline
     supabase
       .from("interactions")
       .select("*", { count: "exact", head: true })
       .eq("user_id", userId)
       .not("promises_made", "is", null)
       .neq("promises_made", "")
-      .is("promise_fulfilled", null)
+      .or("promise_fulfilled.is.null,promise_fulfilled.eq.false")
       .not("promise_deadline", "is", null),
-    // Overdue: has promise, not fulfilled, deadline has passed
+    // Overdue: has promise, not fulfilled (null or false), deadline has passed
     supabase
       .from("interactions")
       .select("*", { count: "exact", head: true })
       .eq("user_id", userId)
       .not("promises_made", "is", null)
-      .is("promise_fulfilled", null)
+      .neq("promises_made", "")
+      .or("promise_fulfilled.is.null,promise_fulfilled.eq.false")
+      .not("promise_deadline", "is", null)
       .lt("promise_deadline", now),
-    // Resolved cases with compensation
+    // Resolved/closed cases with compensation
     supabase
       .from("cases")
       .select("id, compensation_received")
       .eq("user_id", userId)
-      .eq("status", "resolved"),
+      .or("status.eq.resolved,status.eq.RESOLVED,status.eq.closed,status.eq.CLOSED"),
     // Cases approaching or past the 8-week escalation window
     supabase
       .from("cases")
@@ -76,7 +80,9 @@ export default async function DashboardPage() {
         "id, title, first_contact_date, escalation_deadline, custom_organisation_name, organisations(name)"
       )
       .eq("user_id", userId)
-      .in("status", ["open", "escalated"])
+      .or(
+        "status.eq.open,status.eq.escalated,status.eq.in_progress,status.eq.OPEN,status.eq.ESCALATED,status.eq.IN_PROGRESS,status.eq.REVIEW"
+      )
       .not("first_contact_date", "is", null)
       .limit(20)
       .returns<
@@ -118,24 +124,16 @@ export default async function DashboardPage() {
 
   const escalationAlerts: EscalationAlert[] = candidates
     .map((c) => {
-      const firstContact = c.first_contact_date
-        ? new Date(c.first_contact_date)
-        : null;
-      const daysSinceContact = firstContact
-        ? differenceInDays(today, firstContact)
-        : 0;
-      const escalationDeadline = c.escalation_deadline
-        ? new Date(c.escalation_deadline)
-        : null;
-      const orgName =
-        c.organisations?.name ?? c.custom_organisation_name ?? "";
+      const firstContact = c.first_contact_date ? new Date(c.first_contact_date) : null;
+      const daysSinceContact = firstContact ? differenceInDays(today, firstContact) : 0;
+      const escalationDeadline = c.escalation_deadline ? new Date(c.escalation_deadline) : null;
+      const orgName = c.organisations?.name ?? c.custom_organisation_name ?? "";
 
       const deadlinePassed = escalationDeadline && escalationDeadline < today;
       const deadlineSoon =
         escalationDeadline &&
         escalationDeadline <= new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
-      const approachingWindow =
-        daysSinceContact >= 42 && daysSinceContact <= 63;
+      const approachingWindow = daysSinceContact >= 42 && daysSinceContact <= 63;
 
       const isAlert = deadlinePassed || deadlineSoon || approachingWindow;
       if (!isAlert) return null;
@@ -196,7 +194,8 @@ export default async function DashboardPage() {
                           </span>
                         ) : (
                           <span className="text-amber-700">
-                            {alert.daysSinceContact} days since first contact — you may now be able to escalate
+                            {alert.daysSinceContact} days since first contact — you may now be able to
+                            escalate
                           </span>
                         )}
                       </p>
@@ -217,10 +216,7 @@ export default async function DashboardPage() {
                             : "Action Required"}
                       </Badge>
                       <div className="mt-1 text-right">
-                        <Link
-                          className="text-xs text-primary underline"
-                          href={`/cases/${alert.id}`}
-                        >
+                        <Link className="text-xs text-primary underline" href={`/cases/${alert.id}`}>
                           View Case →
                         </Link>
                       </div>
