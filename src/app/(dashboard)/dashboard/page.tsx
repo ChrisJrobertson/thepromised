@@ -14,16 +14,6 @@ export default async function DashboardPage() {
 
   const userId = user?.id ?? "";
   const now = new Date().toISOString();
-  const activeCaseStatuses = [
-    "open",
-    "escalated",
-    "in_progress",
-    "OPEN",
-    "ESCALATED",
-    "IN_PROGRESS",
-    "REVIEW",
-  ];
-  const resolvedCaseStatuses = ["resolved", "RESOLVED", "closed", "CLOSED"];
 
   const [
     { count: activeCases },
@@ -37,7 +27,9 @@ export default async function DashboardPage() {
       .from("cases")
       .select("*", { count: "exact", head: true })
       .eq("user_id", userId)
-      .in("status", activeCaseStatuses),
+      .or(
+        "status.eq.open,status.eq.escalated,status.eq.in_progress,status.eq.OPEN,status.eq.ESCALATED,status.eq.IN_PROGRESS,status.eq.REVIEW"
+      ),
     supabase
       .from("reminders")
       .select("id, title, due_date, case_id")
@@ -72,7 +64,7 @@ export default async function DashboardPage() {
       .from("cases")
       .select("*", { count: "exact", head: true })
       .eq("user_id", userId)
-      .in("status", resolvedCaseStatuses),
+      .or("status.eq.resolved,status.eq.RESOLVED,status.eq.closed,status.eq.CLOSED"),
   ]);
 
   return (
