@@ -29,7 +29,8 @@ export async function POST(request: Request) {
     });
 
     const stripe = getStripeClient();
-    const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000";
+    const appUrl =
+      process.env.NEXT_PUBLIC_APP_URL ?? "https://www.theypromised.app";
 
     const session = await stripe.checkout.sessions.create({
       mode: "subscription",
