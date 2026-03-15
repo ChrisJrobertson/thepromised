@@ -4,15 +4,26 @@ import { addDays, differenceInDays, format, isBefore, parseISO } from "date-fns"
 import { enGB } from "date-fns/locale";
 import {
   ArrowDown,
+  ArrowLeft,
+  ArrowRight,
   ArrowUp,
   Check,
   ChevronDown,
   ChevronUp,
   FileText,
+  Flag,
+  Landmark,
+  Mail,
+  MessageSquare,
+  Phone,
+  Scale,
   Search,
+  Share2,
   Trash2,
+  Users,
   X,
 } from "lucide-react";
+import type { LucideIcon } from "lucide-react";
 import { useEffect, useMemo, useState, useTransition } from "react";
 import { toast } from "sonner";
 
@@ -62,33 +73,31 @@ type CaseTimelineProps = {
   caseInfo?: CaseInfo | null;
 };
 
-const CHANNEL_EMOJIS: Record<string, string> = {
-  phone: "📞",
-  email: "✉️",
-  letter: "📄",
-  webchat: "💬",
-  in_person: "🤝",
-  social_media: "📱",
-  app: "📲",
-  other: "📋",
+type ChannelConfig = { icon: LucideIcon; bg: string; iconColour: string; border: string };
+
+const CHANNEL_CONFIG: Record<string, ChannelConfig> = {
+  phone: { icon: Phone, bg: "bg-blue-100", iconColour: "text-blue-600", border: "border-blue-200" },
+  email: { icon: Mail, bg: "bg-purple-100", iconColour: "text-purple-600", border: "border-purple-200" },
+  letter: { icon: FileText, bg: "bg-slate-100", iconColour: "text-slate-600", border: "border-slate-200" },
+  webchat: { icon: MessageSquare, bg: "bg-cyan-100", iconColour: "text-cyan-600", border: "border-cyan-200" },
+  in_person: { icon: Users, bg: "bg-green-100", iconColour: "text-green-600", border: "border-green-200" },
+  social_media: { icon: Share2, bg: "bg-pink-100", iconColour: "text-pink-600", border: "border-pink-200" },
+  app: { icon: MessageSquare, bg: "bg-indigo-100", iconColour: "text-indigo-600", border: "border-indigo-200" },
+  other: { icon: FileText, bg: "bg-slate-100", iconColour: "text-slate-500", border: "border-slate-200" },
 };
 
-const CHANNEL_COLOURS: Record<string, string> = {
-  phone: "bg-blue-100 text-blue-700",
-  email: "bg-purple-100 text-purple-700",
-  letter: "bg-slate-100 text-slate-700",
-  webchat: "bg-cyan-100 text-cyan-700",
-  in_person: "bg-green-100 text-green-700",
-  social_media: "bg-pink-100 text-pink-700",
-  app: "bg-indigo-100 text-indigo-700",
-  other: "bg-muted text-muted-foreground",
+const DEFAULT_CHANNEL: ChannelConfig = {
+  icon: FileText,
+  bg: "bg-slate-100",
+  iconColour: "text-slate-500",
+  border: "border-slate-200",
 };
 
-const MOOD_EMOJIS: Record<string, string> = {
-  helpful: "😊",
-  neutral: "😐",
-  unhelpful: "😤",
-  hostile: "😡",
+const MOOD_CONFIG: Record<string, { emoji: string; colour: string; label: string }> = {
+  helpful: { emoji: "😊", colour: "text-green-600", label: "Helpful" },
+  neutral: { emoji: "😐", colour: "text-slate-500", label: "Neutral" },
+  unhelpful: { emoji: "😞", colour: "text-amber-600", label: "Unhelpful" },
+  hostile: { emoji: "😠", colour: "text-red-600", label: "Hostile" },
 };
 
 const OUTCOME_COLOURS: Record<string, string> = {
@@ -122,6 +131,14 @@ const FILTER_CHANNELS = [
   "other",
 ] as const;
 
+const MILESTONE_ICON_MAP: Record<string, LucideIcon> = {
+  green: Check,
+  amber: Flag,
+  blue: Landmark,
+  purple: FileText,
+  slate: Scale,
+};
+
 function buildMilestones(
   caseInfo: CaseInfo,
   interactions: InteractionWithEvidence[]
@@ -132,7 +149,7 @@ function buildMilestones(
     milestones.push({
       date: parseISO(caseInfo.created_at),
       label: `Case opened on ${format(parseISO(caseInfo.created_at), "d MMMM yyyy", { locale: enGB })}`,
-      emoji: "🟢",
+      emoji: "case_opened",
       colour: "green",
     });
   }
@@ -143,7 +160,7 @@ function buildMilestones(
     milestones.push({
       date: windowDate,
       label: `8-week escalation window reached on ${format(windowDate, "d MMMM yyyy", { locale: enGB })} — you may now contact the ombudsman`,
-      emoji: "⏰",
+      emoji: "escalation_window",
       colour: "amber",
     });
   }
@@ -162,7 +179,7 @@ function buildMilestones(
     milestones.push({
       date,
       label: "Case referred to ombudsman / external body",
-      emoji: "🏛️",
+      emoji: "ombudsman",
       colour: "blue",
     });
   }
@@ -181,7 +198,7 @@ function buildMilestones(
       milestones.push({
         date: parseISO(letterInteraction.interaction_date),
         label: "Formal complaint submitted in writing",
-        emoji: "📝",
+        emoji: "formal_complaint",
         colour: "purple",
       });
     }
@@ -192,7 +209,7 @@ function buildMilestones(
     milestones.push({
       date: parseISO(caseInfo.resolved_date),
       label: `Case resolved on ${format(parseISO(caseInfo.resolved_date), "d MMMM yyyy", { locale: enGB })}`,
-      emoji: "✅",
+      emoji: "resolved",
       colour: "green",
     });
   }
@@ -439,16 +456,19 @@ export function CaseTimeline({
             {timelineItems.map((item, index) => {
               if (item.type === "milestone") {
                 const milestone = item.data;
+                const MilestoneIcon = MILESTONE_ICON_MAP[milestone.colour] ?? Flag;
                 return (
                   <div
                     className={`relative flex gap-4 print:hidden`}
                     key={`milestone-${milestone.emoji}-${index}`}
                   >
-                    <div className="relative z-10 flex h-10 w-10 shrink-0 items-center justify-center text-xl">
-                      {milestone.emoji}
+                    <div
+                      className={`relative z-10 flex h-10 w-10 shrink-0 items-center justify-center rounded-full border-2 border-white shadow-sm ${MILESTONE_COLOURS[milestone.colour]}`}
+                    >
+                      <MilestoneIcon className="h-4 w-4" />
                     </div>
                     <div
-                      className={`flex-1 rounded-lg border px-4 py-2 text-sm font-medium ${MILESTONE_COLOURS[milestone.colour]}`}
+                      className={`flex-1 rounded-lg border-2 border-dashed px-4 py-2.5 text-sm font-medium ${MILESTONE_COLOURS[milestone.colour]}`}
                     >
                       {milestone.label}
                     </div>
@@ -461,6 +481,19 @@ export function CaseTimeline({
               const isLong = interaction.summary.length > 150;
               const hasPromise = !!interaction.promises_made;
               const promiseFulfilled = interaction.promise_fulfilled;
+              const channelCfg = CHANNEL_CONFIG[interaction.channel] ?? DEFAULT_CHANNEL;
+              const ChannelIcon = channelCfg.icon;
+              const moodCfg = interaction.mood ? MOOD_CONFIG[interaction.mood] : null;
+              const promiseDeadline = interaction.promise_deadline
+                ? new Date(interaction.promise_deadline)
+                : null;
+              const now = new Date();
+              const isOverdue = promiseDeadline && !promiseFulfilled && isBefore(promiseDeadline, now);
+              const daysOverdue = isOverdue && promiseDeadline ? differenceInDays(now, promiseDeadline) : 0;
+              const daysUntil =
+                promiseDeadline && !isOverdue && promiseFulfilled === null
+                  ? differenceInDays(promiseDeadline, now)
+                  : 0;
 
               const imageEvidence = (interaction.evidence ?? []).filter(
                 (e) => e.file_type.startsWith("image/")
@@ -473,9 +506,9 @@ export function CaseTimeline({
                 <div className="relative flex gap-4 print:gap-2" key={interaction.id}>
                   {/* Timeline node */}
                   <div
-                    className={`relative z-10 flex h-10 w-10 shrink-0 items-center justify-center rounded-full border-2 text-lg shadow-sm print:h-8 print:w-8 print:text-base ${CHANNEL_COLOURS[interaction.channel] ?? "bg-muted"} border-white`}
+                    className={`relative z-10 flex h-10 w-10 shrink-0 items-center justify-center rounded-full border-2 border-white shadow-sm print:h-8 print:w-8 ${channelCfg.bg}`}
                   >
-                    {CHANNEL_EMOJIS[interaction.channel] ?? "📋"}
+                    <ChannelIcon className={`h-4 w-4 print:h-3 print:w-3 ${channelCfg.iconColour}`} />
                   </div>
 
                   {/* Content card */}
@@ -493,14 +526,16 @@ export function CaseTimeline({
                           </span>
                         </div>
                         <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
-                          <span>
-                            {CHANNEL_EMOJIS[interaction.channel]}{" "}
+                          <span className={`flex items-center gap-1 ${channelCfg.iconColour}`}>
+                            <ChannelIcon className="h-3 w-3" />
                             {INTERACTION_CHANNEL_LABELS[interaction.channel]}
                           </span>
-                          <span>
-                            {interaction.direction === "outbound"
-                              ? "→ You contacted them"
-                              : "← They contacted you"}
+                          <span className="flex items-center gap-0.5">
+                            {interaction.direction === "outbound" ? (
+                              <><ArrowRight className="h-3 w-3 text-blue-500" /> You contacted them</>
+                            ) : (
+                              <><ArrowLeft className="h-3 w-3 text-amber-500" /> They contacted you</>
+                            )}
                           </span>
                           {interaction.contact_name && (
                             <span>
@@ -518,16 +553,16 @@ export function CaseTimeline({
                           {interaction.duration_minutes && (
                             <span>{interaction.duration_minutes} min</span>
                           )}
-                          {interaction.mood && (
-                            <span title={interaction.mood}>
-                              {MOOD_EMOJIS[interaction.mood]}
-                            </span>
-                          )}
                         </div>
                       </div>
 
-                      {/* Outcome badge */}
+                      {/* Outcome badge + mood */}
                       <div className="flex items-center gap-2 print:hidden">
+                        {moodCfg && (
+                          <span className={`text-base ${moodCfg.colour}`} title={`${moodCfg.label}`}>
+                            {moodCfg.emoji}
+                          </span>
+                        )}
                         {interaction.outcome && (
                           <Badge
                             className={OUTCOME_COLOURS[interaction.outcome] ?? ""}
@@ -571,34 +606,52 @@ export function CaseTimeline({
                       </div>
                     )}
 
-                    {/* Promise */}
+                    {/* Promise badges (visible without expanding) */}
+                    {hasPromise && (
+                      <div className="mt-2 flex flex-wrap gap-2 print:hidden">
+                        {promiseFulfilled === true && (
+                          <Badge className="border-green-200 bg-green-50 text-green-700" variant="outline">
+                            Promise Kept ✓
+                          </Badge>
+                        )}
+                        {promiseFulfilled === false && (
+                          <Badge className="border-red-200 bg-red-50 text-red-700" variant="outline">
+                            Promise Broken ✗
+                            {daysOverdue > 0 ? ` · ${daysOverdue} days overdue` : ""}
+                          </Badge>
+                        )}
+                        {promiseFulfilled === null && isOverdue && (
+                          <Badge className="border-red-200 bg-red-50 text-red-700" variant="outline">
+                            Promise Broken ✗
+                            {daysOverdue > 0 ? ` · ${daysOverdue} days overdue` : ""}
+                          </Badge>
+                        )}
+                        {promiseFulfilled === null && !isOverdue && promiseDeadline && (
+                          <Badge className="border-amber-200 bg-amber-50 text-amber-700" variant="outline">
+                            Promise Pending · Due in {daysUntil} day{daysUntil !== 1 ? "s" : ""}
+                          </Badge>
+                        )}
+                        {promiseFulfilled === null && !promiseDeadline && (
+                          <Badge className="border-amber-200 bg-amber-50 text-amber-700" variant="outline">
+                            Promise Made
+                          </Badge>
+                        )}
+                      </div>
+                    )}
+
+                    {/* Promise detail block */}
                     {hasPromise && (
                       <div
-                        className={`mt-3 rounded-md border p-3 text-sm ${
+                        className={`mt-2 rounded-md border p-3 text-sm ${
                           promiseFulfilled === true
                             ? "border-green-200 bg-green-50"
-                            : promiseFulfilled === false
+                            : promiseFulfilled === false || isOverdue
                               ? "border-red-200 bg-red-50"
                               : "border-amber-200 bg-amber-50"
                         }`}
                       >
                         <div className="flex items-start justify-between gap-2">
                           <div>
-                            <p
-                              className={`text-xs font-semibold mb-1 ${
-                                promiseFulfilled === true
-                                  ? "text-green-700"
-                                  : promiseFulfilled === false
-                                    ? "text-red-700"
-                                    : "text-amber-700"
-                              }`}
-                            >
-                              {promiseFulfilled === true
-                                ? "✅ Promise Kept"
-                                : promiseFulfilled === false
-                                  ? "❌ Promise Broken"
-                                  : "⏳ Promise Made"}
-                            </p>
                             <p className="text-xs">{interaction.promises_made}</p>
                             {interaction.promise_deadline && (
                               <p className="mt-0.5 text-xs text-muted-foreground">

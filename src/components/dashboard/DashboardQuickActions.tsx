@@ -1,9 +1,11 @@
 "use client";
 
+import { MessageSquare } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 
 import { InteractionModal } from "@/components/cases/InteractionModal";
+import { Button } from "@/components/ui/button";
 import { createClient } from "@/lib/supabase/client";
 import type { Case } from "@/types/database";
 
@@ -47,14 +49,16 @@ export function DashboardQuickActions() {
 
   return (
     <>
-      <button
-        className="rounded-md border px-4 py-2 text-sm disabled:opacity-50"
+      <Button
+        className="gap-2 border-teal-300 text-teal-700 hover:bg-teal-50 disabled:opacity-50"
         disabled={loading}
         onClick={handleLogInteraction}
         type="button"
+        variant="outline"
       >
+        <MessageSquare className="h-4 w-4" />
         {loading ? "Loading..." : "Log an Interaction"}
-      </button>
+      </Button>
 
       <InteractionModal
         cases={cases}

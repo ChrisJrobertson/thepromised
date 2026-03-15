@@ -1,12 +1,30 @@
 // NOTE: Run POST /api/seed with SEED_SECRET to populate organisations and escalation rules
 // NOTE: Run npx tsx src/lib/stripe/setup.ts to create Stripe products
+import type { Metadata } from "next";
+import type React from "react";
+
+export const metadata: Metadata = { title: "Dashboard | TheyPromised" };
+
 import { differenceInDays, format } from "date-fns";
 import { enGB } from "date-fns/locale";
-import { AlertTriangle, FolderKanban, ShieldCheck } from "lucide-react";
+import {
+  AlertTriangle,
+  Download,
+  FileText,
+  FolderKanban,
+  Mail,
+  MessageSquare,
+  Phone,
+  PlusCircle,
+  Share2,
+  ShieldCheck,
+  Users,
+} from "lucide-react";
 import Link from "next/link";
 
 import { DashboardQuickActions } from "@/components/dashboard/DashboardQuickActions";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { createClient } from "@/lib/supabase/server";
 
@@ -44,7 +62,7 @@ export default async function DashboardPage() {
       .limit(5),
     supabase
       .from("interactions")
-      .select("id, summary, interaction_date, case_id")
+      .select("id, summary, interaction_date, case_id, channel")
       .eq("user_id", userId)
       .order("interaction_date", { ascending: false })
       .limit(10),
@@ -148,6 +166,17 @@ export default async function DashboardPage() {
     })
     .filter((x): x is EscalationAlert => x !== null);
 
+  const CHANNEL_ICONS: Record<string, { icon: React.ElementType; colour: string; bg: string }> = {
+    phone: { icon: Phone, colour: "text-blue-600", bg: "bg-blue-100" },
+    email: { icon: Mail, colour: "text-purple-600", bg: "bg-purple-100" },
+    letter: { icon: FileText, colour: "text-slate-600", bg: "bg-slate-100" },
+    webchat: { icon: MessageSquare, colour: "text-green-600", bg: "bg-green-100" },
+    in_person: { icon: Users, colour: "text-orange-600", bg: "bg-orange-100" },
+    social_media: { icon: Share2, colour: "text-pink-600", bg: "bg-pink-100" },
+    app: { icon: MessageSquare, colour: "text-indigo-600", bg: "bg-indigo-100" },
+    other: { icon: FileText, colour: "text-slate-600", bg: "bg-slate-100" },
+  };
+
   return (
     <div className="space-y-6">
       <Card>
@@ -163,7 +192,7 @@ export default async function DashboardPage() {
 
       {/* Escalation Alerts */}
       {escalationAlerts.length > 0 && (
-        <Card className="border-amber-300 bg-amber-50 dark:bg-amber-950/20">
+        <Card className="border-l-4 border-amber-500 bg-amber-50 dark:bg-amber-950/20">
           <CardHeader className="pb-2">
             <CardTitle className="flex items-center gap-2 text-amber-800 dark:text-amber-400">
               <AlertTriangle className="size-5" />
@@ -200,26 +229,26 @@ export default async function DashboardPage() {
                         )}
                       </p>
                     </div>
-                    <div className="shrink-0">
+                    <div className="flex shrink-0 flex-col items-end gap-1">
                       <Badge
                         className={
                           alert.urgency === "deadline_passed"
-                            ? "border-red-200 bg-red-50 text-red-700"
+                            ? "bg-red-600 text-white"
                             : "border-amber-200 bg-amber-50 text-amber-700"
                         }
-                        variant="outline"
+                        variant={alert.urgency === "deadline_passed" ? "default" : "outline"}
                       >
                         {alert.urgency === "deadline_passed"
-                          ? "Urgent"
+                          ? "Action Required"
                           : alert.urgency === "deadline_soon"
                             ? "Deadline Soon"
                             : "Action Required"}
                       </Badge>
-                      <div className="mt-1 text-right">
-                        <Link className="text-xs text-primary underline" href={`/cases/${alert.id}`}>
+                      <Link href={`/cases/${alert.id}`}>
+                        <Button className="h-7 px-2 text-xs" size="sm" variant="outline">
                           View Case →
-                        </Link>
-                      </div>
+                        </Button>
+                      </Link>
                     </div>
                   </li>
                 );
@@ -230,39 +259,45 @@ export default async function DashboardPage() {
       )}
 
       {/* Stat cards */}
-      <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-base">
-              <FolderKanban className="size-4 text-primary" /> Active Cases
+      <div className="grid grid-cols-2 gap-4 xl:grid-cols-4">
+        <Card className="border-l-4 border-blue-500 bg-blue-50">
+          <CardHeader className="pb-2">
+            <CardTitle className="flex items-center gap-2 text-sm text-slate-600">
+              <FolderKanban className="size-4 text-blue-600" /> Active Cases
             </CardTitle>
           </CardHeader>
-          <CardContent className="text-3xl font-bold">{activeCases ?? 0}</CardContent>
+          <CardContent>
+            <p className="text-3xl font-bold text-blue-600">{activeCases ?? 0}</p>
+          </CardContent>
         </Card>
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-base">
-              <AlertTriangle className="size-4 text-accent" /> Open Promises
+        <Card className="border-l-4 border-amber-500 bg-amber-50">
+          <CardHeader className="pb-2">
+            <CardTitle className="flex items-center gap-2 text-sm text-slate-600">
+              <AlertTriangle className="size-4 text-amber-600" /> Open Promises
             </CardTitle>
           </CardHeader>
-          <CardContent className="text-3xl font-bold">{openPromises ?? 0}</CardContent>
+          <CardContent>
+            <p className="text-3xl font-bold text-amber-600">{openPromises ?? 0}</p>
+          </CardContent>
         </Card>
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-base">
-              <AlertTriangle className="size-4 text-destructive" /> Overdue Actions
+        <Card className="border-l-4 border-red-500 bg-red-50">
+          <CardHeader className="pb-2">
+            <CardTitle className="flex items-center gap-2 text-sm text-slate-600">
+              <AlertTriangle className="size-4 text-red-600" /> Overdue Actions
             </CardTitle>
           </CardHeader>
-          <CardContent className="text-3xl font-bold">{overdueActions ?? 0}</CardContent>
+          <CardContent>
+            <p className="text-3xl font-bold text-red-600">{overdueActions ?? 0}</p>
+          </CardContent>
         </Card>
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-base">
+        <Card className="border-l-4 border-green-500 bg-green-50">
+          <CardHeader className="pb-2">
+            <CardTitle className="flex items-center gap-2 text-sm text-slate-600">
               <ShieldCheck className="size-4 text-green-600" /> Cases Resolved
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-3xl font-bold">{resolvedCount}</p>
+            <p className="text-3xl font-bold text-green-600">{resolvedCount}</p>
             {compensationTotal > 0 && (
               <p className="mt-0.5 text-xs text-green-600">
                 £{compensationTotal.toLocaleString("en-GB")} recovered
@@ -305,16 +340,29 @@ export default async function DashboardPage() {
           <CardContent>
             {recentInteractions?.length ? (
               <ul className="space-y-3">
-                {recentInteractions.map((interaction) => (
-                  <li className="rounded-md border p-3 text-sm" key={interaction.id}>
-                    <p className="line-clamp-2">{interaction.summary}</p>
-                    <p className="text-muted-foreground">
-                      {format(new Date(interaction.interaction_date), "dd/MM/yyyy HH:mm", {
-                        locale: enGB,
-                      })}
-                    </p>
-                  </li>
-                ))}
+                {recentInteractions.map((interaction) => {
+                  const channelInfo =
+                    CHANNEL_ICONS[(interaction as { channel?: string }).channel ?? ""] ??
+                    CHANNEL_ICONS.other;
+                  const ChannelIcon = channelInfo.icon;
+                  return (
+                    <li className="flex items-start gap-3 rounded-md border p-3 text-sm" key={interaction.id}>
+                      <div
+                        className={`mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-full ${channelInfo.bg}`}
+                      >
+                        <ChannelIcon className={`h-3.5 w-3.5 ${channelInfo.colour}`} />
+                      </div>
+                      <div className="min-w-0">
+                        <p className="line-clamp-2">{interaction.summary}</p>
+                        <p className="text-muted-foreground">
+                          {format(new Date(interaction.interaction_date), "dd/MM/yyyy HH:mm", {
+                            locale: enGB,
+                          })}
+                        </p>
+                      </div>
+                    </li>
+                  );
+                })}
               </ul>
             ) : (
               <p className="text-sm text-muted-foreground">No interactions logged yet.</p>
@@ -328,15 +376,24 @@ export default async function DashboardPage() {
           <CardTitle>Quick Actions</CardTitle>
         </CardHeader>
         <CardContent className="flex flex-wrap gap-3">
-          <Link className="rounded-md bg-primary px-4 py-2 text-sm text-white" href="/cases/new">
-            Start New Case
+          <Link href="/cases/new">
+            <Button className="gap-2 bg-primary text-white hover:bg-teal-600">
+              <PlusCircle className="h-4 w-4" />
+              Start New Case
+            </Button>
           </Link>
           <DashboardQuickActions />
-          <Link className="rounded-md border px-4 py-2 text-sm" href="/cases">
-            Generate Letter
+          <Link href="/cases">
+            <Button className="gap-2 border-blue-300 text-blue-700 hover:bg-blue-50" variant="outline">
+              <FileText className="h-4 w-4" />
+              Generate Letter
+            </Button>
           </Link>
-          <Link className="rounded-md border px-4 py-2 text-sm" href="/cases">
-            Export Case File
+          <Link href="/cases">
+            <Button className="gap-2" variant="outline">
+              <Download className="h-4 w-4" />
+              Export Case File
+            </Button>
           </Link>
         </CardContent>
       </Card>
