@@ -193,6 +193,8 @@ export type Database = {
           resolution_summary: string | null;
           compensation_received: number | null;
           interaction_count: number;
+          share_token: string | null;
+          is_shared: boolean | null;
           created_at: string | null;
           updated_at: string | null;
         };
@@ -222,6 +224,8 @@ export type Database = {
           resolution_summary?: string | null;
           compensation_received?: number | null;
           interaction_count?: number;
+          share_token?: string | null;
+          is_shared?: boolean | null;
           created_at?: string | null;
           updated_at?: string | null;
         };
@@ -251,6 +255,8 @@ export type Database = {
           resolution_summary?: string | null;
           compensation_received?: number | null;
           interaction_count?: number;
+          share_token?: string | null;
+          is_shared?: boolean | null;
           created_at?: string | null;
           updated_at?: string | null;
         };

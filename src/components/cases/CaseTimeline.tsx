@@ -401,7 +401,6 @@ export function CaseTimeline({
               <SelectItem value="all">All channels</SelectItem>
               {FILTER_CHANNELS.slice(1).map((ch) => (
                 <SelectItem key={ch} value={ch}>
-                  {CHANNEL_EMOJIS[ch as keyof typeof CHANNEL_EMOJIS] ?? ""}{" "}
                   {INTERACTION_CHANNEL_LABELS[ch as keyof typeof INTERACTION_CHANNEL_LABELS] ?? ch}
                 </SelectItem>
               ))}

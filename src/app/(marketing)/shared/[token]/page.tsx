@@ -21,7 +21,7 @@ export async function generateMetadata({ params }: { params: Params }): Promise<
     .select("title")
     .eq("share_token", token)
     .eq("is_shared", true)
-    .maybeSingle();
+    .maybeSingle() as { data: { title: string } | null; error: unknown };
 
   if (!data) return { title: "Shared Case | TheyPromised" };
 
@@ -67,23 +67,49 @@ export default async function SharedCasePage({ params }: { params: Params }) {
   const { token } = await params;
   const supabase = createServiceRoleClient();
 
+  type SharedCase = {
+    id: string;
+    title: string;
+    status: string;
+    escalation_stage: string | null;
+    created_at: string | null;
+    first_contact_date: string | null;
+    category: string | null;
+    custom_organisation_name: string | null;
+    organisations: { name: string } | null;
+  };
+
   const { data: caseData } = await supabase
     .from("cases")
     .select("id, title, status, escalation_stage, created_at, first_contact_date, category, custom_organisation_name, organisations(name)")
     .eq("share_token", token)
     .eq("is_shared", true)
-    .maybeSingle();
+    .maybeSingle() as { data: SharedCase | null; error: unknown };
 
   if (!caseData) notFound();
+
+  type SharedInteraction = {
+    id: string;
+    interaction_date: string;
+    channel: string;
+    direction: string;
+    summary: string;
+    contact_name: string | null;
+    promises_made: string | null;
+    promise_deadline: string | null;
+    promise_fulfilled: boolean | null;
+    outcome: string | null;
+    mood: string | null;
+  };
 
   const { data: interactions } = await supabase
     .from("interactions")
     .select("id, interaction_date, channel, direction, summary, contact_name, promises_made, promise_deadline, promise_fulfilled, outcome, mood")
     .eq("case_id", caseData.id)
-    .order("interaction_date", { ascending: false });
+    .order("interaction_date", { ascending: false }) as { data: SharedInteraction[] | null; error: unknown };
 
   const orgName =
-    (caseData.organisations as { name: string } | null)?.name ??
+    caseData.organisations?.name ??
     caseData.custom_organisation_name ??
     "Unknown organisation";
 

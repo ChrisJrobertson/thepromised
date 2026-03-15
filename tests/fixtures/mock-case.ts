@@ -38,6 +38,8 @@ export const MOCK_CASE: Case = {
   resolution_summary: null,
   compensation_received: null,
   interaction_count: 5,
+  share_token: null,
+  is_shared: false,
   created_at: "2025-10-15T00:00:00Z",
   updated_at: "2026-03-10T14:30:00Z",
 };
