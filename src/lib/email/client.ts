@@ -9,4 +9,5 @@ export function getResendClient(): Resend {
 }
 
 export const EMAIL_FROM = "TheyPromised <noreply@theypromised.app>";
-export const APP_URL = process.env.NEXT_PUBLIC_APP_URL ?? "https://theypromised.app";
+export const APP_URL =
+  process.env.NEXT_PUBLIC_APP_URL ?? "https://www.theypromised.app";

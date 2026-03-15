@@ -27,6 +27,8 @@ function makeProfile(
     subscription_status: "active",
     subscription_id: null,
     cases_count: 0,
+    ai_suggestions_used: 0,
+    ai_letters_used: 0,
     ai_credits_used: 0,
     ai_credits_reset_at: null,
     created_at: null,

@@ -2,11 +2,21 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 
 import { getOrCreateStripeCustomer, getStripeClient } from "@/lib/stripe/client";
+import { STRIPE_PRICE_IDS } from "@/lib/stripe/config";
 import { createClient } from "@/lib/supabase/server";
 
 const inputSchema = z.object({
   priceId: z.string().min(1),
 });
+
+const ALLOWED_PRICE_IDS = new Set(
+  [
+    STRIPE_PRICE_IDS.basic.monthly,
+    STRIPE_PRICE_IDS.basic.annual,
+    STRIPE_PRICE_IDS.pro.monthly,
+    STRIPE_PRICE_IDS.pro.annual,
+  ].filter(Boolean),
+);
 
 export async function POST(request: Request) {
   try {
@@ -21,6 +31,13 @@ export async function POST(request: Request) {
 
     const json = await request.json();
     const { priceId } = inputSchema.parse(json);
+
+    if (!ALLOWED_PRICE_IDS.has(priceId)) {
+      return NextResponse.json(
+        { error: "Invalid price selected" },
+        { status: 400 }
+      );
+    }
 
     const customerId = await getOrCreateStripeCustomer({
       userId: user.id,

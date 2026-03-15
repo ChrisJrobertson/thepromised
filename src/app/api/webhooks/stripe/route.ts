@@ -5,13 +5,9 @@ import Stripe from "stripe";
 
 import { getStripeClient } from "@/lib/stripe/client";
 import { getTierFromSubscription } from "@/lib/stripe/webhooks";
-import { createClient } from "@/lib/supabase/server";
+import { createServiceRoleClient } from "@/lib/supabase/admin";
 
 export const runtime = "nodejs";
-
-// Use Supabase server client — webhook endpoints bypass RLS via service-role
-// Since we're in a webhook we trust the Stripe signature but we operate as the
-// specific user (find by ID/customer), so standard server client is fine.
 
 export async function POST(request: Request) {
   const payload = await request.text();
@@ -40,7 +36,7 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: message }, { status: 400 });
   }
 
-  const supabase = await createClient();
+  const supabase = createServiceRoleClient();
 
   try {
     switch (event.type) {
@@ -58,7 +54,7 @@ export async function POST(request: Request) {
         const tier = getTierFromSubscription(subscription);
         const now = new Date();
 
-        await supabase
+        const { error: checkoutUpdateError } = await supabase
           .from("profiles")
           .update({
             subscription_tier: tier,
@@ -69,6 +65,14 @@ export async function POST(request: Request) {
             ai_credits_reset_at: addMonths(now, 1).toISOString(),
           })
           .eq("id", userId);
+
+        if (checkoutUpdateError) {
+          console.error("Failed to update profile after checkout:", checkoutUpdateError);
+          return NextResponse.json(
+            { error: "Database update failed" },
+            { status: 500 }
+          );
+        }
 
         // Send welcome/confirmation email (imported lazily to avoid import issues)
         try {
@@ -105,13 +109,24 @@ export async function POST(request: Request) {
           | "past_due"
           | "trialing";
 
-        await supabase
+        const { error: subscriptionUpdateError } = await supabase
           .from("profiles")
           .update({
             subscription_tier: tier,
             subscription_status: status,
           })
           .eq("subscription_id", subscription.id);
+
+        if (subscriptionUpdateError) {
+          console.error(
+            "Failed to update profile after subscription update:",
+            subscriptionUpdateError
+          );
+          return NextResponse.json(
+            { error: "Database update failed" },
+            { status: 500 }
+          );
+        }
 
         break;
       }
@@ -120,7 +135,7 @@ export async function POST(request: Request) {
       case "customer.subscription.deleted": {
         const subscription = event.data.object as Stripe.Subscription;
 
-        await supabase
+        const { error: subscriptionDeleteError } = await supabase
           .from("profiles")
           .update({
             subscription_tier: "free",
@@ -128,6 +143,17 @@ export async function POST(request: Request) {
             subscription_id: null,
           })
           .eq("subscription_id", subscription.id);
+
+        if (subscriptionDeleteError) {
+          console.error(
+            "Failed to update profile after subscription delete:",
+            subscriptionDeleteError
+          );
+          return NextResponse.json(
+            { error: "Database update failed" },
+            { status: 500 }
+          );
+        }
 
         break;
       }
@@ -141,10 +167,21 @@ export async function POST(request: Request) {
             : invoice.customer?.id;
 
         if (customerId) {
-          await supabase
+          const { error: paymentFailedUpdateError } = await supabase
             .from("profiles")
             .update({ subscription_status: "past_due" })
             .eq("stripe_customer_id", customerId);
+
+          if (paymentFailedUpdateError) {
+            console.error(
+              "Failed to update profile after payment failure:",
+              paymentFailedUpdateError
+            );
+            return NextResponse.json(
+              { error: "Database update failed" },
+              { status: 500 }
+            );
+          }
         }
 
         break;
@@ -174,7 +211,7 @@ export async function POST(request: Request) {
           !profile?.ai_credits_reset_at ||
           new Date(profile.ai_credits_reset_at) < now;
 
-        await supabase
+        const { error: invoicePaidUpdateError } = await supabase
           .from("profiles")
           .update({
             subscription_status: "active",
@@ -187,6 +224,17 @@ export async function POST(request: Request) {
           })
           .eq("stripe_customer_id", customerId);
 
+        if (invoicePaidUpdateError) {
+          console.error(
+            "Failed to update profile after invoice paid:",
+            invoicePaidUpdateError
+          );
+          return NextResponse.json(
+            { error: "Database update failed" },
+            { status: 500 }
+          );
+        }
+
         break;
       }
 
@@ -196,7 +244,10 @@ export async function POST(request: Request) {
     }
   } catch (handlerError) {
     console.error(`[Webhook ${event.type}]`, handlerError);
-    // Still return 200 to prevent Stripe retries for transient errors
+    return NextResponse.json(
+      { error: "Webhook handler failed" },
+      { status: 500 }
+    );
   }
 
   return NextResponse.json({ received: true });

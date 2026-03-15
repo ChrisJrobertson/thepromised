@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 
 import { seedEscalationRules } from "@/lib/seed/escalation-rules";
 import { seedOrganisations } from "@/lib/seed/organisations";
-import { createClient } from "@/lib/supabase/server";
+import { createServiceRoleClient } from "@/lib/supabase/admin";
 
 export const runtime = "nodejs";
 
@@ -13,7 +13,7 @@ export async function POST(request: Request) {
   }
 
   try {
-    const supabase = await createClient();
+    const supabase = createServiceRoleClient();
 
     // Seed organisations
     const orgResult = await seedOrganisations(

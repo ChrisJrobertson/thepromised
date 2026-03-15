@@ -19,7 +19,7 @@ type WelcomeEmailProps = {
 
 export function WelcomeEmail({
   name,
-  appUrl = "https://theypromised.app",
+  appUrl = "https://www.theypromised.app",
 }: WelcomeEmailProps) {
   return (
     <Html lang="en-GB">

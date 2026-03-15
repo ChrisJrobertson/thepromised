@@ -31,7 +31,7 @@ export function EscalationAlertEmail({
   ombudsmanName,
   ombudsmanUrl,
   caseUrl,
-  appUrl = "https://theypromised.app",
+  appUrl = "https://www.theypromised.app",
 }: EscalationAlertEmailProps) {
   const isEightWeeks = weeksOpen >= 8;
 

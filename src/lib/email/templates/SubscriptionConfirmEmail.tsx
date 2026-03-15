@@ -39,7 +39,7 @@ const TIER_FEATURES: Record<"basic" | "pro", string[]> = {
 export function SubscriptionConfirmEmail({
   name,
   tier,
-  appUrl = "https://theypromised.app",
+  appUrl = "https://www.theypromised.app",
 }: SubscriptionConfirmEmailProps) {
   const tierLabel = tier === "pro" ? "Pro" : "Basic";
   const features = TIER_FEATURES[tier];

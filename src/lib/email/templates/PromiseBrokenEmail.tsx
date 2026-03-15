@@ -29,7 +29,7 @@ export function PromiseBrokenEmail({
   promiseText,
   deadline,
   caseUrl,
-  appUrl = "https://theypromised.app",
+  appUrl = "https://www.theypromised.app",
 }: PromiseBrokenEmailProps) {
   return (
     <Html lang="en-GB">

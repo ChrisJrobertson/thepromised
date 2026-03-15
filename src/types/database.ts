@@ -24,6 +24,8 @@ export type Database = {
           subscription_status: "active" | "cancelled" | "past_due" | "trialing";
           subscription_id: string | null;
           cases_count: number;
+          ai_suggestions_used: number;
+          ai_letters_used: number;
           ai_credits_used: number;
           ai_credits_reset_at: string | null;
           created_at: string | null;
@@ -43,6 +45,8 @@ export type Database = {
           subscription_status?: "active" | "cancelled" | "past_due" | "trialing";
           subscription_id?: string | null;
           cases_count?: number;
+          ai_suggestions_used?: number;
+          ai_letters_used?: number;
           ai_credits_used?: number;
           ai_credits_reset_at?: string | null;
           created_at?: string | null;
@@ -62,6 +66,8 @@ export type Database = {
           subscription_status?: "active" | "cancelled" | "past_due" | "trialing";
           subscription_id?: string | null;
           cases_count?: number;
+          ai_suggestions_used?: number;
+          ai_letters_used?: number;
           ai_credits_used?: number;
           ai_credits_reset_at?: string | null;
           created_at?: string | null;

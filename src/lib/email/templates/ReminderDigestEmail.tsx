@@ -30,7 +30,7 @@ type ReminderDigestEmailProps = {
 export function ReminderDigestEmail({
   name,
   reminders,
-  appUrl = "https://theypromised.app",
+  appUrl = "https://www.theypromised.app",
 }: ReminderDigestEmailProps) {
   const overdueCount = reminders.filter((r) => r.isOverdue).length;
 

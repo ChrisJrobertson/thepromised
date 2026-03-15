@@ -3,7 +3,7 @@ import { enGB } from "date-fns/locale";
 import { NextResponse } from "next/server";
 
 import { sendReminderDigest, sendEscalationAlert, sendPromiseBroken } from "@/lib/email/send";
-import { createClient } from "@/lib/supabase/server";
+import { createServiceRoleClient } from "@/lib/supabase/admin";
 import type { ReminderInsert } from "@/types/database";
 
 export const runtime = "nodejs";
@@ -16,7 +16,7 @@ export async function GET(request: Request) {
     return NextResponse.json({ error: "Unauthorised" }, { status: 401 });
   }
 
-  const supabase = await createClient();
+  const supabase = createServiceRoleClient();
   const now = new Date();
   const results = {
     reminder_emails_sent: 0,
@@ -82,7 +82,7 @@ export async function GET(request: Request) {
       description: r.description,
       dueDate: format(new Date(r.due_date), "d MMMM yyyy", { locale: enGB }),
       caseTitle: r.cases?.title ?? "Unknown case",
-      caseUrl: `${process.env.NEXT_PUBLIC_APP_URL ?? "https://theypromised.app"}/cases/${r.case_id}`,
+      caseUrl: `${process.env.NEXT_PUBLIC_APP_URL ?? "https://www.theypromised.app"}/cases/${r.case_id}`,
       isOverdue: !isToday(new Date(r.due_date)) && isPast(new Date(r.due_date)),
     }));
 
