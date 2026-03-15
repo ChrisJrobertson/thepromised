@@ -1,8 +1,12 @@
 export const STRIPE_PRICE_IDS = {
-  basicMonthly: process.env.STRIPE_PRICE_ID_BASIC_MONTHLY ?? "",
-  basicAnnual: process.env.STRIPE_PRICE_ID_BASIC_ANNUAL ?? "",
-  proMonthly: process.env.STRIPE_PRICE_ID_PRO_MONTHLY ?? "",
-  proAnnual: process.env.STRIPE_PRICE_ID_PRO_ANNUAL ?? "",
+  basic: {
+    monthly: process.env.STRIPE_PRICE_ID_BASIC_MONTHLY!,
+    annual: process.env.STRIPE_PRICE_ID_BASIC_ANNUAL!,
+  },
+  pro: {
+    monthly: process.env.STRIPE_PRICE_ID_PRO_MONTHLY!,
+    annual: process.env.STRIPE_PRICE_ID_PRO_ANNUAL!,
+  },
 } as const;
 
 export type SubscriptionTier = "free" | "basic" | "pro";
@@ -27,10 +31,10 @@ export type BillingPeriod = "monthly" | "annual";
 export function getPriceId(tier: "basic" | "pro", period: BillingPeriod): string {
   if (tier === "basic") {
     return period === "monthly"
-      ? STRIPE_PRICE_IDS.basicMonthly
-      : STRIPE_PRICE_IDS.basicAnnual;
+      ? STRIPE_PRICE_IDS.basic.monthly
+      : STRIPE_PRICE_IDS.basic.annual;
   }
   return period === "monthly"
-    ? STRIPE_PRICE_IDS.proMonthly
-    : STRIPE_PRICE_IDS.proAnnual;
+    ? STRIPE_PRICE_IDS.pro.monthly
+    : STRIPE_PRICE_IDS.pro.annual;
 }
