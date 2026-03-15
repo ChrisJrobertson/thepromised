@@ -13,28 +13,67 @@ export default async function DashboardPage() {
   } = await supabase.auth.getUser();
 
   const userId = user?.id ?? "";
+  const now = new Date().toISOString();
+  const activeCaseStatuses = [
+    "open",
+    "escalated",
+    "in_progress",
+    "OPEN",
+    "ESCALATED",
+    "IN_PROGRESS",
+    "REVIEW",
+  ];
+  const resolvedCaseStatuses = ["resolved", "RESOLVED", "closed", "CLOSED"];
 
-  const [{ count: activeCases }, { data: reminders }, { data: recentInteractions }] =
-    await Promise.all([
-      supabase
-        .from("cases")
-        .select("*", { count: "exact", head: true })
-        .eq("user_id", userId)
-        .in("status", ["open", "escalated"]),
-      supabase
-        .from("reminders")
-        .select("id, title, due_date, case_id")
-        .eq("user_id", userId)
-        .eq("is_dismissed", false)
-        .order("due_date", { ascending: true })
-        .limit(5),
-      supabase
-        .from("interactions")
-        .select("id, summary, interaction_date, case_id")
-        .eq("user_id", userId)
-        .order("interaction_date", { ascending: false })
-        .limit(10),
-    ]);
+  const [
+    { count: activeCases },
+    { data: reminders },
+    { data: recentInteractions },
+    { count: openPromises },
+    { count: overdueActions },
+    { count: resolvedCases },
+  ] = await Promise.all([
+    supabase
+      .from("cases")
+      .select("*", { count: "exact", head: true })
+      .eq("user_id", userId)
+      .in("status", activeCaseStatuses),
+    supabase
+      .from("reminders")
+      .select("id, title, due_date, case_id")
+      .eq("user_id", userId)
+      .eq("is_dismissed", false)
+      .order("due_date", { ascending: true })
+      .limit(5),
+    supabase
+      .from("interactions")
+      .select("id, summary, interaction_date, case_id")
+      .eq("user_id", userId)
+      .order("interaction_date", { ascending: false })
+      .limit(10),
+    supabase
+      .from("interactions")
+      .select("*", { count: "exact", head: true })
+      .eq("user_id", userId)
+      .not("promises_made", "is", null)
+      .neq("promises_made", "")
+      .or("promise_fulfilled.is.null,promise_fulfilled.eq.false")
+      .not("promise_deadline", "is", null),
+    supabase
+      .from("interactions")
+      .select("*", { count: "exact", head: true })
+      .eq("user_id", userId)
+      .not("promises_made", "is", null)
+      .neq("promises_made", "")
+      .or("promise_fulfilled.is.null,promise_fulfilled.eq.false")
+      .not("promise_deadline", "is", null)
+      .lt("promise_deadline", now),
+    supabase
+      .from("cases")
+      .select("*", { count: "exact", head: true })
+      .eq("user_id", userId)
+      .in("status", resolvedCaseStatuses),
+  ]);
 
   return (
     <div className="space-y-6">
@@ -64,7 +103,7 @@ export default async function DashboardPage() {
               <AlertTriangle className="size-4 text-accent" /> Open Promises
             </CardTitle>
           </CardHeader>
-          <CardContent className="text-3xl font-bold">0</CardContent>
+          <CardContent className="text-3xl font-bold">{openPromises ?? 0}</CardContent>
         </Card>
         <Card>
           <CardHeader>
@@ -72,7 +111,7 @@ export default async function DashboardPage() {
               <AlertTriangle className="size-4 text-destructive" /> Overdue Actions
             </CardTitle>
           </CardHeader>
-          <CardContent className="text-3xl font-bold">0</CardContent>
+          <CardContent className="text-3xl font-bold">{overdueActions ?? 0}</CardContent>
         </Card>
         <Card>
           <CardHeader>
@@ -80,7 +119,7 @@ export default async function DashboardPage() {
               <ShieldCheck className="size-4 text-green-600" /> Cases Resolved
             </CardTitle>
           </CardHeader>
-          <CardContent className="text-3xl font-bold">0</CardContent>
+          <CardContent className="text-3xl font-bold">{resolvedCases ?? 0}</CardContent>
         </Card>
       </div>
 
