@@ -1,6 +1,6 @@
 import type { MetadataRoute } from "next";
 
-const baseUrl = process.env.NEXT_PUBLIC_APP_URL ?? "https://thepromised.app";
+const baseUrl = process.env.NEXT_PUBLIC_APP_URL ?? "https://www.theypromised.app";
 
 export default function sitemap(): MetadataRoute.Sitemap {
   const routes = [

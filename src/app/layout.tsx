@@ -17,7 +17,7 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   metadataBase: new URL(
-    process.env.NEXT_PUBLIC_APP_URL ?? "https://thepromised.app",
+    process.env.NEXT_PUBLIC_APP_URL ?? "https://www.theypromised.app",
   ),
   title: {
     default: "TheyPromised — They Promised. You Proved It.",
