@@ -10,9 +10,23 @@ import Link from "next/link";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "How It Works — Track Your Complaint Step by Step",
+  title: "How TheyPromised Works",
   description:
-    "TheyPromised makes it simple to log every interaction, follow UK escalation procedures, and export a professional case file for the ombudsman.",
+    "Create a case, log every interaction, track promises, generate AI letters, and escalate to the ombudsman. Here's how TheyPromised helps you win your complaint.",
+  openGraph: {
+    title: "How TheyPromised Works",
+    description:
+      "Create a case, log interactions, track promises, and escalate. Here's how it works.",
+    url: "https://www.theypromised.app/how-it-works",
+    siteName: "TheyPromised",
+    type: "website",
+  },
+  twitter: {
+    card: "summary",
+    title: "How TheyPromised Works",
+    description:
+      "Create a case, log interactions, track promises, and escalate. Here's how it works.",
+  },
 };
 
 const STEPS = [

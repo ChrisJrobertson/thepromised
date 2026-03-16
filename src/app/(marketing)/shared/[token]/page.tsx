@@ -23,11 +23,11 @@ export async function generateMetadata({ params }: { params: Params }): Promise<
     .eq("is_shared", true)
     .maybeSingle() as { data: { title: string } | null; error: unknown };
 
-  if (!data) return { title: "Shared Case | TheyPromised" };
+  if (!data) return { title: "Shared Case File", robots: { index: false, follow: false } };
 
   return {
-    title: `${data.title} | Shared Case | TheyPromised`,
-    description: "This case file has been shared via TheyPromised — the UK consumer complaint tracker.",
+    title: `${data.title} — Shared Case`,
+    description: "A read-only case file shared via TheyPromised. View the complaint timeline and promises tracked.",
     robots: { index: false, follow: false },
   };
 }

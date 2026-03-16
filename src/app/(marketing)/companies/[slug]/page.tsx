@@ -25,11 +25,19 @@ export async function generateMetadata({ params }: { params: Params }): Promise<
   const avgDays = scorecard.avg_resolution_days.toFixed(1);
 
   return {
-    title: `${companyName} Complaint Performance — How They Handle Complaints | TheyPromised`,
-    description: `See how ${companyName} handles customer complaints. Promise keeping rate, response times, helpfulness scores, and escalation data from real UK consumers. Track your complaint free.`,
+    title: `${companyName} Complaint Scorecard`,
+    description: `See how ${companyName} handles customer complaints. Promise keeping rate: ${promiseKeptPct}%. Average resolution: ${avgDays} days. Real data from UK consumers.`,
     openGraph: {
       title: `${companyName} Complaint Scorecard`,
       description: `${companyName} keeps ${promiseKeptPct}% of promises and takes an average of ${avgDays} days to resolve complaints.`,
+      url: `https://www.theypromised.app/companies/${slug}`,
+      siteName: "TheyPromised",
+      type: "website",
+    },
+    twitter: {
+      card: "summary" as const,
+      title: `${companyName} Complaint Scorecard`,
+      description: `See how ${companyName} handles consumer complaints based on real data.`,
     },
   };
 }

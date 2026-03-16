@@ -1,10 +1,26 @@
 import { complaintTemplates } from "@/lib/data/complaint-templates";
 import { TemplatesGrid } from "@/components/marketing/TemplatesGrid";
 
-export const metadata = {
-  title: "What's Your Complaint About? — Start in 2 Minutes | TheyPromised",
+import type { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "What's Your Complaint About? Start in 2 Minutes",
   description:
-    "Ready-made UK complaint templates with the right legislation, escalation path, and a professionally drafted letter. Pick your issue and we'll guide you through the rest.",
+    "Choose from 10 complaint templates covering energy, broadband, banking, insurance, transport, housing, retail, and more. Each pre-fills your case with the right escalation path.",
+  openGraph: {
+    title: "Complaint Templates — Start in 2 Minutes",
+    description:
+      "Choose from 10 complaint templates. Each pre-fills your case with the right escalation path and AI-drafted letters.",
+    url: "https://www.theypromised.app/templates",
+    siteName: "TheyPromised",
+    type: "website",
+  },
+  twitter: {
+    card: "summary",
+    title: "Complaint Templates — Start in 2 Minutes",
+    description:
+      "Choose from 10 complaint templates. Each pre-fills your case with the right escalation path.",
+  },
 };
 
 export default function TemplatesPage() {

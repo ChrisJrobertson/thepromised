@@ -3,7 +3,7 @@
 import type { Metadata } from "next";
 import type React from "react";
 
-export const metadata: Metadata = { title: "Dashboard | TheyPromised" };
+export const metadata: Metadata = { title: "Dashboard" };
 
 import { differenceInDays, format } from "date-fns";
 import { enGB } from "date-fns/locale";
@@ -23,6 +23,7 @@ import {
 import Link from "next/link";
 
 import { DashboardQuickActions } from "@/components/dashboard/DashboardQuickActions";
+import { JourneyProgressWidget } from "@/components/dashboard/JourneyProgressWidget";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -451,6 +452,8 @@ export default async function DashboardPage() {
           </CardContent>
         </Card>
       </div>
+
+      <JourneyProgressWidget />
 
       <Card>
         <CardHeader>

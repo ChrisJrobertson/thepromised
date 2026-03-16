@@ -18,9 +18,17 @@ export async function generateMetadata({ params }: { params: Params }): Promise<
   if (!guide) return {};
 
   return {
-    title: `How to Complain About ${guide.name} — Step-by-Step Guide | TheyPromised`,
-    description: `Complete guide to making a complaint against ${guide.name}. Step-by-step escalation path, ombudsman details, time limits, and tips. Track your complaint free with TheyPromised.`,
+    title: `How to Complain About ${guide.name} — Step-by-Step Guide`,
+    description: `Complete guide to making a complaint against ${guide.name}. Escalation path, ombudsman details, time limits, contact details, and tips. Track your complaint free.`,
     openGraph: {
+      title: `How to Complain About ${guide.name}`,
+      description: `Step-by-step complaint guide for ${guide.name} customers.`,
+      url: `https://www.theypromised.app/guides/${slug}`,
+      siteName: "TheyPromised",
+      type: "website",
+    },
+    twitter: {
+      card: "summary" as const,
       title: `How to Complain About ${guide.name}`,
       description: `Step-by-step complaint guide for ${guide.name} customers.`,
     },

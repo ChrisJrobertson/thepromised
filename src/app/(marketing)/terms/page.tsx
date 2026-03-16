@@ -2,7 +2,8 @@ import type { Metadata } from "next";
 
 export const metadata: Metadata = {
   title: "Terms of Service",
-  description: "TheyPromised terms of service — subscription terms, cancellation policy, and acceptable use.",
+  description:
+    "Terms of service for TheyPromised, the UK consumer complaint tracking platform operated by SynqForge LTD.",
 };
 
 const LAST_UPDATED = "14 March 2026";

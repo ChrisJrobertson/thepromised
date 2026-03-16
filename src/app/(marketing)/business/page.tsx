@@ -1,9 +1,25 @@
 import { BusinessEnquiryForm } from "@/components/marketing/BusinessEnquiryForm";
 
-export const metadata = {
-  title: "For Business — Complaint Intelligence",
+import type { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "TheyPromised for Business",
   description:
-    "Complaint scorecards, benchmarks, and monthly reports for UK organisations.",
+    "Monitor your company's complaint performance, benchmark against competitors, and reduce escalations. Request a pilot today.",
+  openGraph: {
+    title: "TheyPromised for Business",
+    description:
+      "Monitor complaint performance, benchmark against competitors, and reduce escalations.",
+    url: "https://www.theypromised.app/business",
+    siteName: "TheyPromised",
+    type: "website",
+  },
+  twitter: {
+    card: "summary",
+    title: "TheyPromised for Business",
+    description:
+      "Monitor complaint performance, benchmark against competitors, and reduce escalations.",
+  },
 };
 
 export default function BusinessPage() {

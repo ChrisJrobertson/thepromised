@@ -5,7 +5,21 @@ import type { Metadata } from "next";
 export const metadata: Metadata = {
   title: "About TheyPromised",
   description:
-    "Built for people who've had enough of being ignored. TheyPromised is a UK consumer complaint tracking platform by SynqForge.",
+    "TheyPromised helps UK consumers track complaints, build evidence, and escalate disputes. Built by SynqForge LTD to make companies keep their promises.",
+  openGraph: {
+    title: "About TheyPromised",
+    description:
+      "TheyPromised helps UK consumers track complaints, build evidence, and escalate disputes.",
+    url: "https://www.theypromised.app/about",
+    siteName: "TheyPromised",
+    type: "website",
+  },
+  twitter: {
+    card: "summary",
+    title: "About TheyPromised",
+    description:
+      "TheyPromised helps UK consumers track complaints, build evidence, and escalate disputes.",
+  },
 };
 
 export default function AboutPage() {

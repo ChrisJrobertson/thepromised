@@ -38,6 +38,7 @@ export type Database = {
           pack_source_pack_id: string | null;
           is_admin: boolean | null;
           last_export_at: string | null;
+          notification_preferences: Json | null;
           created_at: string | null;
           updated_at: string | null;
         };
@@ -69,6 +70,7 @@ export type Database = {
           pack_source_pack_id?: string | null;
           is_admin?: boolean | null;
           last_export_at?: string | null;
+          notification_preferences?: Json | null;
           created_at?: string | null;
           updated_at?: string | null;
         };
@@ -100,6 +102,48 @@ export type Database = {
           pack_source_pack_id?: string | null;
           is_admin?: boolean | null;
           last_export_at?: string | null;
+          notification_preferences?: Json | null;
+          created_at?: string | null;
+          updated_at?: string | null;
+        };
+      };
+      case_journeys: {
+        Row: {
+          id: string;
+          case_id: string;
+          user_id: string;
+          journey_template_id: string;
+          current_step_id: string;
+          status: "in_progress" | "completed" | "abandoned";
+          step_history: Json;
+          started_at: string | null;
+          completed_at: string | null;
+          created_at: string | null;
+          updated_at: string | null;
+        };
+        Insert: {
+          id?: string;
+          case_id: string;
+          user_id: string;
+          journey_template_id: string;
+          current_step_id: string;
+          status?: "in_progress" | "completed" | "abandoned";
+          step_history?: Json;
+          started_at?: string | null;
+          completed_at?: string | null;
+          created_at?: string | null;
+          updated_at?: string | null;
+        };
+        Update: {
+          id?: string;
+          case_id?: string;
+          user_id?: string;
+          journey_template_id?: string;
+          current_step_id?: string;
+          status?: "in_progress" | "completed" | "abandoned";
+          step_history?: Json;
+          started_at?: string | null;
+          completed_at?: string | null;
           created_at?: string | null;
           updated_at?: string | null;
         };
@@ -727,7 +771,10 @@ export type Database = {
             | "ombudsman_referral"
             | "subject_access_request"
             | "formal_notice"
-            | "custom";
+            | "custom"
+            | "adr_referral"
+            | "section_75_claim"
+            | "letter_before_action";
           recipient_name: string | null;
           recipient_address: string | null;
           subject: string;
@@ -758,7 +805,10 @@ export type Database = {
             | "ombudsman_referral"
             | "subject_access_request"
             | "formal_notice"
-            | "custom";
+            | "custom"
+            | "adr_referral"
+            | "section_75_claim"
+            | "letter_before_action";
           recipient_name?: string | null;
           recipient_address?: string | null;
           subject: string;
@@ -789,7 +839,10 @@ export type Database = {
             | "ombudsman_referral"
             | "subject_access_request"
             | "formal_notice"
-            | "custom";
+            | "custom"
+            | "adr_referral"
+            | "section_75_claim"
+            | "letter_before_action";
           recipient_name?: string | null;
           recipient_address?: string | null;
           subject?: string;
@@ -1142,3 +1195,9 @@ export type B2BOutreachEmailInsert =
   Database["public"]["Tables"]["b2b_outreach_emails"]["Insert"];
 export type B2BOutreachEmailUpdate =
   Database["public"]["Tables"]["b2b_outreach_emails"]["Update"];
+export type CaseJourneyRow =
+  Database["public"]["Tables"]["case_journeys"]["Row"];
+export type CaseJourneyInsert =
+  Database["public"]["Tables"]["case_journeys"]["Insert"];
+export type CaseJourneyUpdate =
+  Database["public"]["Tables"]["case_journeys"]["Update"];
