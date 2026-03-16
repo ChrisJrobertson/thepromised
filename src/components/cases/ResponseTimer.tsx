@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useMemo, useState } from "react";
 import { toast } from "sonner";
 
-import { Button } from "@/components/ui/button";
+import { Button, buttonVariants } from "@/components/ui/button";
 
 type ResponseTimerProps = {
   caseId: string;
@@ -89,9 +89,12 @@ export function ResponseTimer({
           {isSubmitting ? "Saving..." : "Mark Response Received"}
         </Button>
         {remainingDays < 0 ? (
-          <Button asChild size="sm" variant="outline">
-            <Link href={escalationGuideHref}>Escalate Now →</Link>
-          </Button>
+          <Link
+            className={buttonVariants({ size: "sm", variant: "outline" })}
+            href={escalationGuideHref}
+          >
+            Escalate Now →
+          </Link>
         ) : null}
       </div>
     </section>

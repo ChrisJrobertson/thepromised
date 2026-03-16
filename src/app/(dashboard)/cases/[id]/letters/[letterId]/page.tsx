@@ -4,6 +4,13 @@ import { notFound, redirect } from "next/navigation";
 import { LetterActions } from "@/app/(dashboard)/cases/[id]/letters/[letterId]/LetterActions";
 import { SendLetterButton } from "@/components/letters/SendLetterButton";
 import { createClient } from "@/lib/supabase/server";
+import type { Letter } from "@/types/database";
+
+type CaseHeading = { id: string; title: string; organisation_id: string | null };
+type LetterDetail = Pick<
+  Letter,
+  "id" | "subject" | "body" | "sent_to_email" | "sent_at" | "opened_at" | "delivered_at" | "delivery_status"
+>;
 
 export default async function LetterDetailPage({
   params,
@@ -17,7 +24,7 @@ export default async function LetterDetailPage({
   } = await supabase.auth.getUser();
   if (!user) redirect("/login");
 
-  const [{ data: caseRow }, { data: letter }] = await Promise.all([
+  const [{ data: caseRaw }, { data: letterRaw }] = await Promise.all([
     supabase
       .from("cases")
       .select("id, title, organisation_id")
@@ -26,12 +33,14 @@ export default async function LetterDetailPage({
       .maybeSingle(),
     supabase
       .from("letters")
-      .select("*")
+      .select("id, subject, body, sent_to_email, sent_at, opened_at, delivered_at, delivery_status")
       .eq("id", letterId)
       .eq("case_id", id)
       .eq("user_id", user.id)
       .maybeSingle(),
   ]);
+  const caseRow = caseRaw as CaseHeading | null;
+  const letter = letterRaw as LetterDetail | null;
 
   if (!caseRow || !letter) notFound();
 

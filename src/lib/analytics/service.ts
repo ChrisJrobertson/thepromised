@@ -1,24 +1,39 @@
 import { createServiceRoleClient } from "@/lib/supabase/admin";
-import type { BusinessEnquiry } from "@/types/database";
+import type { BusinessEnquiry, Database } from "@/types/database";
 
-export async function getPlatformStats() {
+type PlatformStatsRow = Database["public"]["Views"]["v_platform_stats"]["Row"];
+type CompanyStatsRow = Database["public"]["Views"]["v_company_stats"]["Row"];
+type MonthlyTrendRow = Database["public"]["Views"]["v_monthly_trends"]["Row"];
+type CategoryStatsRow = Database["public"]["Views"]["v_category_stats"]["Row"];
+type CompanyRankingRow = Database["public"]["Views"]["v_company_rankings"]["Row"];
+type SignupRow = Pick<
+  Database["public"]["Tables"]["profiles"]["Row"],
+  "id" | "email" | "subscription_tier" | "created_at"
+>;
+type AdminUserRow = SignupRow & {
+  cases_count: number;
+  interactions_count: number;
+  letters_count: number;
+};
+
+export async function getPlatformStats(): Promise<PlatformStatsRow> {
   const supabase = createServiceRoleClient();
   const { data, error } = await supabase.from("v_platform_stats").select("*").single();
   if (error) throw error;
-  return data;
+  return data as PlatformStatsRow;
 }
 
-export async function getCompanyStats() {
+export async function getCompanyStats(): Promise<CompanyStatsRow[]> {
   const supabase = createServiceRoleClient();
   const { data, error } = await supabase
     .from("v_company_stats")
     .select("*")
     .order("total_cases", { ascending: false });
   if (error) throw error;
-  return data;
+  return (data ?? []) as CompanyStatsRow[];
 }
 
-export async function getCompanyStatsById(organisationId: string) {
+export async function getCompanyStatsById(organisationId: string): Promise<CompanyStatsRow | null> {
   const supabase = createServiceRoleClient();
   const { data, error } = await supabase
     .from("v_company_stats")
@@ -26,30 +41,30 @@ export async function getCompanyStatsById(organisationId: string) {
     .eq("organisation_id", organisationId)
     .single();
   if (error) throw error;
-  return data;
+  return data as CompanyStatsRow;
 }
 
-export async function getMonthlyTrends() {
+export async function getMonthlyTrends(): Promise<MonthlyTrendRow[]> {
   const supabase = createServiceRoleClient();
   const { data, error } = await supabase
     .from("v_monthly_trends")
     .select("*")
     .order("month", { ascending: true });
   if (error) throw error;
-  return data;
+  return (data ?? []) as MonthlyTrendRow[];
 }
 
-export async function getCategoryStats() {
+export async function getCategoryStats(): Promise<CategoryStatsRow[]> {
   const supabase = createServiceRoleClient();
   const { data, error } = await supabase
     .from("v_category_stats")
     .select("*")
     .order("total_cases", { ascending: false });
   if (error) throw error;
-  return data;
+  return (data ?? []) as CategoryStatsRow[];
 }
 
-export async function getCompanyRankings(limit = 20) {
+export async function getCompanyRankings(limit = 20): Promise<CompanyRankingRow[]> {
   const supabase = createServiceRoleClient();
   const { data, error } = await supabase
     .from("v_company_rankings")
@@ -57,10 +72,10 @@ export async function getCompanyRankings(limit = 20) {
     .order("complaint_count", { ascending: false })
     .limit(limit);
   if (error) throw error;
-  return data;
+  return (data ?? []) as CompanyRankingRow[];
 }
 
-export async function getRecentSignups(limit = 20) {
+export async function getRecentSignups(limit = 20): Promise<Array<SignupRow & { cases_created: number }>> {
   const supabase = createServiceRoleClient();
   const { data, error } = await supabase
     .from("profiles")
@@ -68,8 +83,9 @@ export async function getRecentSignups(limit = 20) {
     .order("created_at", { ascending: false })
     .limit(limit);
   if (error) throw error;
+  const signups = (data ?? []) as SignupRow[];
 
-  const userIds = (data ?? []).map((u) => u.id);
+  const userIds = signups.map((u) => u.id);
   if (!userIds.length) return [];
 
   const { data: cases, error: casesError } = await supabase
@@ -83,7 +99,7 @@ export async function getRecentSignups(limit = 20) {
     counts.set(c.user_id, (counts.get(c.user_id) ?? 0) + 1);
   }
 
-  return (data ?? []).map((u) => ({
+  return signups.map((u) => ({
     ...u,
     cases_created: counts.get(u.id) ?? 0,
   }));
@@ -97,10 +113,10 @@ export async function getBusinessEnquiries(limit = 20): Promise<BusinessEnquiry[
     .order("created_at", { ascending: false })
     .limit(limit);
   if (error) throw error;
-  return data ?? [];
+  return (data ?? []) as BusinessEnquiry[];
 }
 
-export async function getAdminUsers(limit = 200) {
+export async function getAdminUsers(limit = 200): Promise<AdminUserRow[]> {
   const supabase = createServiceRoleClient();
   const { data: users, error } = await supabase
     .from("profiles")
@@ -108,8 +124,9 @@ export async function getAdminUsers(limit = 200) {
     .order("created_at", { ascending: false })
     .limit(limit);
   if (error) throw error;
+  const rows = (users ?? []) as SignupRow[];
 
-  const userIds = (users ?? []).map((u) => u.id);
+  const userIds = rows.map((u) => u.id);
   if (!userIds.length) return [];
 
   const [{ data: cases }, { data: interactions }, { data: letters }] = await Promise.all([
@@ -130,7 +147,7 @@ export async function getAdminUsers(limit = 200) {
   const interactionCounts = countBy(interactions);
   const letterCounts = countBy(letters);
 
-  return (users ?? []).map((u) => ({
+  return rows.map((u) => ({
     ...u,
     cases_count: caseCounts.get(u.id) ?? 0,
     interactions_count: interactionCounts.get(u.id) ?? 0,

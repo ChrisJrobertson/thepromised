@@ -1,4 +1,16 @@
 import { createServiceRoleClient } from "@/lib/supabase/admin";
+import type { Database } from "@/types/database";
+
+type CompanyStatsRow = Database["public"]["Views"]["v_company_stats"]["Row"];
+
+function getScorecardClient() {
+  try {
+    return createServiceRoleClient();
+  } catch {
+    // Build environments may not provide service role credentials.
+    return null;
+  }
+}
 
 export function slugifyCompanyName(value: string) {
   return value
@@ -44,26 +56,7 @@ export type PublicScorecard = {
   updated_at: string;
 };
 
-function buildScorecard(stats: {
-  organisation_id: string | null;
-  organisation_name: string | null;
-  category: string | null;
-  total_cases: number | null;
-  total_promises: number | null;
-  promises_kept: number | null;
-  letters_sent_count: number | null;
-  responses_received_count: number | null;
-  avg_response_days: number | null;
-  avg_helpfulness_score: number | null;
-  escalation_rate_pct: number | null;
-  resolved_cases: number | null;
-  avg_resolution_days: number | null;
-  total_amount_disputed: number | null;
-  pct_phone: number | null;
-  pct_email: number | null;
-  pct_webchat: number | null;
-  pct_letter: number | null;
-}): PublicScorecard | null {
+function buildScorecard(stats: CompanyStatsRow): PublicScorecard | null {
   if (!stats.organisation_id || !stats.organisation_name) return null;
 
   const totalCases = Number(stats.total_cases ?? 0);
@@ -133,14 +126,16 @@ function buildScorecard(stats: {
 }
 
 export async function getPublicScorecardForSlug(slug: string) {
-  const supabase = createServiceRoleClient();
+  const supabase = getScorecardClient();
+  if (!supabase) return null;
 
   const { data: organisations, error: orgError } = await supabase
     .from("organisations")
     .select("id, name");
   if (orgError) throw orgError;
 
-  const organisation = (organisations ?? []).find((o) => slugifyCompanyName(o.name) === slug);
+  const organisationRows = (organisations ?? []) as Array<{ id: string; name: string }>;
+  const organisation = organisationRows.find((o) => slugifyCompanyName(o.name) === slug);
   if (!organisation) return null;
 
   const { data: stats, error: statsError } = await supabase
@@ -151,13 +146,14 @@ export async function getPublicScorecardForSlug(slug: string) {
   if (statsError) throw statsError;
   if (!stats) return null;
 
-  const scorecard = buildScorecard(stats);
+  const scorecard = buildScorecard(stats as CompanyStatsRow);
   if (!scorecard) return null;
   return scorecard;
 }
 
 export async function getPublicScorecardIndex(minCases = 5) {
-  const supabase = createServiceRoleClient();
+  const supabase = getScorecardClient();
+  if (!supabase) return [];
   const { data, error } = await supabase
     .from("v_company_stats")
     .select("*")
@@ -165,7 +161,7 @@ export async function getPublicScorecardIndex(minCases = 5) {
     .order("total_cases", { ascending: false });
   if (error) throw error;
 
-  return (data ?? [])
+  return ((data ?? []) as CompanyStatsRow[])
     .map((row) => buildScorecard(row))
     .filter((row): row is PublicScorecard => Boolean(row));
 }

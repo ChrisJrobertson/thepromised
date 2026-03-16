@@ -2,6 +2,18 @@ import { NextResponse } from "next/server";
 
 import { createServiceRoleClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
+import type { Database } from "@/types/database";
+
+type CaseRow = Database["public"]["Tables"]["cases"]["Row"];
+type InteractionRow = Database["public"]["Tables"]["interactions"]["Row"];
+type LetterRow = Database["public"]["Tables"]["letters"]["Row"];
+type ReminderRow = Database["public"]["Tables"]["reminders"]["Row"];
+type EvidenceRow = Pick<
+  Database["public"]["Tables"]["evidence"]["Row"],
+  "case_id" | "file_name" | "description" | "created_at"
+>;
+type OrganisationRow = Pick<Database["public"]["Tables"]["organisations"]["Row"], "id" | "name">;
+type ProfileRow = Database["public"]["Tables"]["profiles"]["Row"];
 
 export async function GET() {
   const supabase = await createClient();
@@ -17,9 +29,10 @@ export async function GET() {
     .eq("id", user.id)
     .maybeSingle();
   if (!profile) return NextResponse.json({ error: "Profile not found" }, { status: 404 });
+  const profileRow = profile as ProfileRow;
 
-  if (profile.last_export_at) {
-    const elapsed = Date.now() - new Date(profile.last_export_at).getTime();
+  if (profileRow.last_export_at) {
+    const elapsed = Date.now() - new Date(profileRow.last_export_at).getTime();
     if (elapsed < 24 * 60 * 60 * 1000) {
       const retryAfter = Math.ceil((24 * 60 * 60 * 1000 - elapsed) / 1000);
       return NextResponse.json(
@@ -36,31 +49,42 @@ export async function GET() {
 
   const { data: cases } = await admin
     .from("cases")
-    .select("*, organisations(name)")
+    .select("*")
     .eq("user_id", user.id)
     .order("created_at", { ascending: false });
 
-  const caseIds = (cases ?? []).map((c) => c.id);
+  const caseRows = (cases ?? []) as CaseRow[];
+  const caseIds = caseRows.map((c) => c.id);
+  const organisationIds = [...new Set(caseRows.map((c) => c.organisation_id).filter((id): id is string => Boolean(id)))];
+
+  const { data: organisations } = organisationIds.length
+    ? await admin.from("organisations").select("id, name").in("id", organisationIds)
+    : { data: [] as OrganisationRow[] };
+
+  const organisationNames = new Map(
+    ((organisations ?? []) as OrganisationRow[]).map((o) => [o.id, o.name]),
+  );
+
   const [interactionsRes, lettersRes, remindersRes, evidenceRes] = await Promise.all([
-    caseIds.length ? admin.from("interactions").select("*").in("case_id", caseIds) : Promise.resolve({ data: [] as unknown[] }),
-    caseIds.length ? admin.from("letters").select("*").in("case_id", caseIds) : Promise.resolve({ data: [] as unknown[] }),
-    caseIds.length ? admin.from("reminders").select("*").in("case_id", caseIds) : Promise.resolve({ data: [] as unknown[] }),
+    caseIds.length ? admin.from("interactions").select("*").in("case_id", caseIds) : Promise.resolve({ data: [] as InteractionRow[] }),
+    caseIds.length ? admin.from("letters").select("*").in("case_id", caseIds) : Promise.resolve({ data: [] as LetterRow[] }),
+    caseIds.length ? admin.from("reminders").select("*").in("case_id", caseIds) : Promise.resolve({ data: [] as ReminderRow[] }),
     caseIds.length
       ? admin.from("evidence").select("case_id, file_name, description, created_at").in("case_id", caseIds)
-      : Promise.resolve({ data: [] as unknown[] }),
+      : Promise.resolve({ data: [] as EvidenceRow[] }),
   ]);
 
-  const interactions = interactionsRes.data ?? [];
-  const letters = lettersRes.data ?? [];
-  const reminders = remindersRes.data ?? [];
-  const evidence = evidenceRes.data ?? [];
+  const interactions = (interactionsRes.data ?? []) as InteractionRow[];
+  const letters = (lettersRes.data ?? []) as LetterRow[];
+  const reminders = (remindersRes.data ?? []) as ReminderRow[];
+  const evidence = (evidenceRes.data ?? []) as EvidenceRow[];
 
   const payload = {
     exported_at: new Date().toISOString(),
-    profile,
-    cases: (cases ?? []).map((row) => ({
+    profile: profileRow,
+    cases: caseRows.map((row) => ({
       case: row,
-      organisation: row.organisations?.name ?? null,
+      organisation: row.organisation_id ? (organisationNames.get(row.organisation_id) ?? null) : null,
       interactions: interactions.filter((i) => i.case_id === row.id),
       letters: letters.filter((l) => l.case_id === row.id),
       reminders: reminders.filter((r) => r.case_id === row.id),

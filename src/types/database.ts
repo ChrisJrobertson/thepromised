@@ -854,10 +854,21 @@ type WithRelationships<T> = {
     : T[K];
 };
 
+type WithViewRelationships<T> = {
+  [K in keyof T]: T[K] extends {
+    Row: infer R;
+  }
+    ? {
+        Row: R;
+        Relationships: [];
+      }
+    : T[K];
+};
+
 export type SupabaseDatabase = {
   public: {
     Tables: WithRelationships<Database["public"]["Tables"]>;
-    Views: Database["public"]["Views"];
+    Views: WithViewRelationships<Database["public"]["Views"]>;
     Functions: Database["public"]["Functions"];
     Enums: Database["public"]["Enums"];
     CompositeTypes: Database["public"]["CompositeTypes"];

@@ -149,7 +149,7 @@ export function AccountClient({ lastExportAt }: AccountClientProps) {
         onOpenChange={(open) => {
           if (!open) {
             setShowDeleteDialog(false);
-            setConfirmEmail("");
+            setConfirmDeleteText("");
           }
         }}
         open={showDeleteDialog}

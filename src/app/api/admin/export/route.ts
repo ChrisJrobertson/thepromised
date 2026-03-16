@@ -2,6 +2,9 @@ import { NextResponse } from "next/server";
 
 import { requireAdminApi } from "@/lib/auth/admin-api";
 import { createServiceRoleClient } from "@/lib/supabase/admin";
+import type { Database } from "@/types/database";
+
+type CompanyRankingRow = Database["public"]["Views"]["v_company_rankings"]["Row"];
 
 function toCsv(rows: Array<Record<string, unknown>>) {
   if (!rows.length) return "";
@@ -43,7 +46,7 @@ export async function GET(request: Request) {
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
 
-  const rows = (data ?? []).map((row) => ({
+  const rows = ((data ?? []) as CompanyRankingRow[]).map((row) => ({
     organisation_id: row.organisation_id,
     name: row.name,
     category: row.category,

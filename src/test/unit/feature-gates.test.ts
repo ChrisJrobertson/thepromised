@@ -31,6 +31,8 @@ function makeProfile(
     ai_letters_used: 0,
     ai_credits_used: 0,
     ai_credits_reset_at: null,
+    is_admin: false,
+    last_export_at: null,
     created_at: null,
     updated_at: null,
     ...overrides,
