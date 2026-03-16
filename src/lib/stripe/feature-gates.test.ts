@@ -26,6 +26,7 @@ const baseProfile: Profile = {
   pack_source_pack_id: null,
   is_admin: false,
   last_export_at: null,
+  notification_preferences: null,
   created_at: null,
   updated_at: null,
 };

@@ -38,6 +38,7 @@ export type Database = {
           pack_source_pack_id: string | null;
           is_admin: boolean | null;
           last_export_at: string | null;
+          notification_preferences: Json | null;
           created_at: string | null;
           updated_at: string | null;
         };
@@ -69,6 +70,7 @@ export type Database = {
           pack_source_pack_id?: string | null;
           is_admin?: boolean | null;
           last_export_at?: string | null;
+          notification_preferences?: Json | null;
           created_at?: string | null;
           updated_at?: string | null;
         };
@@ -100,6 +102,7 @@ export type Database = {
           pack_source_pack_id?: string | null;
           is_admin?: boolean | null;
           last_export_at?: string | null;
+          notification_preferences?: Json | null;
           created_at?: string | null;
           updated_at?: string | null;
         };
@@ -727,7 +730,10 @@ export type Database = {
             | "ombudsman_referral"
             | "subject_access_request"
             | "formal_notice"
-            | "custom";
+            | "custom"
+            | "adr_referral"
+            | "section_75_claim"
+            | "letter_before_action";
           recipient_name: string | null;
           recipient_address: string | null;
           subject: string;
@@ -758,7 +764,10 @@ export type Database = {
             | "ombudsman_referral"
             | "subject_access_request"
             | "formal_notice"
-            | "custom";
+            | "custom"
+            | "adr_referral"
+            | "section_75_claim"
+            | "letter_before_action";
           recipient_name?: string | null;
           recipient_address?: string | null;
           subject: string;
@@ -789,7 +798,10 @@ export type Database = {
             | "ombudsman_referral"
             | "subject_access_request"
             | "formal_notice"
-            | "custom";
+            | "custom"
+            | "adr_referral"
+            | "section_75_claim"
+            | "letter_before_action";
           recipient_name?: string | null;
           recipient_address?: string | null;
           subject?: string;

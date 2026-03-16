@@ -9,7 +9,22 @@ import { trackServerEvent } from "@/lib/analytics/posthog-server";
 import { enforcePackScopedCaseAccess } from "@/lib/packs/access";
 import { checkRateLimit } from "@/lib/rate-limit";
 import { createClient } from "@/lib/supabase/server";
+import type { LetterTemplateType } from "@/lib/ai/letter-templates";
 import type { LetterInsert, Profile } from "@/types/database";
+
+const VALID_LETTER_TYPES = new Set<LetterTemplateType>([
+  "initial_complaint",
+  "follow_up",
+  "escalation",
+  "final_response_request",
+  "ombudsman_referral",
+  "subject_access_request",
+  "formal_notice",
+  "custom",
+  "adr_referral",
+  "section_75_claim",
+  "letter_before_action",
+]);
 
 export const runtime = "nodejs";
 
@@ -212,7 +227,9 @@ export async function POST(request: Request) {
     const letterInsert: LetterInsert = {
       case_id: caseId,
       user_id: user.id,
-      letter_type: (letterType as LetterInsert["letter_type"]) ?? "custom",
+      letter_type: (VALID_LETTER_TYPES.has(letterType as LetterTemplateType)
+        ? letterType
+        : "custom") as LetterInsert["letter_type"],
       recipient_name: orgName,
       recipient_address: complaintEmail,
       sent_to_email: complaintEmail,
