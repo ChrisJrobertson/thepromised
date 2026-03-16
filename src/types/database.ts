@@ -444,6 +444,13 @@ export type Database = {
           response_received: boolean | null;
           response_received_at: string | null;
           inbound_email_alias: string | null;
+          outcome_satisfaction: "yes" | "partially" | "no" | null;
+          outcome_resolution_type: "refund" | "compensation" | "apology" | "replacement" | "service_fix" | "nothing" | "other" | null;
+          outcome_amount_pence: number | null;
+          outcome_notes: string | null;
+          resolved_at: string | null;
+          last_interaction_at: string | null;
+          nudge_sent_at: string | null;
           created_at: string | null;
           updated_at: string | null;
         };
@@ -479,6 +486,13 @@ export type Database = {
           response_received?: boolean | null;
           response_received_at?: string | null;
           inbound_email_alias?: string | null;
+          outcome_satisfaction?: "yes" | "partially" | "no" | null;
+          outcome_resolution_type?: "refund" | "compensation" | "apology" | "replacement" | "service_fix" | "nothing" | "other" | null;
+          outcome_amount_pence?: number | null;
+          outcome_notes?: string | null;
+          resolved_at?: string | null;
+          last_interaction_at?: string | null;
+          nudge_sent_at?: string | null;
           created_at?: string | null;
           updated_at?: string | null;
         };
@@ -514,6 +528,13 @@ export type Database = {
           response_received?: boolean | null;
           response_received_at?: string | null;
           inbound_email_alias?: string | null;
+          outcome_satisfaction?: "yes" | "partially" | "no" | null;
+          outcome_resolution_type?: "refund" | "compensation" | "apology" | "replacement" | "service_fix" | "nothing" | "other" | null;
+          outcome_amount_pence?: number | null;
+          outcome_notes?: string | null;
+          resolved_at?: string | null;
+          last_interaction_at?: string | null;
+          nudge_sent_at?: string | null;
           created_at?: string | null;
           updated_at?: string | null;
         };
@@ -955,6 +976,19 @@ export type Database = {
       };
     };
     Views: {
+      outcome_stats_by_company: {
+        Row: {
+          company_name: string | null;
+          total_resolved: number | null;
+          fully_satisfied: number | null;
+          partially_satisfied: number | null;
+          not_satisfied: number | null;
+          refunds: number | null;
+          compensations: number | null;
+          avg_amount_pence: number | null;
+          median_amount_pence: number | null;
+        };
+      };
       v_company_stats: {
         Row: {
           organisation_id: string | null;

@@ -244,6 +244,58 @@ export async function closeCase(caseId: string, resolutionSummary?: string) {
   });
 }
 
+// ── Outcome tracking ──────────────────────────────────────────────────────────
+
+export type SubmitCaseOutcomeInput = {
+  caseId: string;
+  satisfaction: "yes" | "partially" | "no";
+  resolutionType: "refund" | "compensation" | "apology" | "replacement" | "service_fix" | "nothing" | "other";
+  amountPounds?: number | null;
+  notes?: string | null;
+};
+
+export async function submitCaseOutcome(input: SubmitCaseOutcomeInput) {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) {
+    return { error: "Unauthorised" };
+  }
+
+  const amountPence = input.amountPounds != null && input.amountPounds > 0
+    ? Math.round(input.amountPounds * 100)
+    : null;
+
+  const { error } = await supabase
+    .from("cases")
+    .update({
+      outcome_satisfaction: input.satisfaction,
+      outcome_resolution_type: input.resolutionType,
+      outcome_amount_pence: amountPence,
+      outcome_notes: input.notes ?? null,
+      resolved_at: new Date().toISOString(),
+      status: "resolved",
+      resolved_date: new Date().toISOString(),
+    } as CaseUpdate)
+    .eq("id", input.caseId)
+    .eq("user_id", user.id);
+
+  if (error) {
+    return { error: error.message };
+  }
+
+  revalidatePath(`/cases/${input.caseId}`);
+  revalidatePath("/cases");
+  trackServerEvent(user.id, "case_outcome_recorded", {
+    caseId: input.caseId,
+    satisfaction: input.satisfaction,
+    resolutionType: input.resolutionType,
+  });
+  return { success: true };
+}
+
 export async function advanceEscalationStage(
   caseId: string,
   newStage: CaseUpdate["escalation_stage"]

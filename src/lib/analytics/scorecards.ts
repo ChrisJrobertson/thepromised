@@ -151,6 +151,80 @@ export async function getPublicScorecardForSlug(slug: string) {
   return scorecard;
 }
 
+export type CompanyOutcomeStats = {
+  company_name: string;
+  total_resolved: number;
+  fully_satisfied: number;
+  partially_satisfied: number;
+  not_satisfied: number;
+  refunds: number;
+  compensations: number;
+  avg_amount_pence: number | null;
+  median_amount_pence: number | null;
+  satisfaction_pct: number;
+};
+
+export async function getCompanyOutcomeStats(companyName: string): Promise<CompanyOutcomeStats | null> {
+  const supabase = getScorecardClient();
+  if (!supabase) return null;
+
+  const { data, error } = await supabase
+    .from("outcome_stats_by_company")
+    .select("*")
+    .eq("company_name", companyName)
+    .maybeSingle();
+
+  if (error || !data) return null;
+
+  const row = data as Record<string, unknown>;
+  const total = Number(row.total_resolved ?? 0);
+  const fullySatisfied = Number(row.fully_satisfied ?? 0);
+  const partiallySatisfied = Number(row.partially_satisfied ?? 0);
+
+  return {
+    company_name: String(row.company_name ?? ""),
+    total_resolved: total,
+    fully_satisfied: fullySatisfied,
+    partially_satisfied: partiallySatisfied,
+    not_satisfied: Number(row.not_satisfied ?? 0),
+    refunds: Number(row.refunds ?? 0),
+    compensations: Number(row.compensations ?? 0),
+    avg_amount_pence: row.avg_amount_pence != null ? Number(row.avg_amount_pence) : null,
+    median_amount_pence: row.median_amount_pence != null ? Number(row.median_amount_pence) : null,
+    satisfaction_pct: total > 0 ? Number(((fullySatisfied + partiallySatisfied * 0.5) / total * 100).toFixed(1)) : 0,
+  };
+}
+
+export async function getPlatformOutcomeStats() {
+  const supabase = getScorecardClient();
+  if (!supabase) return null;
+
+  const { data, error } = await supabase
+    .from("outcome_stats_by_company")
+    .select("total_resolved, fully_satisfied, partially_satisfied, avg_amount_pence");
+
+  if (error || !data) return null;
+
+  const rows = data as Array<Record<string, unknown>>;
+  const totalResolved = rows.reduce((sum, r) => sum + Number(r.total_resolved ?? 0), 0);
+  const totalSatisfied = rows.reduce(
+    (sum, r) => sum + Number(r.fully_satisfied ?? 0) + Number(r.partially_satisfied ?? 0) * 0.5,
+    0
+  );
+  const allAmounts = rows
+    .map((r) => Number(r.avg_amount_pence ?? 0))
+    .filter((a) => a > 0);
+  const avgAmountPence = allAmounts.length
+    ? allAmounts.reduce((s, v) => s + v, 0) / allAmounts.length
+    : 0;
+
+  return {
+    total_resolved: totalResolved,
+    satisfaction_pct: totalResolved > 0 ? Number((totalSatisfied / totalResolved * 100).toFixed(1)) : 0,
+    avg_amount_pounds: Number((avgAmountPence / 100).toFixed(2)),
+  };
+}
+
 export async function getPublicScorecardIndex(minCases = 5) {
   const supabase = getScorecardClient();
   if (!supabase) return [];
