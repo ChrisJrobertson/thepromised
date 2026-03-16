@@ -13,6 +13,7 @@ const NAV_ITEMS = [
   { href: "/cases", label: "My Cases", icon: Folder },
   { href: "/cases/new", label: "New Case", icon: PlusCircle },
   { href: "/letters", label: "Letters", icon: FileText },
+  { href: "/templates", label: "Templates", icon: FileText },
   { href: "/escalation-guides", label: "Escalation Guides", icon: Compass },
   { href: "/settings", label: "Settings", icon: Settings },
 ];

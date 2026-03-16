@@ -260,7 +260,7 @@ export async function POST(request: Request) {
       });
     }
 
-    trackServerEvent(user.id, "pdf_exported", { caseId, exportType });
+    trackServerEvent(user.id, "case_exported", { caseId, exportType });
 
     const uint8Array = new Uint8Array(pdfBuffer);
     return new Response(uint8Array, {

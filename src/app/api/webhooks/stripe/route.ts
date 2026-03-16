@@ -5,6 +5,7 @@ import Stripe from "stripe";
 
 import { getStripeClient } from "@/lib/stripe/client";
 import { getTierFromSubscription } from "@/lib/stripe/webhooks";
+import { trackServerEvent } from "@/lib/analytics/posthog-server";
 import { createServiceRoleClient } from "@/lib/supabase/admin";
 
 export const runtime = "nodejs";
@@ -74,6 +75,11 @@ export async function POST(request: Request) {
           );
         }
 
+        trackServerEvent(userId, "subscription_upgraded", {
+          tier,
+          subscription_id: subscription.id,
+        });
+
         // Send welcome/confirmation email (imported lazily to avoid import issues)
         try {
           const { data: profileData } = await supabase
@@ -134,6 +140,11 @@ export async function POST(request: Request) {
       // ── Subscription cancelled ─────────────────────────────────────────────
       case "customer.subscription.deleted": {
         const subscription = event.data.object as Stripe.Subscription;
+        const { data: profileRow } = await supabase
+          .from("profiles")
+          .select("id")
+          .eq("subscription_id", subscription.id)
+          .maybeSingle();
 
         const { error: subscriptionDeleteError } = await supabase
           .from("profiles")
@@ -153,6 +164,12 @@ export async function POST(request: Request) {
             { error: "Database update failed" },
             { status: 500 }
           );
+        }
+
+        if (profileRow?.id) {
+          trackServerEvent(profileRow.id, "subscription_cancelled", {
+            subscription_id: subscription.id,
+          });
         }
 
         break;

@@ -14,6 +14,12 @@ export default async function AccountSettingsPage() {
 
   if (!user) redirect("/login");
 
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("last_export_at")
+    .eq("id", user.id)
+    .maybeSingle();
+
   return (
     <div className="space-y-6">
       <div>
@@ -22,7 +28,7 @@ export default async function AccountSettingsPage() {
           Manage your data and account settings.
         </p>
       </div>
-      <AccountClient email={user.email ?? ""} />
+      <AccountClient lastExportAt={profile?.last_export_at ?? null} />
     </div>
   );
 }

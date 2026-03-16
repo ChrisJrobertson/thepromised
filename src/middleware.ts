@@ -3,7 +3,14 @@ import { NextResponse, type NextRequest } from "next/server";
 import { updateSession } from "@/lib/supabase/middleware";
 
 const AUTH_ROUTES = new Set(["/login", "/register"]);
-const PROTECTED_PREFIXES = ["/dashboard", "/cases", "/settings", "/reminders", "/letters"];
+const PROTECTED_PREFIXES = [
+  "/admin",
+  "/dashboard",
+  "/cases",
+  "/settings",
+  "/reminders",
+  "/letters",
+];
 
 function isProtectedRoute(pathname: string) {
   return PROTECTED_PREFIXES.some((prefix) => pathname.startsWith(prefix));

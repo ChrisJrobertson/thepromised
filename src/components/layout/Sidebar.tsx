@@ -10,6 +10,7 @@ type SidebarProps = {
   userName: string;
   userEmail: string;
   tier: "free" | "basic" | "pro";
+  isAdmin?: boolean;
 };
 
 const NAV_ITEMS = [
@@ -17,11 +18,16 @@ const NAV_ITEMS = [
   { href: "/cases", label: "My Cases", icon: Folder },
   { href: "/cases/new", label: "New Case", icon: PlusCircle },
   { href: "/letters", label: "Letters", icon: FileText },
+  { href: "/templates", label: "Templates", icon: FileText },
   { href: "/escalation-guides", label: "Escalation Guides", icon: Compass },
   { href: "/settings", label: "Settings", icon: Settings },
 ];
 
-export function Sidebar({ pathname, userName, userEmail, tier }: SidebarProps) {
+export function Sidebar({ pathname, userName, userEmail, tier, isAdmin = false }: SidebarProps) {
+  const items = isAdmin
+    ? [...NAV_ITEMS, { href: "/admin", label: "Admin Dashboard", icon: Shield }]
+    : NAV_ITEMS;
+
   return (
     <aside className="hidden w-72 shrink-0 flex-col bg-primary text-white md:flex">
       <div className="border-b border-white/15 p-5">
@@ -31,7 +37,7 @@ export function Sidebar({ pathname, userName, userEmail, tier }: SidebarProps) {
         </Link>
       </div>
       <nav className="flex-1 space-y-1 p-3">
-        {NAV_ITEMS.map((item) => {
+        {items.map((item) => {
           const Icon = item.icon;
           const isActive = pathname === item.href || pathname.startsWith(`${item.href}/`);
 

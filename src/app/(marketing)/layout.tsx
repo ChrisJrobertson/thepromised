@@ -16,6 +16,9 @@ export default function MarketingLayout({
             <Link href="/how-it-works">How it works</Link>
             <Link href="/pricing">Pricing</Link>
             <Link href="/escalation-guides">Escalation guides</Link>
+            <Link href="/companies">Company scorecards</Link>
+            <Link href="/templates">Templates</Link>
+            <Link href="/calculator">Calculator</Link>
             <Link href="/about">About</Link>
           </nav>
           <div className="flex items-center gap-2">
@@ -46,8 +49,12 @@ export default function MarketingLayout({
                 <Link className="hover:text-primary" href="/pricing">Pricing</Link>
                 <Link className="hover:text-primary" href="/how-it-works">How it works</Link>
                 <Link className="hover:text-primary" href="/escalation-guides">Escalation guides</Link>
+                <Link className="hover:text-primary" href="/companies">Company scorecards</Link>
+                <Link className="hover:text-primary" href="/templates">Templates</Link>
+                <Link className="hover:text-primary" href="/calculator">Calculator</Link>
                 <Link className="hover:text-primary" href="/privacy">Privacy</Link>
                 <Link className="hover:text-primary" href="/terms">Terms</Link>
+                <Link className="hover:text-primary" href="/business">For Business</Link>
               </div>
             </div>
           </div>

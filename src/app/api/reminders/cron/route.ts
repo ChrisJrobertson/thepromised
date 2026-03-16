@@ -27,6 +27,17 @@ export async function GET(request: Request) {
     deadline_alerts_created: 0,
   };
 
+  // Reset AI credits monthly
+  await supabase
+    .from("profiles")
+    .update({
+      ai_suggestions_used: 0,
+      ai_letters_used: 0,
+      ai_credits_used: 0,
+      ai_credits_reset_at: now.toISOString(),
+    })
+    .lt("ai_credits_reset_at", new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString());
+
   // ── 1. Send daily reminder digest emails ────────────────────────────────────
   // Get all users who have reminders due today/overdue and have email reminders enabled
   const { data: allUsers } = await supabase

@@ -4,6 +4,7 @@ import { addDays } from "date-fns";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 
+import { trackServerEvent } from "@/lib/analytics/posthog-server";
 import { createClient } from "@/lib/supabase/server";
 import { canCreateCase } from "@/lib/stripe/feature-gates";
 import type {
@@ -200,6 +201,10 @@ export async function createCase(input: CreateCaseInput) {
   }
 
   revalidatePath("/cases");
+  trackServerEvent(user.id, "case_created", {
+    category: input.category,
+    priority: input.priority,
+  });
   redirect(`/cases/${newCase.id}?created=true`);
 }
 

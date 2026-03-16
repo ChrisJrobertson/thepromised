@@ -14,6 +14,8 @@ import { AISuggestion } from "@/components/cases/AISuggestion";
 import { CaseTimeline } from "@/components/cases/CaseTimeline";
 import { EscalationGuide } from "@/components/cases/EscalationGuide";
 import { EvidenceGallery } from "@/components/cases/EvidenceGallery";
+import { ForwardReplyPanel } from "@/components/cases/ForwardReplyPanel";
+import { ResponseTimer } from "@/components/cases/ResponseTimer";
 import { ShareCaseButton } from "@/components/cases/ShareCaseButton";
 import { Badge } from "@/components/ui/badge";
 import { buttonVariants } from "@/components/ui/button";
@@ -150,6 +152,10 @@ export default async function CasePage({
     theCase.organisations?.name ??
     theCase.custom_organisation_name ??
     "Unknown Organisation";
+  const scorecardSlug = orgName
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/(^-|-$)/g, "");
 
   const currentStageIndex = ESCALATION_STAGES.findIndex(
     (s) => s.key === theCase.escalation_stage
@@ -187,6 +193,9 @@ export default async function CasePage({
               </Badge>
             </div>
             <p className="text-muted-foreground">{theCase.title}</p>
+            <Link className="text-xs text-primary underline" href={`/companies/${scorecardSlug}`}>
+              📊 How does {orgName} compare? View their complaint scorecard →
+            </Link>
           </div>
 
           <div className="flex items-center gap-2">
@@ -287,6 +296,26 @@ export default async function CasePage({
             <p className="text-xs text-muted-foreground">In dispute</p>
           </div>
         </div>
+
+        {theCase.response_deadline ? (
+          <ResponseTimer
+            caseId={id}
+            companyName={orgName}
+            escalationGuideHref={`/escalation-guides/${theCase.category}`}
+            responseDeadline={theCase.response_deadline}
+            responseReceived={Boolean(theCase.response_received)}
+            responseReceivedAt={theCase.response_received_at}
+          />
+        ) : null}
+
+        {theCase.response_deadline ? (
+          <ForwardReplyPanel
+            caseId={id}
+            companyName={orgName}
+            initialAlias={theCase.inbound_email_alias}
+            userId={user.id}
+          />
+        ) : null}
       </div>
 
       {/* Main content + sidebar */}
@@ -558,6 +587,10 @@ function LettersList({ caseId, letters }: { caseId: string; letters: Letter[] })
   const STATUS_COLOURS: Record<string, string> = {
     draft: "border-muted bg-muted/50 text-muted-foreground",
     sent: "border-blue-200 bg-blue-50 text-blue-700",
+    delivered: "border-green-200 bg-green-50 text-green-700",
+    opened: "border-teal-200 bg-teal-50 text-teal-700",
+    bounced: "border-red-200 bg-red-50 text-red-700",
+    failed: "border-red-200 bg-red-50 text-red-700",
     acknowledged: "border-green-200 bg-green-50 text-green-700",
   };
 
@@ -589,10 +622,10 @@ function LettersList({ caseId, letters }: { caseId: string; letters: Letter[] })
                 </p>
               </div>
               <Badge
-                className={STATUS_COLOURS[letter.status] ?? ""}
+                className={STATUS_COLOURS[letter.delivery_status ?? letter.status] ?? ""}
                 variant="outline"
               >
-                {letter.status}
+                {(letter.delivery_status ?? letter.status).replace(/_/g, " ")}
               </Badge>
             </div>
           </CardContent>

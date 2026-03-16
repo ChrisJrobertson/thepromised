@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation";
 
 import { UpgradePrompt } from "@/components/ui/UpgradePrompt";
+import { getComplaintTemplateById } from "@/lib/data/complaint-templates";
 import { canCreateCase } from "@/lib/stripe/feature-gates";
 import { createClient } from "@/lib/supabase/server";
 
@@ -8,7 +9,12 @@ import { CaseWizard } from "./CaseWizard";
 
 export const metadata = { title: "New Case | TheyPromised" };
 
-export default async function NewCasePage() {
+export default async function NewCasePage({
+  searchParams,
+}: {
+  searchParams: Promise<{ template?: string }>;
+}) {
+  const sp = await searchParams;
   const supabase = await createClient();
   const {
     data: { user },
@@ -26,6 +32,7 @@ export default async function NewCasePage() {
 
   const profile = profileData as import("@/types/database").Profile;
   const canCreate = canCreateCase(profile);
+  const template = sp.template ? getComplaintTemplateById(sp.template) : undefined;
 
   return (
     <div className="mx-auto max-w-2xl space-y-6 pb-16">
@@ -37,7 +44,22 @@ export default async function NewCasePage() {
       </div>
 
       {canCreate ? (
-        <CaseWizard />
+        <CaseWizard
+          initialTemplate={
+            template
+              ? {
+                  id: template.id,
+                  title: template.title,
+                  category: template.category,
+                  commonWith: template.commonWith,
+                  suggestedTitle: template.suggestedTitle,
+                  suggestedDescription: template.suggestedDescription,
+                  suggestedDesiredOutcome: template.suggestedDesiredOutcome,
+                  suggestedPriority: template.suggestedPriority,
+                }
+              : undefined
+          }
+        />
       ) : (
         <UpgradePrompt
           title="Case limit reached"

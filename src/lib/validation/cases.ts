@@ -83,6 +83,7 @@ export const INTERACTION_OUTCOMES = [
   "no_resolution",
   "transferred",
   "disconnected",
+  "letter_sent",
   "other",
 ] as const;
 
@@ -97,6 +98,7 @@ export const INTERACTION_OUTCOME_LABELS: Record<
   no_resolution: "No Resolution",
   transferred: "Transferred",
   disconnected: "Disconnected",
+  letter_sent: "Letter Sent",
   other: "Other",
 };
 

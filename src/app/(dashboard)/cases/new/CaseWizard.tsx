@@ -73,7 +73,18 @@ const STEPS = [
   { label: "Confirm", icon: Check },
 ];
 
-export function CaseWizard() {
+type InitialTemplate = {
+  id: string;
+  title: string;
+  category: string;
+  commonWith: string[];
+  suggestedTitle: string;
+  suggestedDescription: string;
+  suggestedDesiredOutcome: string;
+  suggestedPriority: "low" | "medium" | "high" | "urgent";
+};
+
+export function CaseWizard({ initialTemplate }: { initialTemplate?: InitialTemplate }) {
   const [step, setStep] = useState(0);
   const [selectedOrg, setSelectedOrg] = useState<SelectedOrg | null>(null);
   const [isPending, startTransition] = useTransition();
@@ -81,12 +92,12 @@ export function CaseWizard() {
   const detailsForm = useForm<CaseDetailsData>({
     resolver: zodResolver(caseDetailsSchema),
     defaultValues: {
-      title: "",
-      description: "",
+      title: initialTemplate?.suggestedTitle ?? "",
+      description: initialTemplate?.suggestedDescription ?? "",
       reference_number: "",
       amount_in_dispute: "",
-      desired_outcome: "",
-      priority: "medium",
+      desired_outcome: initialTemplate?.suggestedDesiredOutcome ?? "",
+      priority: initialTemplate?.suggestedPriority ?? "medium",
       first_contact_date: format(new Date(), "yyyy-MM-dd"),
     },
   });
@@ -204,6 +215,11 @@ export function CaseWizard() {
   return (
     <div className="space-y-6">
       {/* Stepper */}
+      {initialTemplate ? (
+        <div className="rounded-md border border-blue-200 bg-blue-50 px-3 py-2 text-sm text-blue-800">
+          Using template: <strong>{initialTemplate.title}</strong>. You can edit all fields.
+        </div>
+      ) : null}
       <div className="space-y-3">
         <Progress className="h-2" value={progress} />
         <div className="flex justify-between">
@@ -240,7 +256,11 @@ export function CaseWizard() {
 
       {/* Step 0 — Organisation */}
       {step === 0 && (
-        <OrganisationStepForm onNext={handleOrgNext} />
+        <OrganisationStepForm
+          initialCategory={initialTemplate?.category}
+          onNext={handleOrgNext}
+          preferredCompanyNames={initialTemplate?.commonWith}
+        />
       )}
 
       {/* Step 1 — Case Details */}
