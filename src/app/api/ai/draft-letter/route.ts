@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 
 import { CLAUDE_MODELS, anthropic } from "@/lib/ai/client";
+import { getJourneyLetterPrompt } from "@/lib/ai/journey-prompts";
 import { LETTER_SYSTEM, buildLetterPrompt } from "@/lib/ai/prompts";
 import { getTemplate } from "@/lib/ai/letter-templates";
 import { trackServerEvent } from "@/lib/analytics/posthog-server";
@@ -16,6 +17,7 @@ const inputSchema = z.object({
   caseId: z.string().uuid(),
   letterType: z.string().min(1),
   additionalInstructions: z.string().max(500).optional(),
+  promptContext: z.string().max(100).optional(),
 });
 
 export async function POST(request: Request) {
@@ -45,7 +47,7 @@ export async function POST(request: Request) {
     }
 
     const json = await request.json();
-    const { caseId, letterType, additionalInstructions } = inputSchema.parse(json);
+    const { caseId, letterType, additionalInstructions, promptContext } = inputSchema.parse(json);
 
     // Profile + tier check
     const { data: profileData } = await supabase
@@ -137,6 +139,12 @@ export async function POST(request: Request) {
 
     const template = getTemplate(letterType as Parameters<typeof getTemplate>[0]);
 
+    // Merge journey-specific context with any user-provided additional instructions
+    const journeyContext = promptContext ? getJourneyLetterPrompt(promptContext) : undefined;
+    const mergedInstructions = [journeyContext, additionalInstructions]
+      .filter(Boolean)
+      .join("\n\n") || undefined;
+
     const prompt = buildLetterPrompt({
       letterType,
       letterTypeName: template?.name ?? letterType,
@@ -174,7 +182,7 @@ export async function POST(request: Request) {
         promiseFulfilled: i.promise_fulfilled,
         referenceNumber: i.reference_number,
       })),
-      additionalInstructions,
+      additionalInstructions: mergedInstructions,
     });
 
     // Call Claude
