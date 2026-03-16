@@ -13,7 +13,7 @@ import type { Profile } from "@/types/database";
 function makeProfile(
   overrides: Partial<Profile> = {}
 ): Profile {
-  return {
+  const profile: Profile = {
     id: "test-user-id",
     email: "test@example.com",
     full_name: "Test User",
@@ -31,10 +31,19 @@ function makeProfile(
     ai_letters_used: 0,
     ai_credits_used: 0,
     ai_credits_reset_at: null,
+    pack_pro_expires_at: null,
+    pack_access_case_id: null,
+    pack_source_pack_id: null,
+    is_admin: false,
+    last_export_at: null,
     created_at: null,
     updated_at: null,
     ...overrides,
   };
+  profile.pack_pro_expires_at = overrides.pack_pro_expires_at ?? null;
+  profile.pack_access_case_id = overrides.pack_access_case_id ?? null;
+  profile.pack_source_pack_id = overrides.pack_source_pack_id ?? null;
+  return profile;
 }
 
 describe("canCreateCase", () => {

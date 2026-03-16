@@ -14,18 +14,21 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
-import { deleteAccount } from "@/lib/actions/settings";
 import { createClient } from "@/lib/supabase/client";
 
 type AccountClientProps = {
-  email: string;
+  lastExportAt: string | null;
 };
 
-export function AccountClient({ email }: AccountClientProps) {
+export function AccountClient({ lastExportAt }: AccountClientProps) {
   const router = useRouter();
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
-  const [confirmEmail, setConfirmEmail] = useState("");
+  const [confirmDeleteText, setConfirmDeleteText] = useState("");
   const [isPending, startTransition] = useTransition();
+  const [exportedAt, setExportedAt] = useState(lastExportAt);
+
+  const canExport =
+    !exportedAt || Date.now() - new Date(exportedAt).getTime() >= 24 * 60 * 60 * 1000;
 
   async function handleSignOut() {
     const supabase = createClient();
@@ -34,15 +37,20 @@ export function AccountClient({ email }: AccountClientProps) {
   }
 
   function handleDeleteAccount() {
-    if (confirmEmail !== email) {
-      toast.error("Email address does not match");
+    if (confirmDeleteText !== "DELETE") {
+      toast.error("Type DELETE to confirm");
       return;
     }
 
     startTransition(async () => {
-      const result = await deleteAccount();
-      if (result.error) {
-        toast.error(`Deletion failed: ${result.error}`);
+      const response = await fetch("/api/account/delete", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ confirmation: "DELETE" }),
+      });
+      if (!response.ok) {
+        const body = (await response.json().catch(() => ({}))) as { error?: string };
+        toast.error(`Deletion failed: ${body.error ?? "Unknown error"}`);
       } else {
         const supabase = createClient();
         await supabase.auth.signOut();
@@ -53,9 +61,10 @@ export function AccountClient({ email }: AccountClientProps) {
 
   async function handleExportData() {
     try {
-      const response = await fetch("/api/export/data", { method: "POST" });
+      const response = await fetch("/api/account/export", { method: "GET" });
       if (!response.ok) {
-        toast.error("Export failed. Please try again.");
+        const body = (await response.json().catch(() => ({}))) as { error?: string };
+        toast.error(body.error ?? "Export failed. Please try again.");
         return;
       }
       const blob = await response.blob();
@@ -66,6 +75,7 @@ export function AccountClient({ email }: AccountClientProps) {
       a.click();
       URL.revokeObjectURL(url);
       toast.success("Data export downloaded");
+      setExportedAt(new Date().toISOString());
     } catch {
       toast.error("Export failed. Please try again.");
     }
@@ -80,13 +90,18 @@ export function AccountClient({ email }: AccountClientProps) {
         </CardHeader>
         <CardContent className="space-y-3">
           <p className="text-sm text-muted-foreground">
-            Download all your cases, interactions, letters, and account data as a JSON file.
-            This is your right under UK GDPR Article 20 (right to data portability).
+            Download all your data including cases, interactions, letters, and reminders as a JSON file.
           </p>
-          <Button onClick={handleExportData} size="sm" type="button" variant="outline">
+          {exportedAt ? (
+            <p className="text-xs text-muted-foreground">
+              Last export: {new Date(exportedAt).toLocaleString("en-GB")}
+            </p>
+          ) : null}
+          <Button disabled={!canExport} onClick={handleExportData} size="sm" type="button" variant="outline">
             <Download className="mr-2 h-4 w-4" />
-            Export all data
+            Export My Data
           </Button>
+          {!canExport ? <p className="text-xs text-muted-foreground">You can export again in 24 hours.</p> : null}
         </CardContent>
       </Card>
 
@@ -113,8 +128,8 @@ export function AccountClient({ email }: AccountClientProps) {
         </CardHeader>
         <CardContent className="space-y-3">
           <p className="text-sm text-muted-foreground">
-            Permanently delete your account and all associated data. This cannot be undone.
-            Your Stripe subscription will be cancelled immediately.
+            This action is permanent and cannot be undone. All your cases, interactions,
+            evidence, and letters will be permanently deleted.
           </p>
           <Button
             className="border-red-200 text-red-600 hover:bg-red-50"
@@ -134,7 +149,7 @@ export function AccountClient({ email }: AccountClientProps) {
         onOpenChange={(open) => {
           if (!open) {
             setShowDeleteDialog(false);
-            setConfirmEmail("");
+            setConfirmDeleteText("");
           }
         }}
         open={showDeleteDialog}
@@ -144,27 +159,18 @@ export function AccountClient({ email }: AccountClientProps) {
             <DialogTitle>Delete your account?</DialogTitle>
           </DialogHeader>
           <div className="space-y-4">
-            <p className="text-sm text-muted-foreground">
-              This will permanently delete:
-            </p>
-            <ul className="text-sm text-muted-foreground space-y-1 ml-4 list-disc">
-              <li>All your cases, interactions, and evidence</li>
-              <li>All generated letters</li>
-              <li>Your Stripe subscription</li>
-              <li>Your account and profile</li>
-            </ul>
+            <p className="text-sm text-muted-foreground">This will permanently delete your account and all associated data. Your subscription will be cancelled. This cannot be undone.</p>
             <div className="rounded-md border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-800">
               <strong>This cannot be undone.</strong> Export your data first if needed.
             </div>
             <div className="space-y-1.5">
               <label className="text-sm font-medium">
-                Type your email address to confirm: <strong>{email}</strong>
+                Type DELETE to confirm
               </label>
               <Input
-                onChange={(e) => setConfirmEmail(e.target.value)}
-                placeholder={email}
-                type="email"
-                value={confirmEmail}
+                onChange={(e) => setConfirmDeleteText(e.target.value)}
+                placeholder="DELETE"
+                value={confirmDeleteText}
               />
             </div>
             <div className="flex gap-3 justify-end">
@@ -176,7 +182,7 @@ export function AccountClient({ email }: AccountClientProps) {
                 Cancel
               </Button>
               <Button
-                disabled={isPending || confirmEmail !== email}
+                disabled={isPending || confirmDeleteText !== "DELETE"}
                 onClick={handleDeleteAccount}
                 type="button"
                 variant="destructive"

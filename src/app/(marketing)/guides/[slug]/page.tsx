@@ -279,6 +279,29 @@ export default async function OrgGuidePage({ params }: { params: Params }) {
         </div>
       </section>
 
+      <section className="border-t bg-slate-50 py-12">
+        <div className="mx-auto max-w-3xl space-y-4 px-4">
+          <div className="rounded-lg border bg-white p-5">
+            <p className="text-sm font-medium">📊 See how {guide.name} handles complaints</p>
+            <p className="mt-1 text-sm text-muted-foreground">
+              Based on real data from TheyPromised users.
+            </p>
+            <Link className="mt-3 inline-block text-sm font-medium text-primary underline" href={`/companies/${guide.slug}`}>
+              View Complaint Scorecard →
+            </Link>
+          </div>
+          <div className="rounded-lg border bg-white p-5">
+            <p className="text-sm font-medium">💷 What could you be owed?</p>
+            <p className="mt-1 text-sm text-muted-foreground">
+              Try our UK consumer compensation calculator for common complaint types.
+            </p>
+            <Link className="mt-3 inline-block text-sm font-medium text-primary underline" href="/calculator">
+              Open Calculator →
+            </Link>
+          </div>
+        </div>
+      </section>
+
       {/* CTA */}
       <section className="border-t py-16">
         <div className="mx-auto max-w-2xl px-4 text-center">

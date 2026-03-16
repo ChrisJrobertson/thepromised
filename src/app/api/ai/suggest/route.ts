@@ -2,9 +2,11 @@ import { differenceInDays } from "date-fns";
 import { NextResponse } from "next/server";
 import { z } from "zod";
 
-import { CLAUDE_MODEL, AI_LIMITS, anthropic } from "@/lib/ai/client";
+import { CLAUDE_MODEL, anthropic } from "@/lib/ai/client";
 import { CASE_ANALYSIS_SYSTEM, buildCaseAnalysisPrompt } from "@/lib/ai/prompts";
 import { trackServerEvent } from "@/lib/analytics/posthog-server";
+import { enforcePackScopedCaseAccess } from "@/lib/packs/access";
+import { checkRateLimit } from "@/lib/rate-limit";
 import { createClient } from "@/lib/supabase/server";
 import type { Profile } from "@/types/database";
 
@@ -38,6 +40,21 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Unauthorised" }, { status: 401 });
     }
 
+    const minuteCheck = checkRateLimit(user.id, 10, 60 * 1000);
+    if (!minuteCheck.allowed) {
+      return NextResponse.json(
+        { error: "Too many requests. Please wait a moment." },
+        { status: 429, headers: { "Retry-After": String(minuteCheck.retryAfter) } }
+      );
+    }
+    const hourCheck = checkRateLimit(user.id, 100, 60 * 60 * 1000);
+    if (!hourCheck.allowed) {
+      return NextResponse.json(
+        { error: "Hourly limit reached. Please try again later." },
+        { status: 429, headers: { "Retry-After": String(hourCheck.retryAfter) } }
+      );
+    }
+
     const json = await request.json();
     const { caseId } = inputSchema.parse(json);
 
@@ -53,10 +70,14 @@ export async function POST(request: Request) {
     }
     const profile = profileData as Profile;
     const tier = profile.subscription_tier;
+    const tierLimits = {
+      free: { suggestions: 0, letters: 0 },
+      basic: { suggestions: 10, letters: 5 },
+      pro: { suggestions: 50, letters: 30 },
+    } as const;
+    const limits = tierLimits[tier] ?? tierLimits.free;
 
-    // Feature gate
-    const limit = AI_LIMITS[tier].suggestions;
-    if (limit === 0) {
+    if (limits.suggestions === 0) {
       return NextResponse.json(
         {
           error: "upgrade_required",
@@ -67,17 +88,22 @@ export async function POST(request: Request) {
       );
     }
 
-    if (profile.ai_credits_used >= limit) {
+    if (profile.ai_suggestions_used >= limits.suggestions) {
       return NextResponse.json(
         {
-          error: "credits_exhausted",
-          message: `You've used all ${limit} AI analyses for this month. Upgrade for more.`,
-          creditsUsed: profile.ai_credits_used,
-          limit,
+          error: "Monthly AI credit limit reached. Upgrade your plan for more.",
         },
-        { status: 429 }
+        { status: 403 }
       );
     }
+
+    const packScopeError = await enforcePackScopedCaseAccess({
+      profile,
+      caseId,
+      userId: user.id,
+      supabase,
+    });
+    if (packScopeError) return packScopeError;
 
     // Load case (verify ownership via RLS)
     const { data: caseData } = await supabase
@@ -187,18 +213,21 @@ export async function POST(request: Request) {
       };
     }
 
-    // Increment credits
+    // Increment credits after successful model call
     await supabase
       .from("profiles")
-      .update({ ai_credits_used: profile.ai_credits_used + 1 })
+      .update({
+        ai_suggestions_used: profile.ai_suggestions_used + 1,
+        ai_credits_used: profile.ai_credits_used + 1,
+      })
       .eq("id", user.id);
 
     trackServerEvent(user.id, "ai_suggestion_requested", { caseId });
 
     return NextResponse.json({
       suggestion: parsed,
-      creditsUsed: profile.ai_credits_used + 1,
-      creditsLimit: limit,
+      creditsUsed: profile.ai_suggestions_used + 1,
+      creditsLimit: limits.suggestions,
     });
   } catch (error) {
     if (error instanceof z.ZodError) {

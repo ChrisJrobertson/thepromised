@@ -46,6 +46,7 @@ export default async function DashboardPage() {
     { count: overdueActions },
     { data: resolvedData },
     { data: escalationCandidates },
+    { data: overdueResponses },
   ] = await Promise.all([
     supabase
       .from("cases")
@@ -118,6 +119,23 @@ export default async function DashboardPage() {
           organisations: { name: string } | null;
         }[]
       >(),
+    supabase
+      .from("cases")
+      .select("id, title, response_deadline, custom_organisation_name, organisations(name)")
+      .eq("user_id", userId)
+      .not("response_deadline", "is", null)
+      .eq("response_received", false)
+      .lt("response_deadline", now)
+      .limit(20)
+      .returns<
+        {
+          id: string;
+          title: string;
+          response_deadline: string | null;
+          custom_organisation_name: string | null;
+          organisations: { name: string } | null;
+        }[]
+      >(),
   ]);
 
   const resolvedCount = resolvedData?.length ?? 0;
@@ -170,6 +188,13 @@ export default async function DashboardPage() {
       return { ...c, daysSinceContact, urgency, orgName };
     })
     .filter((x): x is EscalationAlert => x !== null);
+
+  const responseAlerts = (overdueResponses ?? []).map((row) => {
+    const deadline = row.response_deadline ? new Date(row.response_deadline) : null;
+    const overdueDays = deadline ? Math.max(0, differenceInDays(today, deadline)) : 0;
+    const orgName = row.organisations?.name ?? row.custom_organisation_name ?? "Company";
+    return { ...row, orgName, overdueDays };
+  });
 
   const CHANNEL_ICONS: Record<string, { icon: React.ElementType; colour: string; bg: string }> = {
     phone: { icon: Phone, colour: "text-blue-600", bg: "bg-blue-100" },
@@ -258,6 +283,31 @@ export default async function DashboardPage() {
                   </li>
                 );
               })}
+            </ul>
+          </CardContent>
+        </Card>
+      )}
+
+      {responseAlerts.length > 0 && (
+        <Card className="border-l-4 border-red-500 bg-red-50">
+          <CardHeader className="pb-2">
+            <CardTitle className="flex items-center gap-2 text-red-800">
+              <AlertTriangle className="size-5" />
+              Company Response Alerts ({responseAlerts.length})
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <ul className="space-y-2">
+              {responseAlerts.map((alert) => (
+                <li className="flex items-center justify-between rounded border border-red-200 bg-white px-3 py-2 text-sm" key={alert.id}>
+                  <p>
+                    <span className="font-medium">{alert.orgName}</span> has not responded — {alert.overdueDays} day{alert.overdueDays === 1 ? "" : "s"} overdue.
+                  </p>
+                  <Link href={`/cases/${alert.id}`}>
+                    <Button size="sm" variant="outline">View Case →</Button>
+                  </Link>
+                </li>
+              ))}
             </ul>
           </CardContent>
         </Card>

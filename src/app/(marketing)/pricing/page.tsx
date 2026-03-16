@@ -2,7 +2,11 @@ import { createClient } from "@/lib/supabase/server";
 
 import { PricingClient } from "./PricingClient";
 
-export const metadata = { title: "Pricing — TheyPromised" };
+export const metadata = {
+  title: "Pricing — Plans for Consumers and Business | TheyPromised",
+  description:
+    "Track complaints free or upgrade for AI letters, exports, and guided escalation. One-off packs from £29. Business complaint intelligence from £500/month.",
+};
 
 const FAQ_SCHEMA = {
   "@context": "https://schema.org",

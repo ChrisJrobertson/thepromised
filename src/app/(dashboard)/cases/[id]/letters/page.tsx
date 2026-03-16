@@ -15,6 +15,10 @@ export const metadata = { title: "Letters — TheyPromised" };
 const STATUS_COLOURS: Record<string, string> = {
   draft: "border-muted bg-muted/50 text-muted-foreground",
   sent: "border-blue-200 bg-blue-50 text-blue-700",
+  delivered: "border-green-200 bg-green-50 text-green-700",
+  opened: "border-teal-200 bg-teal-50 text-teal-700",
+  bounced: "border-red-200 bg-red-50 text-red-700",
+  failed: "border-red-200 bg-red-50 text-red-700",
   acknowledged: "border-green-200 bg-green-50 text-green-700",
 };
 
@@ -115,10 +119,10 @@ export default async function LettersPage({
                       </div>
                     </div>
                     <Badge
-                      className={STATUS_COLOURS[letter.status] ?? ""}
+                      className={STATUS_COLOURS[letter.delivery_status ?? letter.status] ?? ""}
                       variant="outline"
                     >
-                      {letter.status}
+                      {(letter.delivery_status ?? letter.status).replace(/_/g, " ")}
                     </Badge>
                   </div>
                 </CardContent>

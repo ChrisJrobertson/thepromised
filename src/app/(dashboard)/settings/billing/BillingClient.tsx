@@ -56,6 +56,7 @@ const STATUS_COLOURS: Record<string, string> = {
   trialing: "text-blue-600",
   past_due: "text-red-600",
   cancelled: "text-muted-foreground",
+  pack_temporary: "text-amber-700",
 };
 
 export function BillingClient({
@@ -106,7 +107,7 @@ export function BillingClient({
                 <span className="text-muted-foreground">Status: </span>
                 <span className={STATUS_COLOURS[subscriptionStatus] ?? ""}>
                   {subscriptionStatus.charAt(0).toUpperCase() +
-                    subscriptionStatus.slice(1)}
+                    subscriptionStatus.slice(1).replace(/_/g, " ")}
                 </span>
               </div>
             )}

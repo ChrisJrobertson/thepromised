@@ -21,13 +21,23 @@ export type Database = {
           postcode: string | null;
           stripe_customer_id: string | null;
           subscription_tier: "free" | "basic" | "pro";
-          subscription_status: "active" | "cancelled" | "past_due" | "trialing";
+          subscription_status:
+            | "active"
+            | "cancelled"
+            | "past_due"
+            | "trialing"
+            | "pack_temporary";
           subscription_id: string | null;
           cases_count: number;
           ai_suggestions_used: number;
           ai_letters_used: number;
           ai_credits_used: number;
           ai_credits_reset_at: string | null;
+          pack_pro_expires_at: string | null;
+          pack_access_case_id: string | null;
+          pack_source_pack_id: string | null;
+          is_admin: boolean | null;
+          last_export_at: string | null;
           created_at: string | null;
           updated_at: string | null;
         };
@@ -42,13 +52,23 @@ export type Database = {
           postcode?: string | null;
           stripe_customer_id?: string | null;
           subscription_tier?: "free" | "basic" | "pro";
-          subscription_status?: "active" | "cancelled" | "past_due" | "trialing";
+          subscription_status?:
+            | "active"
+            | "cancelled"
+            | "past_due"
+            | "trialing"
+            | "pack_temporary";
           subscription_id?: string | null;
           cases_count?: number;
           ai_suggestions_used?: number;
           ai_letters_used?: number;
           ai_credits_used?: number;
           ai_credits_reset_at?: string | null;
+          pack_pro_expires_at?: string | null;
+          pack_access_case_id?: string | null;
+          pack_source_pack_id?: string | null;
+          is_admin?: boolean | null;
+          last_export_at?: string | null;
           created_at?: string | null;
           updated_at?: string | null;
         };
@@ -63,13 +83,238 @@ export type Database = {
           postcode?: string | null;
           stripe_customer_id?: string | null;
           subscription_tier?: "free" | "basic" | "pro";
-          subscription_status?: "active" | "cancelled" | "past_due" | "trialing";
+          subscription_status?:
+            | "active"
+            | "cancelled"
+            | "past_due"
+            | "trialing"
+            | "pack_temporary";
           subscription_id?: string | null;
           cases_count?: number;
           ai_suggestions_used?: number;
           ai_letters_used?: number;
           ai_credits_used?: number;
           ai_credits_reset_at?: string | null;
+          pack_pro_expires_at?: string | null;
+          pack_access_case_id?: string | null;
+          pack_source_pack_id?: string | null;
+          is_admin?: boolean | null;
+          last_export_at?: string | null;
+          created_at?: string | null;
+          updated_at?: string | null;
+        };
+      };
+      business_enquiries: {
+        Row: {
+          id: string;
+          company_name: string;
+          contact_name: string;
+          email: string;
+          role: string | null;
+          message: string | null;
+          website: string | null;
+          sector: string | null;
+          complaint_volume_estimate: string | null;
+          consent_to_contact: boolean | null;
+          source_ip: string | null;
+          user_agent: string | null;
+          created_at: string | null;
+        };
+        Insert: {
+          id?: string;
+          company_name: string;
+          contact_name: string;
+          email: string;
+          role?: string | null;
+          message?: string | null;
+          website?: string | null;
+          sector?: string | null;
+          complaint_volume_estimate?: string | null;
+          consent_to_contact?: boolean | null;
+          source_ip?: string | null;
+          user_agent?: string | null;
+          created_at?: string | null;
+        };
+        Update: {
+          id?: string;
+          company_name?: string;
+          contact_name?: string;
+          email?: string;
+          role?: string | null;
+          message?: string | null;
+          website?: string | null;
+          sector?: string | null;
+          complaint_volume_estimate?: string | null;
+          consent_to_contact?: boolean | null;
+          source_ip?: string | null;
+          user_agent?: string | null;
+          created_at?: string | null;
+        };
+      };
+      complaint_packs: {
+        Row: {
+          id: string;
+          user_id: string;
+          case_id: string | null;
+          pack_type: string;
+          status: string;
+          stripe_payment_id: string | null;
+          checkout_session_id: string | null;
+          amount_paid: number;
+          currency: string;
+          purchased_at: string | null;
+          completed_at: string | null;
+          entitlement_expires_at: string | null;
+          entitlement_case_id: string | null;
+          notes: string | null;
+          created_at: string | null;
+          updated_at: string | null;
+        };
+        Insert: {
+          id?: string;
+          user_id: string;
+          case_id?: string | null;
+          pack_type: string;
+          status?: string;
+          stripe_payment_id?: string | null;
+          checkout_session_id?: string | null;
+          amount_paid: number;
+          currency?: string;
+          purchased_at?: string | null;
+          completed_at?: string | null;
+          entitlement_expires_at?: string | null;
+          entitlement_case_id?: string | null;
+          notes?: string | null;
+          created_at?: string | null;
+          updated_at?: string | null;
+        };
+        Update: {
+          id?: string;
+          user_id?: string;
+          case_id?: string | null;
+          pack_type?: string;
+          status?: string;
+          stripe_payment_id?: string | null;
+          checkout_session_id?: string | null;
+          amount_paid?: number;
+          currency?: string;
+          purchased_at?: string | null;
+          completed_at?: string | null;
+          entitlement_expires_at?: string | null;
+          entitlement_case_id?: string | null;
+          notes?: string | null;
+          created_at?: string | null;
+          updated_at?: string | null;
+        };
+      };
+      b2b_pilots: {
+        Row: {
+          id: string;
+          company_name: string;
+          contact_name: string;
+          contact_email: string;
+          contact_role: string | null;
+          business_enquiry_id: string | null;
+          organisation_id: string | null;
+          plan_type: string;
+          monthly_fee: number;
+          currency: string;
+          status: string;
+          stripe_customer_id: string | null;
+          stripe_subscription_id: string | null;
+          started_at: string | null;
+          notes: string | null;
+          created_at: string | null;
+          updated_at: string | null;
+        };
+        Insert: {
+          id?: string;
+          company_name: string;
+          contact_name: string;
+          contact_email: string;
+          contact_role?: string | null;
+          business_enquiry_id?: string | null;
+          organisation_id?: string | null;
+          plan_type?: string;
+          monthly_fee: number;
+          currency?: string;
+          status?: string;
+          stripe_customer_id?: string | null;
+          stripe_subscription_id?: string | null;
+          started_at?: string | null;
+          notes?: string | null;
+          created_at?: string | null;
+          updated_at?: string | null;
+        };
+        Update: {
+          id?: string;
+          company_name?: string;
+          contact_name?: string;
+          contact_email?: string;
+          contact_role?: string | null;
+          business_enquiry_id?: string | null;
+          organisation_id?: string | null;
+          plan_type?: string;
+          monthly_fee?: number;
+          currency?: string;
+          status?: string;
+          stripe_customer_id?: string | null;
+          stripe_subscription_id?: string | null;
+          started_at?: string | null;
+          notes?: string | null;
+          created_at?: string | null;
+          updated_at?: string | null;
+        };
+      };
+      b2b_outreach_emails: {
+        Row: {
+          id: string;
+          organisation_id: string | null;
+          b2b_pilot_id: string | null;
+          recipient_email: string;
+          resend_email_id: string | null;
+          status: string;
+          subject: string;
+          sent_at: string | null;
+          delivered_at: string | null;
+          opened_at: string | null;
+          bounced_at: string | null;
+          complained_at: string | null;
+          metadata: Json | null;
+          created_at: string | null;
+          updated_at: string | null;
+        };
+        Insert: {
+          id?: string;
+          organisation_id?: string | null;
+          b2b_pilot_id?: string | null;
+          recipient_email: string;
+          resend_email_id?: string | null;
+          status?: string;
+          subject: string;
+          sent_at?: string | null;
+          delivered_at?: string | null;
+          opened_at?: string | null;
+          bounced_at?: string | null;
+          complained_at?: string | null;
+          metadata?: Json | null;
+          created_at?: string | null;
+          updated_at?: string | null;
+        };
+        Update: {
+          id?: string;
+          organisation_id?: string | null;
+          b2b_pilot_id?: string | null;
+          recipient_email?: string;
+          resend_email_id?: string | null;
+          status?: string;
+          subject?: string;
+          sent_at?: string | null;
+          delivered_at?: string | null;
+          opened_at?: string | null;
+          bounced_at?: string | null;
+          complained_at?: string | null;
+          metadata?: Json | null;
           created_at?: string | null;
           updated_at?: string | null;
         };
@@ -195,6 +440,10 @@ export type Database = {
           interaction_count: number;
           share_token: string | null;
           is_shared: boolean | null;
+          response_deadline: string | null;
+          response_received: boolean | null;
+          response_received_at: string | null;
+          inbound_email_alias: string | null;
           created_at: string | null;
           updated_at: string | null;
         };
@@ -226,6 +475,10 @@ export type Database = {
           interaction_count?: number;
           share_token?: string | null;
           is_shared?: boolean | null;
+          response_deadline?: string | null;
+          response_received?: boolean | null;
+          response_received_at?: string | null;
+          inbound_email_alias?: string | null;
           created_at?: string | null;
           updated_at?: string | null;
         };
@@ -257,6 +510,10 @@ export type Database = {
           interaction_count?: number;
           share_token?: string | null;
           is_shared?: boolean | null;
+          response_deadline?: string | null;
+          response_received?: boolean | null;
+          response_received_at?: string | null;
+          inbound_email_alias?: string | null;
           created_at?: string | null;
           updated_at?: string | null;
         };
@@ -294,6 +551,7 @@ export type Database = {
             | "no_resolution"
             | "transferred"
             | "disconnected"
+            | "letter_sent"
             | "other"
             | null;
           next_steps: string | null;
@@ -334,6 +592,7 @@ export type Database = {
             | "no_resolution"
             | "transferred"
             | "disconnected"
+            | "letter_sent"
             | "other"
             | null;
           next_steps?: string | null;
@@ -374,6 +633,7 @@ export type Database = {
             | "no_resolution"
             | "transferred"
             | "disconnected"
+            | "letter_sent"
             | "other"
             | null;
           next_steps?: string | null;
@@ -476,6 +736,13 @@ export type Database = {
           sent_date: string | null;
           sent_via: "email" | "post" | "not_sent" | null;
           status: "draft" | "sent" | "acknowledged";
+          sent_at: string | null;
+          sent_to_email: string | null;
+          resend_email_id: string | null;
+          delivery_status: string | null;
+          delivered_at: string | null;
+          opened_at: string | null;
+          bounced_at: string | null;
           created_at: string | null;
           updated_at: string | null;
         };
@@ -500,6 +767,13 @@ export type Database = {
           sent_date?: string | null;
           sent_via?: "email" | "post" | "not_sent" | null;
           status?: "draft" | "sent" | "acknowledged";
+          sent_at?: string | null;
+          sent_to_email?: string | null;
+          resend_email_id?: string | null;
+          delivery_status?: string | null;
+          delivered_at?: string | null;
+          opened_at?: string | null;
+          bounced_at?: string | null;
           created_at?: string | null;
           updated_at?: string | null;
         };
@@ -524,6 +798,13 @@ export type Database = {
           sent_date?: string | null;
           sent_via?: "email" | "post" | "not_sent" | null;
           status?: "draft" | "sent" | "acknowledged";
+          sent_at?: string | null;
+          sent_to_email?: string | null;
+          resend_email_id?: string | null;
+          delivery_status?: string | null;
+          delivered_at?: string | null;
+          opened_at?: string | null;
+          bounced_at?: string | null;
           created_at?: string | null;
           updated_at?: string | null;
         };
@@ -588,6 +869,10 @@ export type Database = {
             | "promise_deadline"
             | "escalation_window"
             | "follow_up"
+            | "response_approaching"
+            | "response_due"
+            | "response_overdue"
+            | "notification"
             | "custom";
           title: string;
           description: string | null;
@@ -605,6 +890,10 @@ export type Database = {
             | "promise_deadline"
             | "escalation_window"
             | "follow_up"
+            | "response_approaching"
+            | "response_due"
+            | "response_overdue"
+            | "notification"
             | "custom";
           title: string;
           description?: string | null;
@@ -622,6 +911,10 @@ export type Database = {
             | "promise_deadline"
             | "escalation_window"
             | "follow_up"
+            | "response_approaching"
+            | "response_due"
+            | "response_overdue"
+            | "notification"
             | "custom";
           title?: string;
           description?: string | null;
@@ -661,7 +954,95 @@ export type Database = {
         };
       };
     };
-    Views: Record<string, never>;
+    Views: {
+      v_company_stats: {
+        Row: {
+          organisation_id: string | null;
+          organisation_name: string | null;
+          category: string | null;
+          total_cases: number | null;
+          active_cases: number | null;
+          resolved_cases: number | null;
+          escalated_to_ombudsman: number | null;
+          avg_resolution_days: number | null;
+          avg_response_days: number | null;
+          letters_sent_count: number | null;
+          responses_received_count: number | null;
+          total_promises: number | null;
+          promises_kept: number | null;
+          promises_broken: number | null;
+          total_interactions: number | null;
+          avg_helpfulness_score: number | null;
+          pct_phone: number | null;
+          pct_email: number | null;
+          pct_webchat: number | null;
+          pct_letter: number | null;
+          total_amount_disputed: number | null;
+          avg_amount_disputed: number | null;
+          mood_helpful: number | null;
+          mood_neutral: number | null;
+          mood_unhelpful: number | null;
+          mood_hostile: number | null;
+          escalation_rate_pct: number | null;
+        };
+      };
+      v_platform_stats: {
+        Row: {
+          total_users: number | null;
+          free_users: number | null;
+          basic_users: number | null;
+          pro_users: number | null;
+          total_cases: number | null;
+          active_cases: number | null;
+          resolved_cases: number | null;
+          total_interactions: number | null;
+          total_promises: number | null;
+          total_broken_promises: number | null;
+          total_letters: number | null;
+          total_letters_sent: number | null;
+          total_amount_disputed: number | null;
+          companies_complained_about: number | null;
+          signups_last_30_days: number | null;
+          signups_last_7_days: number | null;
+          cases_last_7_days: number | null;
+          interactions_last_7_days: number | null;
+        };
+      };
+      v_monthly_trends: {
+        Row: {
+          month: string | null;
+          new_cases: number | null;
+          active_users: number | null;
+          resolved_cases: number | null;
+          ombudsman_referrals: number | null;
+          total_disputed: number | null;
+        };
+      };
+      v_category_stats: {
+        Row: {
+          category: string | null;
+          total_cases: number | null;
+          companies_count: number | null;
+          avg_resolution_days: number | null;
+          broken_promises: number | null;
+          total_promises: number | null;
+          escalation_rate_pct: number | null;
+          total_disputed: number | null;
+        };
+      };
+      v_company_rankings: {
+        Row: {
+          organisation_id: string | null;
+          name: string | null;
+          category: string | null;
+          complaint_count: number | null;
+          promise_broken_pct: number | null;
+          helpfulness_score: number | null;
+          escalation_rate_pct: number | null;
+          total_disputed: number | null;
+        };
+      };
+    };
     Functions: Record<string, never>;
     Enums: Record<string, never>;
     CompositeTypes: Record<string, never>;
@@ -683,10 +1064,21 @@ type WithRelationships<T> = {
     : T[K];
 };
 
+type WithViewRelationships<T> = {
+  [K in keyof T]: T[K] extends {
+    Row: infer R;
+  }
+    ? {
+        Row: R;
+        Relationships: [];
+      }
+    : T[K];
+};
+
 export type SupabaseDatabase = {
   public: {
     Tables: WithRelationships<Database["public"]["Tables"]>;
-    Views: Database["public"]["Views"];
+    Views: WithViewRelationships<Database["public"]["Views"]>;
     Functions: Database["public"]["Functions"];
     Enums: Database["public"]["Enums"];
     CompositeTypes: Database["public"]["CompositeTypes"];
@@ -702,6 +1094,13 @@ export type Organisation = Database["public"]["Tables"]["organisations"]["Row"];
 export type EscalationRule =
   Database["public"]["Tables"]["escalation_rules"]["Row"];
 export type Reminder = Database["public"]["Tables"]["reminders"]["Row"];
+export type BusinessEnquiry =
+  Database["public"]["Tables"]["business_enquiries"]["Row"];
+export type ComplaintPack =
+  Database["public"]["Tables"]["complaint_packs"]["Row"];
+export type B2BPilot = Database["public"]["Tables"]["b2b_pilots"]["Row"];
+export type B2BOutreachEmail =
+  Database["public"]["Tables"]["b2b_outreach_emails"]["Row"];
 
 export type ProfileInsert = Database["public"]["Tables"]["profiles"]["Insert"];
 export type ProfileUpdate = Database["public"]["Tables"]["profiles"]["Update"];
@@ -727,3 +1126,19 @@ export type ReminderInsert = Database["public"]["Tables"]["reminders"]["Insert"]
 export type ReminderUpdate = Database["public"]["Tables"]["reminders"]["Update"];
 export type ExportInsert = Database["public"]["Tables"]["exports"]["Insert"];
 export type ExportUpdate = Database["public"]["Tables"]["exports"]["Update"];
+export type BusinessEnquiryInsert =
+  Database["public"]["Tables"]["business_enquiries"]["Insert"];
+export type BusinessEnquiryUpdate =
+  Database["public"]["Tables"]["business_enquiries"]["Update"];
+export type ComplaintPackInsert =
+  Database["public"]["Tables"]["complaint_packs"]["Insert"];
+export type ComplaintPackUpdate =
+  Database["public"]["Tables"]["complaint_packs"]["Update"];
+export type B2BPilotInsert =
+  Database["public"]["Tables"]["b2b_pilots"]["Insert"];
+export type B2BPilotUpdate =
+  Database["public"]["Tables"]["b2b_pilots"]["Update"];
+export type B2BOutreachEmailInsert =
+  Database["public"]["Tables"]["b2b_outreach_emails"]["Insert"];
+export type B2BOutreachEmailUpdate =
+  Database["public"]["Tables"]["b2b_outreach_emails"]["Update"];

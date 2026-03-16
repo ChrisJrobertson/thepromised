@@ -1,4 +1,5 @@
 import { NextResponse, type NextRequest } from "next/server";
+import * as Sentry from "@sentry/nextjs";
 
 import { trackServerEvent } from "@/lib/analytics/posthog-server";
 import { createClient } from "@/lib/supabase/server";
@@ -24,6 +25,7 @@ export async function GET(request: NextRequest) {
   } = await supabase.auth.getUser();
 
   if (user) {
+    Sentry.setUser({ id: user.id });
     const { data: existing } = await supabase
       .from("profiles")
       .select("id")

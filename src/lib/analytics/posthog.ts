@@ -6,26 +6,23 @@ const POSTHOG_HOST = process.env.NEXT_PUBLIC_POSTHOG_HOST ?? "https://eu.posthog
 let initialised = false;
 
 export function initPostHog() {
-  if (
-    typeof window === "undefined" ||
-    initialised ||
-    !POSTHOG_KEY
-  ) {
+  if (typeof window === "undefined" || initialised || !POSTHOG_KEY) {
+    return;
+  }
+
+  const consentCookie = document.cookie
+    .split("; ")
+    .find((c) => c.startsWith("tp_consent="));
+  if (consentCookie?.split("=")[1] !== "accepted") {
     return;
   }
 
   posthog.init(POSTHOG_KEY, {
     api_host: POSTHOG_HOST,
     person_profiles: "identified_only",
-    capture_pageview: false, // We handle this manually
+    capture_pageview: true,
     capture_pageleave: true,
-    persistence: "localStorage+cookie",
-    opt_out_capturing_by_default: false,
-    loaded: (ph) => {
-      if (process.env.NODE_ENV === "development") {
-        ph.opt_out_capturing();
-      }
-    },
+    persistence: "localStorage",
   });
 
   initialised = true;

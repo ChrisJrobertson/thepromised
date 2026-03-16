@@ -1,13 +1,9 @@
 import Anthropic from "@anthropic-ai/sdk";
-import { HfInference } from "@huggingface/inference";
 
 // Claude — premium tasks: letter drafting, case analysis, strategic guidance
 export const anthropic = new Anthropic({
   apiKey: process.env.ANTHROPIC_API_KEY!,
 });
-
-// Hugging Face — volume tasks: summaries, classification, entity extraction, sentiment
-export const hf = new HfInference(process.env.HUGGINGFACE_API_KEY);
 
 // Re-export from constants for convenience
 export { AI_LIMITS, type AiTier, type AiFeature } from "./constants";
@@ -30,11 +26,12 @@ export function getAiLimit(tier: import("./constants").AiTier, feature: import("
  * - Entity extraction       → Hugging Face NER (cheap)
  * - Sentiment/mood          → Hugging Face sentiment (cheap)
  */
-export const CLAUDE_MODEL = "claude-sonnet-4-5";
-
-export const HF_MODELS = {
-  summarisation: "facebook/bart-large-cnn",
-  zeroShot: "facebook/bart-large-mnli",
-  ner: "dslim/bert-base-NER",
-  sentiment: "cardiffnlp/twitter-roberta-base-sentiment-latest",
+export const CLAUDE_MODELS = {
+  letterDrafting: "claude-sonnet-4-5-20250514",
+  caseAnalysis: "claude-sonnet-4-5-20250514",
+  summarisation: "claude-haiku-4-5-20251001",
+  entityExtraction: "claude-haiku-4-5-20251001",
+  classification: "claude-haiku-4-5-20251001",
 } as const;
+
+export const CLAUDE_MODEL = CLAUDE_MODELS.caseAnalysis;

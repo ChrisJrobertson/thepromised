@@ -27,6 +27,7 @@ export default async function DashboardLayout({
 
   return (
     <AppShell
+      isAdmin={profile?.is_admin ?? false}
       tier={profile?.subscription_tier ?? "free"}
       userEmail={user.email ?? "No email"}
       userName={profile?.full_name || user.user_metadata.full_name || "User"}

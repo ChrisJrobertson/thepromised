@@ -1,11 +1,12 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 
-import { CLAUDE_MODEL, AI_LIMITS, anthropic } from "@/lib/ai/client";
-import { getJourneyLetterPrompt } from "@/lib/ai/journey-prompts";
+import { CLAUDE_MODELS, anthropic } from "@/lib/ai/client";
 import { LETTER_SYSTEM, buildLetterPrompt } from "@/lib/ai/prompts";
 import { getTemplate } from "@/lib/ai/letter-templates";
 import { trackServerEvent } from "@/lib/analytics/posthog-server";
+import { enforcePackScopedCaseAccess } from "@/lib/packs/access";
+import { checkRateLimit } from "@/lib/rate-limit";
 import { createClient } from "@/lib/supabase/server";
 import type { LetterInsert, Profile } from "@/types/database";
 
@@ -15,7 +16,6 @@ const inputSchema = z.object({
   caseId: z.string().uuid(),
   letterType: z.string().min(1),
   additionalInstructions: z.string().max(500).optional(),
-  promptContext: z.string().max(100).optional(),
 });
 
 export async function POST(request: Request) {
@@ -29,8 +29,23 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Unauthorised" }, { status: 401 });
     }
 
+    const minuteCheck = checkRateLimit(user.id, 10, 60 * 1000);
+    if (!minuteCheck.allowed) {
+      return NextResponse.json(
+        { error: "Too many requests. Please wait a moment." },
+        { status: 429, headers: { "Retry-After": String(minuteCheck.retryAfter) } }
+      );
+    }
+    const hourCheck = checkRateLimit(user.id, 100, 60 * 60 * 1000);
+    if (!hourCheck.allowed) {
+      return NextResponse.json(
+        { error: "Hourly limit reached. Please try again later." },
+        { status: 429, headers: { "Retry-After": String(hourCheck.retryAfter) } }
+      );
+    }
+
     const json = await request.json();
-    const { caseId, letterType, additionalInstructions, promptContext } = inputSchema.parse(json);
+    const { caseId, letterType, additionalInstructions } = inputSchema.parse(json);
 
     // Profile + tier check
     const { data: profileData } = await supabase
@@ -44,7 +59,13 @@ export async function POST(request: Request) {
     }
     const profile = profileData as Profile;
     const tier = profile.subscription_tier;
-    const limit = AI_LIMITS[tier].letters;
+    const tierLimits = {
+      free: { suggestions: 0, letters: 0 },
+      basic: { suggestions: 10, letters: 5 },
+      pro: { suggestions: 50, letters: 30 },
+    } as const;
+    const limits = tierLimits[tier] ?? tierLimits.free;
+    const limit = limits.letters;
 
     if (limit === 0) {
       return NextResponse.json(
@@ -57,15 +78,22 @@ export async function POST(request: Request) {
       );
     }
 
-    if (profile.ai_credits_used >= AI_LIMITS[tier].suggestions + limit) {
+    if (profile.ai_letters_used >= limit) {
       return NextResponse.json(
         {
-          error: "credits_exhausted",
-          message: "You've reached your letter drafting limit for this month.",
+          error: "Monthly AI credit limit reached. Upgrade your plan for more.",
         },
-        { status: 429 }
+        { status: 403 }
       );
     }
+
+    const packScopeError = await enforcePackScopedCaseAccess({
+      profile,
+      caseId,
+      userId: user.id,
+      supabase,
+    });
+    if (packScopeError) return packScopeError;
 
     // Load case
     const { data: caseData } = await supabase
@@ -109,12 +137,6 @@ export async function POST(request: Request) {
 
     const template = getTemplate(letterType as Parameters<typeof getTemplate>[0]);
 
-    // Merge journey-specific context with any user-provided additional instructions
-    const journeyContext = promptContext ? getJourneyLetterPrompt(promptContext) : undefined;
-    const mergedInstructions = [journeyContext, additionalInstructions]
-      .filter(Boolean)
-      .join("\n\n") || undefined;
-
     const prompt = buildLetterPrompt({
       letterType,
       letterTypeName: template?.name ?? letterType,
@@ -152,12 +174,12 @@ export async function POST(request: Request) {
         promiseFulfilled: i.promise_fulfilled,
         referenceNumber: i.reference_number,
       })),
-      additionalInstructions: mergedInstructions,
+      additionalInstructions,
     });
 
     // Call Claude
     const message = await anthropic.messages.create({
-      model: CLAUDE_MODEL,
+      model: CLAUDE_MODELS.letterDrafting,
       max_tokens: 2048,
       system: LETTER_SYSTEM,
       messages: [{ role: "user", content: prompt }],
@@ -185,6 +207,7 @@ export async function POST(request: Request) {
       letter_type: (letterType as LetterInsert["letter_type"]) ?? "custom",
       recipient_name: orgName,
       recipient_address: complaintEmail,
+      sent_to_email: complaintEmail,
       subject,
       body: letterBody,
       ai_generated: true,
@@ -204,13 +227,16 @@ export async function POST(request: Request) {
       );
     }
 
-    // Increment AI credits
+    // Increment AI counters after successful model call
     await supabase
       .from("profiles")
-      .update({ ai_credits_used: profile.ai_credits_used + 1 })
+      .update({
+        ai_letters_used: profile.ai_letters_used + 1,
+        ai_credits_used: profile.ai_credits_used + 1,
+      })
       .eq("id", user.id);
 
-    trackServerEvent(user.id, "letter_drafted", { letterType, letterId: letter.id });
+    trackServerEvent(user.id, "letter_generated", { letterType, letterId: letter.id });
 
     return NextResponse.json({
       letterId: letter.id,

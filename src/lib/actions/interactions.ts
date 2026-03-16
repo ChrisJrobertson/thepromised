@@ -3,7 +3,8 @@
 import { addDays } from "date-fns";
 import { revalidatePath } from "next/cache";
 
-import { quickSummary } from "@/lib/ai/huggingface";
+import { quickSummary } from "@/lib/ai/haiku";
+import { trackServerEvent } from "@/lib/analytics/posthog-server";
 
 import { createClient } from "@/lib/supabase/server";
 import type { InteractionInsert, ReminderInsert } from "@/types/database";
@@ -113,6 +114,10 @@ export async function logInteraction(input: LogInteractionInput) {
 
   revalidatePath(`/cases/${input.case_id}`);
   revalidatePath(`/cases/${input.case_id}/timeline`);
+  trackServerEvent(user.id, "interaction_logged", {
+    channel: input.channel,
+    caseId: input.case_id,
+  });
 
   // Fire-and-forget HuggingFace auto-summary (Pro feature — runs silently)
   if (input.summary && input.summary.length > 100) {

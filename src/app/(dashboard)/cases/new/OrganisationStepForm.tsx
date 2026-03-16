@@ -56,9 +56,15 @@ type NewOrgData = z.infer<typeof newOrgSchema>;
 
 type OrganisationStepFormProps = {
   onNext: (org: SelectedOrg) => void;
+  preferredCompanyNames?: string[];
+  initialCategory?: string;
 };
 
-export function OrganisationStepForm({ onNext }: OrganisationStepFormProps) {
+export function OrganisationStepForm({
+  onNext,
+  preferredCompanyNames = [],
+  initialCategory,
+}: OrganisationStepFormProps) {
   const [query, setQuery] = useState("");
   const [results, setResults] = useState<Organisation[]>([]);
   const [loading, setLoading] = useState(false);
@@ -78,8 +84,30 @@ export function OrganisationStepForm({ onNext }: OrganisationStepFormProps) {
 
   useEffect(() => {
     if (!query.trim()) {
-      setResults([]);
-      return;
+      if (!preferredCompanyNames.length) {
+        setResults([]);
+        return;
+      }
+
+      const timeout = setTimeout(async () => {
+        setLoading(true);
+        const supabase = createClient();
+        const { data } = await supabase
+          .from("organisations")
+          .select("*")
+          .in("name", preferredCompanyNames)
+          .limit(12);
+        const order = new Map(preferredCompanyNames.map((name, idx) => [name.toLowerCase(), idx]));
+        const ordered = ((data as Organisation[] | null) ?? []).sort((a, b) => {
+          const ai = order.get(a.name.toLowerCase()) ?? 999;
+          const bi = order.get(b.name.toLowerCase()) ?? 999;
+          return ai - bi;
+        });
+        setResults(ordered);
+        setLoading(false);
+      }, 200);
+
+      return () => clearTimeout(timeout);
     }
 
     const timeout = setTimeout(async () => {
@@ -90,12 +118,25 @@ export function OrganisationStepForm({ onNext }: OrganisationStepFormProps) {
         .select("*")
         .ilike("name", `%${query}%`)
         .limit(8);
-      setResults((data as Organisation[] | null) ?? []);
+      const preferredSet = new Set(preferredCompanyNames.map((name) => name.toLowerCase()));
+      const ordered = ((data as Organisation[] | null) ?? []).sort((a, b) => {
+        const ap = preferredSet.has(a.name.toLowerCase()) ? 0 : 1;
+        const bp = preferredSet.has(b.name.toLowerCase()) ? 0 : 1;
+        if (ap !== bp) return ap - bp;
+        return a.name.localeCompare(b.name);
+      });
+      setResults(ordered);
       setLoading(false);
     }, 300);
 
     return () => clearTimeout(timeout);
-  }, [query]);
+  }, [query, preferredCompanyNames]);
+
+  useEffect(() => {
+    if (initialCategory && ORGANISATION_CATEGORIES.includes(initialCategory as (typeof ORGANISATION_CATEGORIES)[number])) {
+      newOrgForm.setValue("category", initialCategory as (typeof ORGANISATION_CATEGORIES)[number]);
+    }
+  }, [initialCategory, newOrgForm]);
 
   function handleSelectExisting(org: Organisation) {
     setSelected(org);
@@ -155,6 +196,12 @@ export function OrganisationStepForm({ onNext }: OrganisationStepFormProps) {
 
               {loading && (
                 <p className="text-xs text-muted-foreground">Searching...</p>
+              )}
+
+              {!query.trim() && preferredCompanyNames.length > 0 && (
+                <p className="text-xs text-muted-foreground">
+                  Suggested for this template: {preferredCompanyNames.join(", ")}
+                </p>
               )}
 
               {results.length > 0 && (
