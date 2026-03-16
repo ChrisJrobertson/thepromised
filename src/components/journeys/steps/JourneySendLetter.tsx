@@ -48,7 +48,13 @@ export function JourneySendLetter({
       const data = await res.json();
       if (!res.ok) {
         if (data.error === "upgrade_required") {
-          toast.error("AI letter drafting requires a Basic or Pro plan.");
+          toast.error("AI letter drafting requires a Basic or Pro plan.", {
+            action: {
+              label: "Upgrade",
+              onClick: () => window.location.assign("/pricing"),
+            },
+            duration: 8000,
+          });
         } else {
           toast.error(data.error ?? "Failed to generate letter");
         }

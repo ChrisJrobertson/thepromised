@@ -423,6 +423,13 @@ export default async function CasePage({
             </div>
             <CaseTimeline
               caseId={id}
+              caseInfo={{
+                created_at: theCase.created_at,
+                first_contact_date: theCase.first_contact_date,
+                escalation_stage: theCase.escalation_stage,
+                status: theCase.status,
+                resolved_date: theCase.resolved_date,
+              }}
               interactions={typedInteractions}
             />
           </TabsContent>
