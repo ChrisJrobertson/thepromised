@@ -48,22 +48,51 @@ export async function POST(request: Request) {
           const userId = session.metadata?.userId;
           const packId = session.metadata?.packId;
           const caseId = session.metadata?.caseId;
+          const paymentIntentId =
+            typeof session.payment_intent === "string"
+              ? session.payment_intent
+              : null;
 
           if (!userId || !packId) break;
 
-          await supabase.from("complaint_packs").insert({
-            user_id: userId,
-            case_id: caseId ? caseId : null,
-            pack_type: packId,
-            status: "purchased",
-            stripe_payment_id:
-              typeof session.payment_intent === "string"
-                ? session.payment_intent
-                : null,
-            amount_paid: session.amount_total ?? 0,
-            currency: session.currency ?? "gbp",
-            purchased_at: new Date().toISOString(),
-          });
+          const { data: existingBySession } = await supabase
+            .from("complaint_packs")
+            .select("id")
+            .eq("checkout_session_id", session.id)
+            .maybeSingle();
+
+          if (existingBySession) break;
+
+          if (paymentIntentId) {
+            const { data: existingByPayment } = await supabase
+              .from("complaint_packs")
+              .select("id")
+              .eq("stripe_payment_id", paymentIntentId)
+              .maybeSingle();
+            if (existingByPayment) break;
+          }
+
+          const entitlementExpiresAt = new Date(
+            Date.now() + 7 * 24 * 60 * 60 * 1000,
+          ).toISOString();
+
+          const { data: insertedPack } = await supabase
+            .from("complaint_packs")
+            .insert({
+              user_id: userId,
+              case_id: caseId ? caseId : null,
+              entitlement_case_id: caseId ? caseId : null,
+              entitlement_expires_at: entitlementExpiresAt,
+              checkout_session_id: session.id,
+              pack_type: packId,
+              status: "purchased",
+              stripe_payment_id: paymentIntentId,
+              amount_paid: session.amount_total ?? 0,
+              currency: session.currency ?? "gbp",
+              purchased_at: new Date().toISOString(),
+            })
+            .select("id")
+            .maybeSingle();
 
           const { data: profile } = await supabase
             .from("profiles")
@@ -77,6 +106,9 @@ export async function POST(request: Request) {
               .update({
                 subscription_tier: "pro",
                 subscription_status: "pack_temporary",
+                pack_pro_expires_at: entitlementExpiresAt,
+                pack_access_case_id: caseId ? caseId : null,
+                pack_source_pack_id: insertedPack?.id ?? null,
               })
               .eq("id", userId);
           }
@@ -104,6 +136,9 @@ export async function POST(request: Request) {
             stripe_customer_id: session.customer as string,
             ai_credits_used: 0,
             ai_credits_reset_at: addMonths(now, 1).toISOString(),
+            pack_pro_expires_at: null,
+            pack_access_case_id: null,
+            pack_source_pack_id: null,
           })
           .eq("id", userId);
 
@@ -192,6 +227,9 @@ export async function POST(request: Request) {
             subscription_tier: "free",
             subscription_status: "cancelled",
             subscription_id: null,
+            pack_pro_expires_at: null,
+            pack_access_case_id: null,
+            pack_source_pack_id: null,
           })
           .eq("subscription_id", subscription.id);
 
@@ -291,6 +329,47 @@ export async function POST(request: Request) {
             { status: 500 }
           );
         }
+
+        break;
+      }
+
+      // ── Payment refunded (one-off pack support) ────────────────────────────
+      case "charge.refunded": {
+        const charge = event.data.object as Stripe.Charge;
+        const paymentIntentId =
+          typeof charge.payment_intent === "string"
+            ? charge.payment_intent
+            : null;
+        if (!paymentIntentId) break;
+
+        const { data: refundedPack } = await supabase
+          .from("complaint_packs")
+          .select("id, user_id")
+          .eq("stripe_payment_id", paymentIntentId)
+          .maybeSingle();
+        if (!refundedPack) break;
+
+        await supabase
+          .from("complaint_packs")
+          .update({
+            status: "refunded",
+            notes: "Marked refunded via Stripe webhook (charge.refunded).",
+          })
+          .eq("id", refundedPack.id);
+
+        // If this refunded pack was the active temporary source, revert access.
+        await supabase
+          .from("profiles")
+          .update({
+            subscription_tier: "free",
+            subscription_status: "active",
+            pack_pro_expires_at: null,
+            pack_access_case_id: null,
+            pack_source_pack_id: null,
+          })
+          .eq("id", refundedPack.user_id)
+          .eq("subscription_status", "pack_temporary")
+          .eq("pack_source_pack_id", refundedPack.id);
 
         break;
       }

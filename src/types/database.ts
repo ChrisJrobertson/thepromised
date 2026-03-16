@@ -33,6 +33,9 @@ export type Database = {
           ai_letters_used: number;
           ai_credits_used: number;
           ai_credits_reset_at: string | null;
+          pack_pro_expires_at: string | null;
+          pack_access_case_id: string | null;
+          pack_source_pack_id: string | null;
           is_admin: boolean | null;
           last_export_at: string | null;
           created_at: string | null;
@@ -61,6 +64,9 @@ export type Database = {
           ai_letters_used?: number;
           ai_credits_used?: number;
           ai_credits_reset_at?: string | null;
+          pack_pro_expires_at?: string | null;
+          pack_access_case_id?: string | null;
+          pack_source_pack_id?: string | null;
           is_admin?: boolean | null;
           last_export_at?: string | null;
           created_at?: string | null;
@@ -89,6 +95,9 @@ export type Database = {
           ai_letters_used?: number;
           ai_credits_used?: number;
           ai_credits_reset_at?: string | null;
+          pack_pro_expires_at?: string | null;
+          pack_access_case_id?: string | null;
+          pack_source_pack_id?: string | null;
           is_admin?: boolean | null;
           last_export_at?: string | null;
           created_at?: string | null;
@@ -103,6 +112,12 @@ export type Database = {
           email: string;
           role: string | null;
           message: string | null;
+          website: string | null;
+          sector: string | null;
+          complaint_volume_estimate: string | null;
+          consent_to_contact: boolean | null;
+          source_ip: string | null;
+          user_agent: string | null;
           created_at: string | null;
         };
         Insert: {
@@ -112,6 +127,12 @@ export type Database = {
           email: string;
           role?: string | null;
           message?: string | null;
+          website?: string | null;
+          sector?: string | null;
+          complaint_volume_estimate?: string | null;
+          consent_to_contact?: boolean | null;
+          source_ip?: string | null;
+          user_agent?: string | null;
           created_at?: string | null;
         };
         Update: {
@@ -121,6 +142,12 @@ export type Database = {
           email?: string;
           role?: string | null;
           message?: string | null;
+          website?: string | null;
+          sector?: string | null;
+          complaint_volume_estimate?: string | null;
+          consent_to_contact?: boolean | null;
+          source_ip?: string | null;
+          user_agent?: string | null;
           created_at?: string | null;
         };
       };
@@ -132,10 +159,13 @@ export type Database = {
           pack_type: string;
           status: string;
           stripe_payment_id: string | null;
+          checkout_session_id: string | null;
           amount_paid: number;
           currency: string;
           purchased_at: string | null;
           completed_at: string | null;
+          entitlement_expires_at: string | null;
+          entitlement_case_id: string | null;
           notes: string | null;
           created_at: string | null;
           updated_at: string | null;
@@ -147,10 +177,13 @@ export type Database = {
           pack_type: string;
           status?: string;
           stripe_payment_id?: string | null;
+          checkout_session_id?: string | null;
           amount_paid: number;
           currency?: string;
           purchased_at?: string | null;
           completed_at?: string | null;
+          entitlement_expires_at?: string | null;
+          entitlement_case_id?: string | null;
           notes?: string | null;
           created_at?: string | null;
           updated_at?: string | null;
@@ -162,10 +195,13 @@ export type Database = {
           pack_type?: string;
           status?: string;
           stripe_payment_id?: string | null;
+          checkout_session_id?: string | null;
           amount_paid?: number;
           currency?: string;
           purchased_at?: string | null;
           completed_at?: string | null;
+          entitlement_expires_at?: string | null;
+          entitlement_case_id?: string | null;
           notes?: string | null;
           created_at?: string | null;
           updated_at?: string | null;
@@ -178,6 +214,7 @@ export type Database = {
           contact_name: string;
           contact_email: string;
           contact_role: string | null;
+          business_enquiry_id: string | null;
           organisation_id: string | null;
           plan_type: string;
           monthly_fee: number;
@@ -196,6 +233,7 @@ export type Database = {
           contact_name: string;
           contact_email: string;
           contact_role?: string | null;
+          business_enquiry_id?: string | null;
           organisation_id?: string | null;
           plan_type?: string;
           monthly_fee: number;
@@ -214,6 +252,7 @@ export type Database = {
           contact_name?: string;
           contact_email?: string;
           contact_role?: string | null;
+          business_enquiry_id?: string | null;
           organisation_id?: string | null;
           plan_type?: string;
           monthly_fee?: number;
@@ -223,6 +262,59 @@ export type Database = {
           stripe_subscription_id?: string | null;
           started_at?: string | null;
           notes?: string | null;
+          created_at?: string | null;
+          updated_at?: string | null;
+        };
+      };
+      b2b_outreach_emails: {
+        Row: {
+          id: string;
+          organisation_id: string | null;
+          b2b_pilot_id: string | null;
+          recipient_email: string;
+          resend_email_id: string | null;
+          status: string;
+          subject: string;
+          sent_at: string | null;
+          delivered_at: string | null;
+          opened_at: string | null;
+          bounced_at: string | null;
+          complained_at: string | null;
+          metadata: Json | null;
+          created_at: string | null;
+          updated_at: string | null;
+        };
+        Insert: {
+          id?: string;
+          organisation_id?: string | null;
+          b2b_pilot_id?: string | null;
+          recipient_email: string;
+          resend_email_id?: string | null;
+          status?: string;
+          subject: string;
+          sent_at?: string | null;
+          delivered_at?: string | null;
+          opened_at?: string | null;
+          bounced_at?: string | null;
+          complained_at?: string | null;
+          metadata?: Json | null;
+          created_at?: string | null;
+          updated_at?: string | null;
+        };
+        Update: {
+          id?: string;
+          organisation_id?: string | null;
+          b2b_pilot_id?: string | null;
+          recipient_email?: string;
+          resend_email_id?: string | null;
+          status?: string;
+          subject?: string;
+          sent_at?: string | null;
+          delivered_at?: string | null;
+          opened_at?: string | null;
+          bounced_at?: string | null;
+          complained_at?: string | null;
+          metadata?: Json | null;
           created_at?: string | null;
           updated_at?: string | null;
         };
@@ -1007,6 +1099,8 @@ export type BusinessEnquiry =
 export type ComplaintPack =
   Database["public"]["Tables"]["complaint_packs"]["Row"];
 export type B2BPilot = Database["public"]["Tables"]["b2b_pilots"]["Row"];
+export type B2BOutreachEmail =
+  Database["public"]["Tables"]["b2b_outreach_emails"]["Row"];
 
 export type ProfileInsert = Database["public"]["Tables"]["profiles"]["Insert"];
 export type ProfileUpdate = Database["public"]["Tables"]["profiles"]["Update"];
@@ -1044,3 +1138,7 @@ export type B2BPilotInsert =
   Database["public"]["Tables"]["b2b_pilots"]["Insert"];
 export type B2BPilotUpdate =
   Database["public"]["Tables"]["b2b_pilots"]["Update"];
+export type B2BOutreachEmailInsert =
+  Database["public"]["Tables"]["b2b_outreach_emails"]["Insert"];
+export type B2BOutreachEmailUpdate =
+  Database["public"]["Tables"]["b2b_outreach_emails"]["Update"];

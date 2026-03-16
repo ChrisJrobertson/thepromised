@@ -3,6 +3,7 @@ import { enGB } from "date-fns/locale";
 import { NextResponse } from "next/server";
 
 import { sendReminderDigest, sendEscalationAlert, sendPromiseBroken } from "@/lib/email/send";
+import { EMAIL_FROM, getResendClient } from "@/lib/email/client";
 import { createServiceRoleClient } from "@/lib/supabase/admin";
 import type { ReminderInsert } from "@/types/database";
 
@@ -25,6 +26,7 @@ export async function GET(request: Request) {
     promise_alerts_created: 0,
     promise_emails_sent: 0,
     deadline_alerts_created: 0,
+    b2b_sla_alerts_sent: 0,
   };
 
   // Reset AI credits monthly
@@ -39,17 +41,18 @@ export async function GET(request: Request) {
     .lt("ai_credits_reset_at", new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString());
 
   // Revert temporary pack Pro access after 7 days
-  const sevenDaysAgo = new Date(
-    Date.now() - 7 * 24 * 60 * 60 * 1000,
-  ).toISOString();
+  const nowIso = now.toISOString();
   await supabase
     .from("profiles")
     .update({
       subscription_tier: "free",
       subscription_status: "active",
+      pack_pro_expires_at: null,
+      pack_access_case_id: null,
+      pack_source_pack_id: null,
     })
     .eq("subscription_status", "pack_temporary")
-    .lt("updated_at", sevenDaysAgo);
+    .lt("pack_pro_expires_at", nowIso);
 
   // ── 1. Send daily reminder digest emails ────────────────────────────────────
   // Get all users who have reminders due today/overdue and have email reminders enabled
@@ -368,6 +371,90 @@ export async function GET(request: Request) {
         if (emailResult.success) results.promise_emails_sent++;
       }
     }
+  }
+
+  // ── 5. B2B pipeline SLA alerts for admin ops ───────────────────────────────
+  const [staleEnquiriesRes, staleContactedRes, stalePilotRes] = await Promise.all([
+    supabase
+      .from("business_enquiries")
+      .select("id, company_name, contact_name, email, created_at")
+      .lt("created_at", new Date(Date.now() - 48 * 60 * 60 * 1000).toISOString())
+      .order("created_at", { ascending: true })
+      .limit(30),
+    supabase
+      .from("b2b_pilots")
+      .select("id, company_name, contact_name, contact_email, status, updated_at")
+      .eq("status", "contacted")
+      .lt("updated_at", new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString())
+      .order("updated_at", { ascending: true })
+      .limit(30),
+    supabase
+      .from("b2b_pilots")
+      .select("id, company_name, contact_name, contact_email, status, updated_at")
+      .eq("status", "pilot_started")
+      .lt("updated_at", new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString())
+      .order("updated_at", { ascending: true })
+      .limit(30),
+  ]);
+
+  const staleEnquiries = staleEnquiriesRes.data ?? [];
+  const staleContacted = staleContactedRes.data ?? [];
+  const stalePilots = stalePilotRes.data ?? [];
+
+  if (staleEnquiries.length || staleContacted.length || stalePilots.length) {
+    const to = process.env.B2B_ALERT_EMAIL ?? "support@theypromised.app";
+    const resend = getResendClient();
+    const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? "https://www.theypromised.app";
+
+    const listItems = (rows: Array<Record<string, string | null>>, label: string) =>
+      rows
+        .map(
+          (row) =>
+            `<li><strong>${row.company_name ?? "Unknown"}</strong> — ${
+              row.contact_name ?? row.contact_email ?? "No contact"
+            }</li>`,
+        )
+        .join("");
+
+    const html = `
+      <div style="font-family: Arial, sans-serif; color: #0f172a;">
+        <h2>B2B pipeline SLA alerts</h2>
+        <p>Automated reminder from TheyPromised cron.</p>
+        <p><a href="${appUrl}/admin/b2b">Open B2B admin board</a></p>
+        ${
+          staleEnquiries.length
+            ? `<h3>Uncontacted enquiries >48h (${staleEnquiries.length})</h3><ul>${listItems(
+                staleEnquiries as Array<Record<string, string | null>>,
+                "enquiries",
+              )}</ul>`
+            : ""
+        }
+        ${
+          staleContacted.length
+            ? `<h3>Contacted but no pilot progress >7d (${staleContacted.length})</h3><ul>${listItems(
+                staleContacted as Array<Record<string, string | null>>,
+                "contacted",
+              )}</ul>`
+            : ""
+        }
+        ${
+          stalePilots.length
+            ? `<h3>Pilots started but no review >30d (${stalePilots.length})</h3><ul>${listItems(
+                stalePilots as Array<Record<string, string | null>>,
+                "pilots",
+              )}</ul>`
+            : ""
+        }
+      </div>
+    `;
+
+    await resend.emails.send({
+      from: EMAIL_FROM,
+      to,
+      subject: `B2B SLA alerts: ${staleEnquiries.length + staleContacted.length + stalePilots.length} action(s)`,
+      html,
+    });
+    results.b2b_sla_alerts_sent = 1;
   }
 
   return NextResponse.json({

@@ -5,6 +5,7 @@ import { z } from "zod";
 import { CLAUDE_MODEL, anthropic } from "@/lib/ai/client";
 import { CASE_ANALYSIS_SYSTEM, buildCaseAnalysisPrompt } from "@/lib/ai/prompts";
 import { trackServerEvent } from "@/lib/analytics/posthog-server";
+import { enforcePackScopedCaseAccess } from "@/lib/packs/access";
 import { checkRateLimit } from "@/lib/rate-limit";
 import { createClient } from "@/lib/supabase/server";
 import type { Profile } from "@/types/database";
@@ -95,6 +96,14 @@ export async function POST(request: Request) {
         { status: 403 }
       );
     }
+
+    const packScopeError = await enforcePackScopedCaseAccess({
+      profile,
+      caseId,
+      userId: user.id,
+      supabase,
+    });
+    if (packScopeError) return packScopeError;
 
     // Load case (verify ownership via RLS)
     const { data: caseData } = await supabase

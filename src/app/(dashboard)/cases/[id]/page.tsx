@@ -22,6 +22,7 @@ import { buttonVariants } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { formatUkDate } from "@/lib/date";
+import { COMPLAINT_PACKS_BY_ID } from "@/lib/packs/config";
 import { createClient } from "@/lib/supabase/server";
 import type { Profile } from "@/types/database";
 import type {
@@ -170,6 +171,25 @@ export default async function CasePage({
   const pendingPromises = typedInteractions.filter(
     (i) => i.promises_made && i.promise_fulfilled === null
   );
+  const overdueResponse =
+    Boolean(theCase.response_deadline) &&
+    !theCase.response_received &&
+    new Date(theCase.response_deadline).getTime() < Date.now();
+
+  const recommendedPackId = (() => {
+    if (theCase.escalation_stage === "ombudsman" || typedInteractions.length >= 6) {
+      return "full-case-pack";
+    }
+    if (
+      overdueResponse ||
+      (daysOpen !== null && daysOpen >= 35) ||
+      theCase.escalation_stage === "final_response"
+    ) {
+      return "escalation-pack";
+    }
+    return "starter-pack";
+  })();
+  const recommendedPack = COMPLAINT_PACKS_BY_ID.get(recommendedPackId);
 
   const activeTab = sp.tab ?? "timeline";
 
@@ -303,9 +323,15 @@ export default async function CasePage({
               Need help with this case? Our Complaint Packs include AI letters,
               case review, and ombudsman-ready exports.
             </p>
+            {recommendedPack ? (
+              <p className="mt-1 text-xs text-teal-800">
+                Recommended for this case: <strong>{recommendedPack.name}</strong>{" "}
+                ({recommendedPack.priceDisplay}) — {recommendedPack.bestFor}
+              </p>
+            ) : null}
             <Link
               className="mt-2 inline-flex font-medium text-teal-800 underline underline-offset-2"
-              href="/packs"
+              href={`/packs?recommended=${recommendedPackId}&caseId=${id}`}
             >
               View Packs →
             </Link>

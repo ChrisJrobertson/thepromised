@@ -6,6 +6,7 @@ import { z } from "zod";
 
 import { CasePdfDocument, type CasePdfData } from "@/lib/pdf/CasePdfDocument";
 import { trackServerEvent } from "@/lib/analytics/posthog-server";
+import { enforcePackScopedCaseAccess } from "@/lib/packs/access";
 import { canExportPDF } from "@/lib/stripe/feature-gates";
 import { createClient } from "@/lib/supabase/server";
 import type {
@@ -90,6 +91,14 @@ export async function POST(request: Request) {
         { status: 403 }
       );
     }
+
+    const packScopeError = await enforcePackScopedCaseAccess({
+      profile,
+      caseId,
+      userId: user.id,
+      supabase,
+    });
+    if (packScopeError) return packScopeError;
 
     // Load case
     const { data: caseData } = await supabase

@@ -1,4 +1,7 @@
-import { B2BPilotsTable, type B2BTableRow } from "@/components/admin/B2BPilotsTable";
+import {
+  B2BPilotsTable,
+  type B2BTableRow,
+} from "@/components/admin/B2BPilotsTable";
 import { createServiceRoleClient } from "@/lib/supabase/admin";
 import type { B2BPilot, BusinessEnquiry } from "@/types/database";
 
@@ -25,11 +28,19 @@ export default async function AdminB2BPage() {
   const pilotsByKey = new Map(
     pilots.map((pilot) => [toKey(pilot.company_name, pilot.contact_email), pilot]),
   );
+  const pilotsByEnquiryId = new Map(
+    pilots
+      .filter((pilot) => Boolean(pilot.business_enquiry_id))
+      .map((pilot) => [pilot.business_enquiry_id as string, pilot]),
+  );
 
   const rows: B2BTableRow[] = enquiries.map((enquiry) => {
-    const pilot = pilotsByKey.get(toKey(enquiry.company_name, enquiry.email));
+    const pilot =
+      pilotsByEnquiryId.get(enquiry.id) ??
+      pilotsByKey.get(toKey(enquiry.company_name, enquiry.email));
     return {
       key: `enquiry:${enquiry.id}`,
+      enquiryId: enquiry.id,
       pilotId: pilot?.id ?? null,
       companyName: enquiry.company_name,
       contactName: enquiry.contact_name,
@@ -38,6 +49,7 @@ export default async function AdminB2BPage() {
       status: (pilot?.status ?? "enquiry") as B2BTableRow["status"],
       monthlyFee: pilot?.monthly_fee ?? 50000,
       startedAt: pilot?.started_at ?? null,
+      createdAt: enquiry.created_at ?? pilot?.created_at ?? null,
     };
   });
 
@@ -51,6 +63,7 @@ export default async function AdminB2BPage() {
 
     rows.push({
       key: `pilot:${pilot.id}`,
+      enquiryId: pilot.business_enquiry_id ?? null,
       pilotId: pilot.id,
       companyName: pilot.company_name,
       contactName: pilot.contact_name,
@@ -59,6 +72,7 @@ export default async function AdminB2BPage() {
       status: pilot.status as B2BTableRow["status"],
       monthlyFee: pilot.monthly_fee,
       startedAt: pilot.started_at,
+      createdAt: pilot.created_at,
     });
   }
 

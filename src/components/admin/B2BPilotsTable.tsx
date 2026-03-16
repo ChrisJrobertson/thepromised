@@ -16,6 +16,7 @@ type B2BStatus = (typeof B2B_STATUSES)[number];
 
 export type B2BTableRow = {
   key: string;
+  enquiryId: string | null;
   pilotId: string | null;
   companyName: string;
   contactName: string;
@@ -24,6 +25,7 @@ export type B2BTableRow = {
   status: B2BStatus;
   monthlyFee: number | null;
   startedAt: string | null;
+  createdAt: string | null;
 };
 
 type B2BPilotsTableProps = {
@@ -36,6 +38,17 @@ function formatPence(amount: number | null) {
     minimumFractionDigits: 0,
     maximumFractionDigits: 0,
   })}/month`;
+}
+
+function getSlaLabel(row: B2BTableRow) {
+  const createdAt = row.createdAt ? new Date(row.createdAt) : null;
+  if (!createdAt || Number.isNaN(createdAt.getTime())) return "—";
+  const hoursOpen = (Date.now() - createdAt.getTime()) / (1000 * 60 * 60);
+
+  if (row.status === "enquiry" && hoursOpen > 48) return "Contact overdue";
+  if (row.status === "contacted" && hoursOpen > 24 * 7) return "Pilot follow-up due";
+  if (row.status === "pilot_started" && hoursOpen > 24 * 30) return "Review pilot progress";
+  return "On track";
 }
 
 export function B2BPilotsTable({ initialRows }: B2BPilotsTableProps) {
@@ -60,6 +73,7 @@ export function B2BPilotsTable({ initialRows }: B2BPilotsTableProps) {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           pilotId: row.pilotId ?? undefined,
+          enquiryId: row.enquiryId ?? undefined,
           status: nextStatus,
           monthlyFee: row.monthlyFee ?? 50000,
           enquiry: row.pilotId
@@ -120,6 +134,7 @@ export function B2BPilotsTable({ initialRows }: B2BPilotsTableProps) {
             <th className="px-3 py-2">Status</th>
             <th className="px-3 py-2">Monthly Fee</th>
             <th className="px-3 py-2">Started</th>
+            <th className="px-3 py-2">SLA</th>
           </tr>
         </thead>
         <tbody>
@@ -159,6 +174,17 @@ export function B2BPilotsTable({ initialRows }: B2BPilotsTableProps) {
                 {row.startedAt
                   ? new Date(row.startedAt).toLocaleDateString("en-GB")
                   : "—"}
+              </td>
+              <td className="px-3 py-2 text-xs">
+                <span
+                  className={`rounded px-2 py-0.5 ${
+                    getSlaLabel(row) === "On track"
+                      ? "bg-green-50 text-green-700"
+                      : "bg-amber-50 text-amber-700"
+                  }`}
+                >
+                  {getSlaLabel(row)}
+                </span>
               </td>
             </tr>
           ))}

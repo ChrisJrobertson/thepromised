@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 
 import { quickSummary } from "@/lib/ai/haiku";
+import { enforcePackScopedCaseAccess } from "@/lib/packs/access";
 import { checkRateLimit } from "@/lib/rate-limit";
 import { createClient } from "@/lib/supabase/server";
 import type { Profile } from "@/types/database";
@@ -11,6 +12,7 @@ export const runtime = "nodejs";
 const inputSchema = z.object({
   text: z.string().min(1).max(10_000),
   interactionId: z.string().uuid().optional(),
+  caseId: z.string().uuid().optional(),
 });
 
 export async function POST(request: Request) {
@@ -62,7 +64,40 @@ export async function POST(request: Request) {
     }
 
     const json = await request.json();
-    const { text, interactionId } = inputSchema.parse(json);
+    const { text, interactionId, caseId } = inputSchema.parse(json);
+
+    if (profile.subscription_status === "pack_temporary") {
+      let scopedCaseId = caseId ?? null;
+
+      if (!scopedCaseId && interactionId) {
+        const { data: interactionRow } = await supabase
+          .from("interactions")
+          .select("case_id")
+          .eq("id", interactionId)
+          .eq("user_id", user.id)
+          .maybeSingle();
+        scopedCaseId =
+          (interactionRow as { case_id: string } | null)?.case_id ?? null;
+      }
+
+      if (!scopedCaseId) {
+        return NextResponse.json(
+          {
+            error:
+              "Pack-scoped AI summarisation requires a linked case context.",
+          },
+          { status: 403 },
+        );
+      }
+
+      const packScopeError = await enforcePackScopedCaseAccess({
+        profile,
+        caseId: scopedCaseId,
+        userId: user.id,
+        supabase,
+      });
+      if (packScopeError) return packScopeError;
+    }
 
     const hfSummary = await quickSummary(text);
     const summary =

@@ -13,7 +13,12 @@ type CaseOption = {
   title: string;
 };
 
-export default async function PacksPage() {
+export default async function PacksPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ recommended?: string; caseId?: string }>;
+}) {
+  const sp = await searchParams;
   const supabase = await createClient();
   const {
     data: { user },
@@ -48,6 +53,8 @@ export default async function PacksPage() {
           cases={cases}
           isLoggedIn={Boolean(user)}
           packs={COMPLAINT_PACKS}
+          preselectedCaseId={sp.caseId ?? ""}
+          recommendedPackId={sp.recommended ?? ""}
         />
 
         <section className="rounded-lg border bg-slate-50 p-6 text-center">

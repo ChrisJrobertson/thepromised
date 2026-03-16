@@ -16,14 +16,18 @@ type PacksCheckoutClientProps = {
   packs: PackDefinition[];
   cases: CaseOption[];
   isLoggedIn: boolean;
+  recommendedPackId?: string;
+  preselectedCaseId?: string;
 };
 
 export function PacksCheckoutClient({
   packs,
   cases,
   isLoggedIn,
+  recommendedPackId = "",
+  preselectedCaseId = "",
 }: PacksCheckoutClientProps) {
-  const [selectedCaseId, setSelectedCaseId] = useState<string>("");
+  const [selectedCaseId, setSelectedCaseId] = useState<string>(preselectedCaseId);
   const [loadingPackId, setLoadingPackId] = useState<string | null>(null);
 
   async function handleBuy(packId: string) {
@@ -87,6 +91,11 @@ export function PacksCheckoutClient({
             }`}
             key={pack.id}
           >
+            {recommendedPackId && recommendedPackId === pack.id ? (
+              <span className="absolute -top-3 right-3 rounded-full bg-teal-600 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wide text-white">
+                Recommended
+              </span>
+            ) : null}
             {pack.popular ? (
               <span className="absolute -top-3 left-1/2 -translate-x-1/2 rounded-full bg-primary px-3 py-1 text-xs font-semibold text-white">
                 Most Popular

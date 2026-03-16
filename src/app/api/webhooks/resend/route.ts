@@ -16,6 +16,30 @@ export async function POST(request: Request) {
   }
 
   const supabase = createServiceRoleClient();
+  const now = new Date().toISOString();
+
+  const outreachUpdates: Record<string, string> = {};
+  if (payload.type === "email.delivered") {
+    outreachUpdates.status = "delivered";
+    outreachUpdates.delivered_at = now;
+  } else if (payload.type === "email.opened") {
+    outreachUpdates.status = "opened";
+    outreachUpdates.opened_at = now;
+  } else if (payload.type === "email.bounced") {
+    outreachUpdates.status = "bounced";
+    outreachUpdates.bounced_at = now;
+  } else if (payload.type === "email.complained") {
+    outreachUpdates.status = "complained";
+    outreachUpdates.complained_at = now;
+  }
+
+  if (Object.keys(outreachUpdates).length > 0) {
+    await supabase
+      .from("b2b_outreach_emails")
+      .update(outreachUpdates)
+      .eq("resend_email_id", payload.data.email_id);
+  }
+
   const { data: letter } = await supabase
     .from("letters")
     .select("id, case_id, user_id")
@@ -25,7 +49,6 @@ export async function POST(request: Request) {
     return NextResponse.json({ ok: true });
   }
 
-  const now = new Date().toISOString();
   const updates: Record<string, string> = {};
 
   if (payload.type === "email.delivered") {

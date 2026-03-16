@@ -5,6 +5,7 @@ import { CLAUDE_MODELS, anthropic } from "@/lib/ai/client";
 import { LETTER_SYSTEM, buildLetterPrompt } from "@/lib/ai/prompts";
 import { getTemplate } from "@/lib/ai/letter-templates";
 import { trackServerEvent } from "@/lib/analytics/posthog-server";
+import { enforcePackScopedCaseAccess } from "@/lib/packs/access";
 import { checkRateLimit } from "@/lib/rate-limit";
 import { createClient } from "@/lib/supabase/server";
 import type { LetterInsert, Profile } from "@/types/database";
@@ -85,6 +86,14 @@ export async function POST(request: Request) {
         { status: 403 }
       );
     }
+
+    const packScopeError = await enforcePackScopedCaseAccess({
+      profile,
+      caseId,
+      userId: user.id,
+      supabase,
+    });
+    if (packScopeError) return packScopeError;
 
     // Load case
     const { data: caseData } = await supabase

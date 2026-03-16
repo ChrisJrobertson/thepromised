@@ -95,6 +95,25 @@ export default async function MyPacksPage() {
                         {pack.status.replace(/_/g, " ")}
                       </span>
                     </p>
+                    {pack.completed_at ? (
+                      <p className="mt-1 text-xs text-slate-600">
+                        Completed:{" "}
+                        {new Date(pack.completed_at).toLocaleDateString("en-GB")}
+                      </p>
+                    ) : null}
+                    {pack.entitlement_expires_at ? (
+                      <p className="mt-1 text-xs text-slate-600">
+                        Pro access until:{" "}
+                        {new Date(pack.entitlement_expires_at).toLocaleDateString(
+                          "en-GB",
+                        )}
+                      </p>
+                    ) : null}
+                    {pack.status === "refunded" ? (
+                      <p className="mt-1 text-xs text-red-700">
+                        Refunded by payment provider
+                      </p>
+                    ) : null}
                     <p className="mt-1 text-xs text-slate-600">
                       Linked case:{" "}
                       {pack.case_id
