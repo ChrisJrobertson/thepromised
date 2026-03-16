@@ -3,7 +3,7 @@
 import { Sparkles } from "lucide-react";
 import Link from "next/link";
 
-import { Button } from "@/components/ui/button";
+import { buttonVariants } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
@@ -12,6 +12,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { cn } from "@/lib/utils";
 
 type AiCreditsModalProps = {
   open: boolean;
@@ -47,28 +48,34 @@ export function AiCreditsModal({
             <Sparkles className="h-5 w-5 text-amber-500" />
             Monthly limit reached
           </DialogTitle>
-          <DialogDescription asChild>
-            <div className="space-y-2 pt-1 text-sm">
-              <p>
-                You've used your {limitCount} free {copy.noun} this month.
-              </p>
-              <p className="font-medium text-foreground">
-                Upgrade to Basic (£4.99/mo) for {copy.upgrade}, or grab a
-                one-off Complaint Pack from £29.
-              </p>
-            </div>
+          <DialogDescription className="space-y-2 pt-1 text-sm">
+            You&apos;ve used your {limitCount} free {copy.noun} this month.{" "}
+            <span className="font-medium text-foreground">
+              Upgrade to Basic (£4.99/mo) for {copy.upgrade}, or grab a
+              one-off Complaint Pack from £29.
+            </span>
           </DialogDescription>
         </DialogHeader>
         <DialogFooter className="flex-col gap-2 sm:flex-col">
-          <Button asChild className="w-full">
-            <Link href="/pricing">Upgrade Plan</Link>
-          </Button>
-          <Button asChild variant="outline" className="w-full">
-            <Link href="/packs">Browse Packs</Link>
-          </Button>
-          <Button variant="ghost" className="w-full" onClick={onClose} type="button">
+          <Link
+            className={cn(buttonVariants({ variant: "default" }), "w-full justify-center")}
+            href="/pricing"
+          >
+            Upgrade Plan
+          </Link>
+          <Link
+            className={cn(buttonVariants({ variant: "outline" }), "w-full justify-center")}
+            href="/packs"
+          >
+            Browse Packs
+          </Link>
+          <button
+            className={cn(buttonVariants({ variant: "ghost" }), "w-full")}
+            onClick={onClose}
+            type="button"
+          >
             Maybe Later
-          </Button>
+          </button>
         </DialogFooter>
       </DialogContent>
     </Dialog>
