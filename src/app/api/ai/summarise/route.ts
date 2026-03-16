@@ -50,15 +50,31 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Profile not found" }, { status: 404 });
     }
     const profile = profileData as Profile;
-    const tierLimits = {
-      free: { suggestions: 0, letters: 0 },
-      basic: { suggestions: 10, letters: 5 },
-      pro: { suggestions: 50, letters: 30 },
+    // TODO: Consolidate tier limits into single config (e.g. src/lib/config/tiers.ts)
+    // Summaries remain 0 for the free tier — free users cannot use AI summarisation.
+    const tierSummaryLimits = {
+      free: 0,
+      basic: 100,
+      pro: 500,
     } as const;
-    const limits = tierLimits[profile.subscription_tier] ?? tierLimits.free;
-    if (limits.suggestions === 0 || profile.ai_suggestions_used >= limits.suggestions) {
+    const summaryLimit = tierSummaryLimits[profile.subscription_tier as keyof typeof tierSummaryLimits] ?? 0;
+    if (summaryLimit === 0) {
       return NextResponse.json(
-        { error: "Monthly AI credit limit reached. Upgrade your plan for more." },
+        {
+          error: "upgrade_required",
+          message: "AI summarisation requires a Basic or Pro plan.",
+          requiredTier: "basic",
+        },
+        { status: 403 }
+      );
+    }
+    if (profile.ai_suggestions_used >= summaryLimit) {
+      return NextResponse.json(
+        {
+          error: "credits_exhausted",
+          message: "Monthly AI credit limit reached. Upgrade your plan for more.",
+          requiredTier: "pro",
+        },
         { status: 403 }
       );
     }

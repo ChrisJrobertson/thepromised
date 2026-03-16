@@ -1,6 +1,7 @@
 "use client";
 
 import { AlertCircle, Check, Copy, Download, FileText, Loader2, Send, Sparkles } from "lucide-react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { toast } from "sonner";
@@ -8,6 +9,14 @@ import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Progress } from "@/components/ui/progress";
@@ -18,6 +27,9 @@ type LetterWizardProps = {
   caseId: string;
   preselectedType: string | null;
   templates: LetterTemplate[];
+  tier?: "free" | "basic" | "pro";
+  aiLettersUsed?: number;
+  aiLettersLimit?: number;
 };
 
 type Step = "select" | "instructions" | "generating" | "edit" | "actions";
@@ -26,6 +38,9 @@ export function LetterWizard({
   caseId,
   preselectedType,
   templates,
+  tier = "free",
+  aiLettersUsed = 0,
+  aiLettersLimit = 0,
 }: LetterWizardProps) {
   const router = useRouter();
   const [step, setStep] = useState<Step>(preselectedType ? "instructions" : "select");
@@ -41,6 +56,12 @@ export function LetterWizard({
   const [sentVia, setSentVia] = useState<"email" | "post" | "not_sent">("not_sent");
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [localLettersUsed, setLocalLettersUsed] = useState(aiLettersUsed);
+  const [showExhaustedModal, setShowExhaustedModal] = useState(false);
+
+  const isLetterExhausted = aiLettersLimit > 0 && localLettersUsed >= aiLettersLimit;
+  // Show credit indicator for free and basic users
+  const showLetterCreditIndicator = tier !== "pro" && aiLettersLimit > 0;
 
   const selectedTemplate = templates.find((t) => t.type === selectedType);
   const stepProgress = {
@@ -52,6 +73,12 @@ export function LetterWizard({
   }[step];
 
   async function handleGenerate() {
+    // Free users who have exhausted their monthly letter allowance see the soft paywall
+    if (tier === "free" && isLetterExhausted) {
+      setShowExhaustedModal(true);
+      return;
+    }
+
     setStep("generating");
     setError(null);
 
@@ -81,6 +108,14 @@ export function LetterWizard({
       });
       setEditedBody(data.body);
       setStep("edit");
+
+      // Post-magic-moment nudge: show once after the first free letter is generated
+      if (tier === "free" && localLettersUsed === 0) {
+        toast("Your letter is ready! Free users get 1 AI letter per month — upgrade for more.", {
+          duration: 6000,
+        });
+      }
+      setLocalLettersUsed((prev) => prev + 1);
     } catch {
       setError("Network error. Please try again.");
       setStep("instructions");
@@ -290,22 +325,31 @@ export function LetterWizard({
               </p>
             </div>
 
-            <div className="flex gap-3">
-              <Button
-                onClick={() => setStep("select")}
-                type="button"
-                variant="outline"
-              >
-                Back
-              </Button>
-              <Button
-                className="flex-1"
-                onClick={handleGenerate}
-                type="button"
-              >
-                <Sparkles className="mr-2 h-4 w-4" />
-                Generate Letter with AI
-              </Button>
+            <div className="space-y-2">
+              <div className="flex gap-3">
+                <Button
+                  onClick={() => setStep("select")}
+                  type="button"
+                  variant="outline"
+                >
+                  Back
+                </Button>
+                <Button
+                  className="flex-1"
+                  onClick={handleGenerate}
+                  type="button"
+                >
+                  <Sparkles className="mr-2 h-4 w-4" />
+                  Generate Letter with AI
+                </Button>
+              </div>
+              {showLetterCreditIndicator && (
+                <p className="text-center text-xs text-muted-foreground">
+                  {isLetterExhausted
+                    ? `${localLettersUsed} of ${aiLettersLimit} AI letters used — upgrade for more`
+                    : `${localLettersUsed} of ${aiLettersLimit} AI letters used this month`}
+                </p>
+              )}
             </div>
           </CardContent>
         </Card>
@@ -498,6 +542,42 @@ export function LetterWizard({
           </div>
         </div>
       )}
+
+      {/* Soft paywall modal — shown when free user's monthly letter allowance is exhausted */}
+      <Dialog open={showExhaustedModal} onOpenChange={setShowExhaustedModal}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>You&apos;ve used your free AI letter this month</DialogTitle>
+            <DialogDescription>
+              Upgrade to Basic (£4.99/mo) for 5 AI-drafted letters and 10 suggestions,
+              or grab a one-off Complaint Pack.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter className="flex-col gap-2 sm:flex-row">
+            <button
+              className="inline-flex items-center justify-center rounded-md border px-4 py-2 text-sm font-medium hover:bg-muted transition-colors"
+              onClick={() => setShowExhaustedModal(false)}
+              type="button"
+            >
+              Maybe Later
+            </button>
+            <Link
+              className="inline-flex items-center justify-center rounded-md border border-primary px-4 py-2 text-sm font-medium text-primary hover:bg-primary/5 transition-colors"
+              href="/packs"
+              onClick={() => setShowExhaustedModal(false)}
+            >
+              Browse Packs
+            </Link>
+            <Link
+              className="inline-flex items-center justify-center rounded-md bg-primary px-4 py-2 text-sm font-medium text-white hover:opacity-90 transition-opacity"
+              href="/pricing"
+              onClick={() => setShowExhaustedModal(false)}
+            >
+              Upgrade Plan
+            </Link>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

@@ -3,8 +3,8 @@ import { describe, expect, it } from "vitest";
 import { LETTER_TEMPLATES, getTemplate } from "@/lib/ai/letter-templates";
 
 describe("LETTER_TEMPLATES", () => {
-  it("has 8 templates", () => {
-    expect(LETTER_TEMPLATES.length).toBe(8);
+  it("has 11 templates", () => {
+    expect(LETTER_TEMPLATES.length).toBe(11);
   });
 
   it("all templates have required fields", () => {
