@@ -4,6 +4,9 @@ export type LetterTemplateType =
   | "escalation"
   | "final_response_request"
   | "ombudsman_referral"
+  | "adr_referral"
+  | "section_75_claim"
+  | "letter_before_action"
   | "subject_access_request"
   | "formal_notice"
   | "custom";
@@ -78,6 +81,62 @@ export const LETTER_TEMPLATES: LetterTemplate[] = [
     legalReferences: [],
     suggestedTone: "Structured and factual",
     icon: "🏛️",
+  },
+  {
+    type: "adr_referral",
+    name: "ADR Referral Letter",
+    description: "A structured submission to an Alternative Dispute Resolution (ADR) scheme such as CISAS, AviationADR, or Ombudsman Services.",
+    whenToUse: "Use when escalating to an ADR scheme after 8 weeks or receiving a deadlock letter. Distinct from ombudsman referral — used for sector-specific ADR schemes.",
+    requiredFields: [
+      "full complaint chronology",
+      "all steps taken",
+      "deadlock letter or 8-week confirmation",
+      "outcome sought",
+    ],
+    legalReferences: [
+      "Alternative Dispute Resolution for Consumer Disputes (Competent Authorities and Information) Regulations 2015",
+    ],
+    suggestedTone: "Factual and structured for an adjudicator",
+    icon: "⚖️",
+  },
+  {
+    type: "section_75_claim",
+    name: "Section 75 Claim (Credit Card)",
+    description: "A formal claim to your credit card provider under section 75 of the Consumer Credit Act 1974, making them jointly liable for the retailer's breach of contract.",
+    whenToUse: "Use when a retailer has refused a refund for a faulty product and you paid by credit card for an item costing between £100 and £30,000.",
+    requiredFields: [
+      "purchase amount",
+      "retailer name",
+      "description of fault",
+      "evidence of complaint to retailer",
+      "card details",
+    ],
+    legalReferences: [
+      "Consumer Credit Act 1974 section 75",
+      "Consumer Rights Act 2015",
+    ],
+    suggestedTone: "Formal and legal — addressed to a financial institution",
+    icon: "💳",
+  },
+  {
+    type: "letter_before_action",
+    name: "Letter Before Action (Pre-Court)",
+    description: "A formal pre-action letter required before starting small claims court proceedings. Gives the other party 14 days to settle.",
+    whenToUse: "Use as a final step before filing a court claim. Required by the Pre-Action Protocol for Debt Claims. Often prompts settlement without court action.",
+    requiredFields: [
+      "amount claimed",
+      "legal basis for claim",
+      "summary of complaint history",
+      "14-day deadline",
+      "your address for correspondence",
+    ],
+    legalReferences: [
+      "Pre-Action Protocol for Debt Claims",
+      "Consumer Rights Act 2015",
+      "Civil Procedure Rules Practice Directions on Pre-Action Conduct",
+    ],
+    suggestedTone: "Formal and unambiguous — a legal document, not a complaint letter",
+    icon: "⚖️",
   },
   {
     type: "subject_access_request",
