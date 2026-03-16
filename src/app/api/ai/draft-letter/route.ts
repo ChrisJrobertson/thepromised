@@ -60,28 +60,24 @@ export async function POST(request: Request) {
     const profile = profileData as Profile;
     const tier = profile.subscription_tier;
     const tierLimits = {
-      free: { suggestions: 0, letters: 0 },
+      free: { suggestions: 3, letters: 1 },
       basic: { suggestions: 10, letters: 5 },
       pro: { suggestions: 50, letters: 30 },
     } as const;
     const limits = tierLimits[tier] ?? tierLimits.free;
     const limit = limits.letters;
 
-    if (limit === 0) {
-      return NextResponse.json(
-        {
-          error: "upgrade_required",
-          message: "AI letter drafting requires a Basic or Pro plan.",
-          requiredTier: "basic",
-        },
-        { status: 403 }
-      );
-    }
-
     if (profile.ai_letters_used >= limit) {
+      const isFree = tier === "free";
       return NextResponse.json(
         {
-          error: "Monthly AI credit limit reached. Upgrade your plan for more.",
+          error: "credits_exhausted",
+          message: isFree
+            ? "You've used your free AI letter this month. Upgrade or purchase a complaint pack for more."
+            : "Monthly AI letter limit reached. Upgrade your plan for more.",
+          requiredTier: isFree ? "basic" : "pro",
+          creditsUsed: profile.ai_letters_used,
+          creditsLimit: limit,
         },
         { status: 403 }
       );

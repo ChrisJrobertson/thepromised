@@ -71,27 +71,23 @@ export async function POST(request: Request) {
     const profile = profileData as Profile;
     const tier = profile.subscription_tier;
     const tierLimits = {
-      free: { suggestions: 0, letters: 0 },
+      free: { suggestions: 3, letters: 1 },
       basic: { suggestions: 10, letters: 5 },
       pro: { suggestions: 50, letters: 30 },
     } as const;
     const limits = tierLimits[tier] ?? tierLimits.free;
 
-    if (limits.suggestions === 0) {
-      return NextResponse.json(
-        {
-          error: "upgrade_required",
-          message: "AI case analysis is not available on the free plan. Upgrade to Basic or Pro.",
-          requiredTier: "basic",
-        },
-        { status: 403 }
-      );
-    }
-
     if (profile.ai_suggestions_used >= limits.suggestions) {
+      const isFree = tier === "free";
       return NextResponse.json(
         {
-          error: "Monthly AI credit limit reached. Upgrade your plan for more.",
+          error: "credits_exhausted",
+          message: isFree
+            ? `You've used your ${limits.suggestions} free AI suggestions this month. Upgrade for unlimited suggestions, or wait until next month.`
+            : "Monthly AI credit limit reached. Upgrade your plan for more.",
+          requiredTier: isFree ? "basic" : "pro",
+          creditsUsed: profile.ai_suggestions_used,
+          creditsLimit: limits.suggestions,
         },
         { status: 403 }
       );

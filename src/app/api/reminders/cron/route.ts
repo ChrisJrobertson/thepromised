@@ -29,7 +29,8 @@ export async function GET(request: Request) {
     b2b_sla_alerts_sent: 0,
   };
 
-  // Reset AI credits monthly
+  // Reset AI credits monthly (also handles new users with null ai_credits_reset_at)
+  const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString();
   await supabase
     .from("profiles")
     .update({
@@ -38,7 +39,7 @@ export async function GET(request: Request) {
       ai_credits_used: 0,
       ai_credits_reset_at: now.toISOString(),
     })
-    .lt("ai_credits_reset_at", new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString());
+    .or(`ai_credits_reset_at.is.null,ai_credits_reset_at.lt.${thirtyDaysAgo}`);
 
   // Revert temporary pack Pro access after 7 days
   const nowIso = now.toISOString();
