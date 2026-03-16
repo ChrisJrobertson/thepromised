@@ -15,6 +15,8 @@ import { CaseTimeline } from "@/components/cases/CaseTimeline";
 import { EscalationGuide } from "@/components/cases/EscalationGuide";
 import { EvidenceGallery } from "@/components/cases/EvidenceGallery";
 import { ForwardReplyPanel } from "@/components/cases/ForwardReplyPanel";
+import { JourneyStartBanner } from "@/components/cases/JourneyStartBanner";
+import { JourneyTracker } from "@/components/cases/JourneyTracker";
 import { OutcomeSummaryCard } from "@/components/cases/OutcomeSummaryCard";
 import { ResponseTimer } from "@/components/cases/ResponseTimer";
 import { ShareCaseButton } from "@/components/cases/ShareCaseButton";
@@ -25,6 +27,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { formatUkDate } from "@/lib/date";
 import { COMPLAINT_PACKS_BY_ID } from "@/lib/packs/config";
 import { createClient } from "@/lib/supabase/server";
+import { getJourneyForCase, getJourneyTemplatesForCategory } from "@/lib/services/journeyService";
 import type { Profile } from "@/types/database";
 import type {
   Case,
@@ -119,6 +122,8 @@ export default async function CasePage({
     { data: letters },
     { data: reminders },
     { data: escalationRules },
+    caseJourney,
+    availableJourneyTemplates,
   ] = await Promise.all([
     supabase
       .from("interactions")
@@ -152,6 +157,8 @@ export default async function CasePage({
       .select("*")
       .eq("category", theCase.category)
       .order("stage_order", { ascending: true }),
+    getJourneyForCase(id),
+    getJourneyTemplatesForCategory(theCase.category),
   ]);
 
   const orgName =
@@ -542,6 +549,22 @@ export default async function CasePage({
                 ))}
               </CardContent>
             </Card>
+          )}
+
+          {/* Guided journey tracker or start banner */}
+          {caseJourney && !caseJourney.dismissed && (
+            <JourneyTracker
+              caseId={id}
+              companyName={orgName}
+              journey={caseJourney}
+            />
+          )}
+
+          {!caseJourney && availableJourneyTemplates.length > 0 && availableJourneyTemplates[0] && (
+            <JourneyStartBanner
+              caseId={id}
+              template={availableJourneyTemplates[0]}
+            />
           )}
 
           {/* Outcome summary */}
