@@ -23,6 +23,7 @@ import {
 import Link from "next/link";
 
 import { DashboardQuickActions } from "@/components/dashboard/DashboardQuickActions";
+import { JourneyProgressWidget } from "@/components/dashboard/JourneyProgressWidget";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -451,6 +452,8 @@ export default async function DashboardPage() {
           </CardContent>
         </Card>
       </div>
+
+      <JourneyProgressWidget />
 
       <Card>
         <CardHeader>

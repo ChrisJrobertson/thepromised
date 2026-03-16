@@ -107,6 +107,47 @@ export type Database = {
           updated_at?: string | null;
         };
       };
+      case_journeys: {
+        Row: {
+          id: string;
+          case_id: string;
+          user_id: string;
+          journey_template_id: string;
+          current_step_id: string;
+          status: "in_progress" | "completed" | "abandoned";
+          step_history: Json;
+          started_at: string | null;
+          completed_at: string | null;
+          created_at: string | null;
+          updated_at: string | null;
+        };
+        Insert: {
+          id?: string;
+          case_id: string;
+          user_id: string;
+          journey_template_id: string;
+          current_step_id: string;
+          status?: "in_progress" | "completed" | "abandoned";
+          step_history?: Json;
+          started_at?: string | null;
+          completed_at?: string | null;
+          created_at?: string | null;
+          updated_at?: string | null;
+        };
+        Update: {
+          id?: string;
+          case_id?: string;
+          user_id?: string;
+          journey_template_id?: string;
+          current_step_id?: string;
+          status?: "in_progress" | "completed" | "abandoned";
+          step_history?: Json;
+          started_at?: string | null;
+          completed_at?: string | null;
+          created_at?: string | null;
+          updated_at?: string | null;
+        };
+      };
       business_enquiries: {
         Row: {
           id: string;
@@ -1154,3 +1195,9 @@ export type B2BOutreachEmailInsert =
   Database["public"]["Tables"]["b2b_outreach_emails"]["Insert"];
 export type B2BOutreachEmailUpdate =
   Database["public"]["Tables"]["b2b_outreach_emails"]["Update"];
+export type CaseJourneyRow =
+  Database["public"]["Tables"]["case_journeys"]["Row"];
+export type CaseJourneyInsert =
+  Database["public"]["Tables"]["case_journeys"]["Insert"];
+export type CaseJourneyUpdate =
+  Database["public"]["Tables"]["case_journeys"]["Update"];

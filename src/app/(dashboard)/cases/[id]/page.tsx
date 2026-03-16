@@ -36,6 +36,8 @@ import type {
 } from "@/types/database";
 
 import { CaseActions } from "./CaseActions";
+import { JourneyWizard } from "@/components/journeys/JourneyWizard";
+import { getAvailableJourneyId } from "@/lib/journeys/service";
 
 export async function generateMetadata({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
@@ -198,9 +200,27 @@ export default async function CasePage({
       {/* Top section */}
       <div className="space-y-4">
         {sp.created && (
-          <div className="flex items-center gap-2 rounded-md border border-green-200 bg-green-50 px-4 py-3 text-sm text-green-800">
-            <AlertCircle className="h-4 w-4 shrink-0" />
-            <span>Case created successfully. Start logging your interactions below.</span>
+          <div className="space-y-3">
+            <div className="flex items-center gap-2 rounded-md border border-green-200 bg-green-50 px-4 py-3 text-sm text-green-800">
+              <AlertCircle className="h-4 w-4 shrink-0" />
+              <span>Case created successfully. Start logging your interactions below.</span>
+            </div>
+            {getAvailableJourneyId(theCase.category) && (
+              <div className="flex flex-col gap-2 rounded-md border border-primary/30 bg-primary/5 px-4 py-3 text-sm sm:flex-row sm:items-center sm:justify-between">
+                <div>
+                  <p className="font-medium text-primary">Guided journey available for this complaint type</p>
+                  <p className="mt-0.5 text-xs text-muted-foreground">
+                    Follow a step-by-step guide from initial complaint through to ombudsman escalation if needed.
+                  </p>
+                </div>
+                <a
+                  className="inline-flex shrink-0 items-center gap-1.5 rounded-md bg-primary px-3 py-1.5 text-xs font-semibold text-white hover:opacity-90"
+                  href={`/cases/${id}?tab=journey`}
+                >
+                  Start Guided Journey →
+                </a>
+              </div>
+            )}
           </div>
         )}
 
@@ -380,6 +400,12 @@ export default async function CasePage({
               <Edit className="mr-1.5 h-4 w-4" />
               Letters
             </TabsTrigger>
+            {getAvailableJourneyId(theCase.category) && (
+              <TabsTrigger value="journey">
+                <AlertCircle className="mr-1.5 h-4 w-4" />
+                Journey
+              </TabsTrigger>
+            )}
             <TabsTrigger value="escalation">
               <AlertCircle className="mr-1.5 h-4 w-4" />
               Escalation
@@ -431,6 +457,16 @@ export default async function CasePage({
             </div>
             <LettersList caseId={id} letters={(letters ?? []) as Letter[]} />
           </TabsContent>
+
+          {getAvailableJourneyId(theCase.category) && (
+            <TabsContent className="mt-4" value="journey">
+              <JourneyWizard
+                caseId={id}
+                firstContactDate={theCase.first_contact_date}
+                orgName={orgName}
+              />
+            </TabsContent>
+          )}
 
           <TabsContent className="mt-4" value="escalation">
             <EscalationGuide
