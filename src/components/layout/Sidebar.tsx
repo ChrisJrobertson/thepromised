@@ -12,6 +12,7 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 
+import { AdminViewToggle } from "@/components/layout/AdminViewToggle";
 import { SubscriptionBadge } from "@/components/layout/SubscriptionBadge";
 import { UserMenu } from "@/components/layout/UserMenu";
 import { cn } from "@/lib/utils";
@@ -38,10 +39,6 @@ const NAV_ITEMS = [
 ];
 
 export function Sidebar({ pathname, userName, userEmail, tier, isAdmin = false }: SidebarProps) {
-  const items = isAdmin
-    ? [...NAV_ITEMS, { href: "/admin", label: "Admin", icon: Shield }]
-    : NAV_ITEMS;
-
   return (
     <aside className="hidden w-72 shrink-0 flex-col bg-primary text-white md:flex">
       <div className="border-b border-white/15 p-5">
@@ -51,7 +48,7 @@ export function Sidebar({ pathname, userName, userEmail, tier, isAdmin = false }
         </Link>
       </div>
       <nav className="flex-1 space-y-1 p-3">
-        {items.map((item) => {
+        {NAV_ITEMS.map((item) => {
           const Icon = item.icon;
           const isActive = pathname === item.href || pathname.startsWith(`${item.href}/`);
 
@@ -71,6 +68,8 @@ export function Sidebar({ pathname, userName, userEmail, tier, isAdmin = false }
         })}
       </nav>
       <div className="space-y-3 border-t border-white/15 p-4">
+        {/* Admin view toggle — only for admin users */}
+        {isAdmin && <AdminViewToggle />}
         <SubscriptionBadge tier={tier} />
         <UserMenu email={userEmail} name={userName} />
       </div>
