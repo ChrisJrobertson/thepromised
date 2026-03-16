@@ -10,7 +10,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { createClient } from "@/lib/supabase/server";
 import type { Letter } from "@/types/database";
 
-export const metadata = { title: "Letters — TheyPromised" };
+export const metadata = { title: "Letters" };
 
 const STATUS_COLOURS: Record<string, string> = {
   draft: "border-muted bg-muted/50 text-muted-foreground",

@@ -8,7 +8,7 @@ import type { Evidence, Interaction } from "@/types/database";
 
 import { PrintButton } from "./PrintButton";
 
-export const metadata = { title: "Timeline — TheyPromised" };
+export const metadata = { title: "Timeline" };
 
 export default async function TimelinePage({
   params,

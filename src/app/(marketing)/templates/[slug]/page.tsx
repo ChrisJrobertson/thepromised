@@ -15,8 +15,20 @@ export async function generateMetadata({ params }: { params: Params }): Promise<
   const template = getComplaintTemplateBySlug(slug);
   if (!template) return {};
   return {
-    title: `${template.title} — Free Complaint Template | TheyPromised`,
-    description: `Start your ${template.title} complaint in 2 minutes. Includes relevant UK legislation, tips, and a guided escalation path.`,
+    title: `${template.title} — Complaint Template`,
+    description: `Use this template to start your ${template.title.toLowerCase()} complaint. Pre-filled escalation path, AI-drafted letters, and step-by-step guidance.`,
+    openGraph: {
+      title: `${template.title} Complaint Template`,
+      description: `Start your ${template.title.toLowerCase()} complaint with a pre-filled template.`,
+      url: `https://www.theypromised.app/templates/${slug}`,
+      siteName: "TheyPromised",
+      type: "website",
+    },
+    twitter: {
+      card: "summary" as const,
+      title: `${template.title} Complaint Template`,
+      description: `Start your ${template.title.toLowerCase()} complaint with a pre-filled template.`,
+    },
   };
 }
 

@@ -5,7 +5,7 @@ import type { Profile } from "@/types/database";
 
 import { ProfileForm } from "./ProfileForm";
 
-export const metadata = { title: "Profile Settings — TheyPromised" };
+export const metadata = { title: "Profile Settings" };
 
 export default async function ProfilePage() {
   const supabase = await createClient();

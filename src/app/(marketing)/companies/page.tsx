@@ -1,9 +1,24 @@
 import { CompanyScorecardIndex } from "@/components/marketing/CompanyScorecardIndex";
 import { getPublicScorecardIndex } from "@/lib/analytics/scorecards";
 
-export const metadata = {
-  title: "UK Company Complaint Scorecards",
-  description: "See how companies handle complaints, based on real consumer data.",
+import type { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "Company Complaint Scorecards",
+  description:
+    "See how UK companies handle complaints. Complaint volumes, resolution rates, promise-keeping scores, and escalation rates based on real consumer data.",
+  openGraph: {
+    title: "Company Complaint Scorecards",
+    description: "See how UK companies handle complaints based on real consumer data.",
+    url: "https://www.theypromised.app/companies",
+    siteName: "TheyPromised",
+    type: "website",
+  },
+  twitter: {
+    card: "summary",
+    title: "Company Complaint Scorecards",
+    description: "See how UK companies handle complaints based on real consumer data.",
+  },
 };
 
 export default async function CompanyScorecardsPage() {

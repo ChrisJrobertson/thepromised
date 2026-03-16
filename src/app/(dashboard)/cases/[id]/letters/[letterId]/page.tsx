@@ -6,6 +6,8 @@ import { SendLetterButton } from "@/components/letters/SendLetterButton";
 import { createClient } from "@/lib/supabase/server";
 import type { Letter } from "@/types/database";
 
+export const metadata = { title: "Letter Detail" };
+
 type CaseHeading = { id: string; title: string; organisation_id: string | null };
 type LetterDetail = Pick<
   Letter,

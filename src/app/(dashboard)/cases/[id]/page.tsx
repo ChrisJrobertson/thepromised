@@ -45,7 +45,7 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
     .select("title")
     .eq("id", id)
     .maybeSingle();
-  return { title: data?.title ? `${data.title} — TheyPromised` : "Case — TheyPromised" };
+  return { title: data?.title ?? "Case" };
 }
 
 const STATUS_COLOURS: Record<string, string> = {

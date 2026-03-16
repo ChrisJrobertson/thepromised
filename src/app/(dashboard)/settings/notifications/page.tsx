@@ -6,7 +6,7 @@ import type { Profile } from "@/types/database";
 
 import { NotificationsForm } from "./NotificationsForm";
 
-export const metadata = { title: "Notification Settings — TheyPromised" };
+export const metadata = { title: "Notification Settings" };
 
 export default async function NotificationSettingsPage() {
   const supabase = await createClient();

@@ -7,7 +7,7 @@ import type { Profile } from "@/types/database";
 
 import { BillingClient } from "./BillingClient";
 
-export const metadata = { title: "Billing — TheyPromised" };
+export const metadata = { title: "Billing" };
 
 type Invoice = {
   id: string;

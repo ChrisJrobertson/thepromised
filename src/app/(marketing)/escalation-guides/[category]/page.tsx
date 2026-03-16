@@ -55,6 +55,18 @@ export async function generateMetadata({
   return {
     title: `How to Complain About Your ${title} — UK Guide 2026`,
     description: `${description}. Step-by-step escalation guide with ombudsman details, deadlines, and template letters.`,
+    openGraph: {
+      title: `${title} Complaint Escalation Guide`,
+      description: `How to escalate ${title.toLowerCase()} complaints in the UK.`,
+      url: `https://www.theypromised.app/escalation-guides/${category}`,
+      siteName: "TheyPromised",
+      type: "website",
+    },
+    twitter: {
+      card: "summary" as const,
+      title: `${title} Complaint Escalation Guide`,
+      description: `How to escalate ${title.toLowerCase()} complaints in the UK.`,
+    },
   };
 }
 

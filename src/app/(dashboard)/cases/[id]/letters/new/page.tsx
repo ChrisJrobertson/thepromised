@@ -8,7 +8,7 @@ import type { Profile } from "@/types/database";
 
 import { LetterWizard } from "./LetterWizard";
 
-export const metadata = { title: "New Letter — TheyPromised" };
+export const metadata = { title: "Draft Letter" };
 
 export default async function NewLetterPage({
   params,

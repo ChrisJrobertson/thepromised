@@ -31,11 +31,11 @@ const APP_URL = process.env.NEXT_PUBLIC_APP_URL ?? "https://www.theypromised.app
 export const metadata: Metadata = {
   metadataBase: new URL(APP_URL),
   title: {
-    default: "TheyPromised — They Promised. You Proved It.",
-    template: "%s | TheyPromised — Track Your Complaints",
+    default: "TheyPromised — Track Complaints. Build Evidence. Get Results.",
+    template: "%s | TheyPromised",
   },
   description:
-    "The UK's complaint tracking tool. Log every interaction, get escalation guidance, and export professional case files for ombudsmen and courts.",
+    "Free UK complaint tracking platform. AI-drafted letters, evidence logging, and step-by-step escalation guides.",
   keywords: [
     "UK complaint tracker",
     "ombudsman complaint",
@@ -54,23 +54,14 @@ export const metadata: Metadata = {
     locale: "en_GB",
     url: APP_URL,
     siteName: "TheyPromised",
-    title: "TheyPromised — They Promised. You Proved It.",
+    title: "TheyPromised — Track Complaints. Build Evidence. Get Results.",
     description:
-      "The UK's complaint tracking tool. Log every interaction, get escalation guidance, and export professional case files for ombudsmen and courts.",
-    images: [
-      {
-        url: "/og-image.png",
-        width: 1200,
-        height: 630,
-        alt: "TheyPromised — Track Your Complaints",
-      },
-    ],
+      "Free UK complaint tracking platform. AI-drafted letters, evidence logging, and step-by-step escalation guides.",
   },
   twitter: {
-    card: "summary_large_image",
-    title: "TheyPromised — They Promised. You Proved It.",
-    description: "The UK's complaint tracking tool for consumers.",
-    images: ["/og-image.png"],
+    card: "summary",
+    title: "TheyPromised — Track Complaints. Build Evidence. Get Results.",
+    description: "Free UK complaint tracking tool with AI-drafted letters and escalation guides.",
   },
   robots: {
     index: true,

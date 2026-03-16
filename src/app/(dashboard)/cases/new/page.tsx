@@ -7,7 +7,7 @@ import { createClient } from "@/lib/supabase/server";
 
 import { CaseWizard } from "./CaseWizard";
 
-export const metadata = { title: "New Case | TheyPromised" };
+export const metadata = { title: "New Case" };
 
 export default async function NewCasePage({
   searchParams,

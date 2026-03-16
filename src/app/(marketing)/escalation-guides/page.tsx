@@ -18,9 +18,23 @@ import type { Metadata } from "next";
 import { ORG_GUIDES } from "@/lib/guides/organisations";
 
 export const metadata: Metadata = {
-  title: "Escalation Guides | TheyPromised",
+  title: "Escalation Guides — How to Complain Effectively",
   description:
-    "Free step-by-step UK complaint escalation guides. Know exactly when and how to escalate to the ombudsman for energy, banking, broadband, housing, NHS, and more.",
+    "Step-by-step escalation guides for every type of UK consumer complaint. Energy, broadband, banking, insurance, housing, retail, transport, and more.",
+  openGraph: {
+    title: "Complaint Escalation Guides",
+    description:
+      "Step-by-step escalation guides for every type of UK consumer complaint.",
+    url: "https://www.theypromised.app/escalation-guides",
+    siteName: "TheyPromised",
+    type: "website",
+  },
+  twitter: {
+    card: "summary",
+    title: "Complaint Escalation Guides",
+    description:
+      "Step-by-step escalation guides for every type of UK consumer complaint.",
+  },
 };
 
 const CATEGORIES = [

@@ -2,7 +2,8 @@ import type { Metadata } from "next";
 
 export const metadata: Metadata = {
   title: "Privacy Policy",
-  description: "TheyPromised privacy policy — how we collect, use, and protect your data under UK GDPR.",
+  description:
+    "How TheyPromised handles your personal data. UK data storage, GDPR compliant, encrypted in transit and at rest. We never share your data with the companies you complain about.",
 };
 
 const LAST_UPDATED = "14 March 2026";

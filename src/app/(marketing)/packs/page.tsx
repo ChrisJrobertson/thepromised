@@ -2,10 +2,26 @@ import { createClient } from "@/lib/supabase/server";
 import { COMPLAINT_PACKS } from "@/lib/packs/config";
 import { PacksCheckoutClient } from "@/components/marketing/PacksCheckoutClient";
 
-export const metadata = {
-  title: "Complaint Packs — Professional Case Building | TheyPromised",
+import type { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "Complaint Packs — One-Off Expert Help",
   description:
-    "One-off complaint support packs from £29. Get AI letters, escalation guidance, and ombudsman-ready exports without a subscription.",
+    "Get professional AI-drafted letters, case analysis, and escalation guidance without a subscription. Starter, Escalation, and Full Case packs from £29.",
+  openGraph: {
+    title: "Complaint Packs",
+    description:
+      "Professional AI-drafted letters and escalation guidance from £29. No subscription needed.",
+    url: "https://www.theypromised.app/packs",
+    siteName: "TheyPromised",
+    type: "website",
+  },
+  twitter: {
+    card: "summary",
+    title: "Complaint Packs",
+    description:
+      "Professional AI-drafted letters and escalation guidance from £29. No subscription needed.",
+  },
 };
 
 type CaseOption = {

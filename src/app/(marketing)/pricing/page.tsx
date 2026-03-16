@@ -2,10 +2,26 @@ import { createClient } from "@/lib/supabase/server";
 
 import { PricingClient } from "./PricingClient";
 
-export const metadata = {
-  title: "Pricing — Plans for Consumers and Business | TheyPromised",
+import type { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "Pricing — Free, Basic & Pro Plans",
   description:
-    "Track complaints free or upgrade for AI letters, exports, and guided escalation. One-off packs from £29. Business complaint intelligence from £500/month.",
+    "Start free with 1 case. Upgrade to Basic (£4.99/mo) or Pro (£9.99/mo) for unlimited cases, AI letters, PDF exports, and email reminders.",
+  openGraph: {
+    title: "TheyPromised Pricing",
+    description:
+      "Start free. Upgrade for AI letters, PDF exports, and unlimited cases from £4.99/mo.",
+    url: "https://www.theypromised.app/pricing",
+    siteName: "TheyPromised",
+    type: "website",
+  },
+  twitter: {
+    card: "summary",
+    title: "TheyPromised Pricing",
+    description:
+      "Start free. Upgrade for AI letters, PDF exports, and unlimited cases from £4.99/mo.",
+  },
 };
 
 const FAQ_SCHEMA = {

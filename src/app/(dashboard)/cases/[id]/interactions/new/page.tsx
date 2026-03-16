@@ -6,7 +6,7 @@ import { buttonVariants } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { createClient } from "@/lib/supabase/server";
 
-export const metadata = { title: "Log Interaction — TheyPromised" };
+export const metadata = { title: "Log Interaction" };
 
 export default async function NewInteractionPage({
   params,

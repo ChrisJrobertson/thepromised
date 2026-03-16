@@ -6,7 +6,7 @@ import type { Reminder } from "@/types/database";
 
 import { RemindersClient } from "./RemindersClient";
 
-export const metadata = { title: "Reminders | TheyPromised" };
+export const metadata = { title: "Reminders" };
 
 type ReminderWithCase = Reminder & {
   cases: { title: string; id: string } | null;

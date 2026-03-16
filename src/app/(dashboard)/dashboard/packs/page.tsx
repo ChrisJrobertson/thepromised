@@ -5,7 +5,7 @@ import { COMPLAINT_PACKS_BY_ID } from "@/lib/packs/config";
 import type { ComplaintPack } from "@/types/database";
 
 export const metadata = {
-  title: "My Packs — TheyPromised",
+  title: "My Packs",
 };
 
 type CaseRef = {

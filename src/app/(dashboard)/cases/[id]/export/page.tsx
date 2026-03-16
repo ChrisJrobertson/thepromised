@@ -8,7 +8,7 @@ import type { Profile } from "@/types/database";
 
 import { ExportClient } from "./ExportClient";
 
-export const metadata = { title: "Export Case — TheyPromised" };
+export const metadata = { title: "Export Case" };
 
 export default async function ExportPage({
   params,

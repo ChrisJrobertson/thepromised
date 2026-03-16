@@ -10,7 +10,7 @@ import type { CaseWithOrganisation } from "@/types/cases";
 
 import { CasesClient } from "./CasesClient";
 
-export const metadata = { title: "My Cases | TheyPromised" };
+export const metadata = { title: "My Cases" };
 
 type SearchParams = Promise<{
   status?: string;
