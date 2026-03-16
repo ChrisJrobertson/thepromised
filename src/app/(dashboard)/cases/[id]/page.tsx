@@ -11,6 +11,7 @@ import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 
 import { AISuggestion } from "@/components/cases/AISuggestion";
+import { UpgradeSuccessToast } from "@/components/ui/UpgradeSuccessToast";
 import { CaseTimeline } from "@/components/cases/CaseTimeline";
 import { EscalationGuide } from "@/components/cases/EscalationGuide";
 import { EvidenceGallery } from "@/components/cases/EvidenceGallery";
@@ -76,7 +77,7 @@ export default async function CasePage({
   searchParams,
 }: {
   params: Promise<{ id: string }>;
-  searchParams: Promise<{ created?: string; tab?: string }>;
+  searchParams: Promise<{ created?: string; tab?: string; upgraded?: string; pack_activated?: string }>;
 }) {
   const { id } = await params;
   const sp = await searchParams;
@@ -199,6 +200,10 @@ export default async function CasePage({
 
   return (
     <div className="space-y-6 pb-16">
+      {/* Upgrade / pack activation confirmation toasts */}
+      {sp.upgraded === "true" && <UpgradeSuccessToast type="subscription" />}
+      {sp.pack_activated === "true" && <UpgradeSuccessToast type="pack" />}
+
       {/* Top section */}
       <div className="space-y-4">
         {sp.created && (

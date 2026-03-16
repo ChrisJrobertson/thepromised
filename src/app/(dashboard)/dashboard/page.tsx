@@ -3,6 +3,8 @@
 import type { Metadata } from "next";
 import type React from "react";
 
+import { UpgradeSuccessToast } from "@/components/ui/UpgradeSuccessToast";
+
 export const metadata: Metadata = { title: "Dashboard | TheyPromised" };
 
 import { differenceInDays, format } from "date-fns";
@@ -28,7 +30,12 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { createClient } from "@/lib/supabase/server";
 
-export default async function DashboardPage() {
+export default async function DashboardPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ upgraded?: string; pack_activated?: string }>;
+}) {
+  const sp = await searchParams;
   const supabase = await createClient();
   const {
     data: { user },
@@ -209,6 +216,10 @@ export default async function DashboardPage() {
 
   return (
     <div className="space-y-6">
+      {/* Upgrade / pack activation confirmation toasts */}
+      {sp.upgraded === "true" && <UpgradeSuccessToast type="subscription" />}
+      {sp.pack_activated === "true" && <UpgradeSuccessToast type="pack" />}
+
       <Card>
         <CardHeader>
           <CardTitle>

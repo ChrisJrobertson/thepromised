@@ -1,3 +1,18 @@
+/**
+ * PART 1 — Pack Checkout Flow Audit (recorded 2026-03-16)
+ *
+ * PACK CHECKOUT PARAMETERS (stripe.checkout.sessions.create):
+ *   mode                      "payment" (one-off)
+ *   customer                  Stripe customer ID; email pre-filled. ✓
+ *   payment_method_types      NOT set → Stripe auto-enables all Dashboard-active methods. ✓
+ *   billing_address_collection "required" → CHANGED to "auto".
+ *   allow_promotion_codes     true ✓
+ *   success_url               Was: /packs/success?session_id=... (always)
+ *                             Now:  if caseId → /cases/<caseId>?pack_activated=true
+ *                                   otherwise → /packs/success?session_id=... (unchanged)
+ *   cancel_url                /packs ✓
+ */
+
 import { NextResponse } from "next/server";
 import { z } from "zod";
 
@@ -54,6 +69,12 @@ export async function POST(request: Request) {
     const appUrl =
       process.env.NEXT_PUBLIC_APP_URL ?? "https://www.theypromised.app";
 
+    // If the user bought a pack for a specific case, send them straight back to
+    // that case so they can immediately use their new Pro access.
+    const successUrl = body.caseId
+      ? `${appUrl}/cases/${body.caseId}?pack_activated=true`
+      : `${appUrl}/packs/success?session_id={CHECKOUT_SESSION_ID}`;
+
     const session = await stripe.checkout.sessions.create({
       mode: "payment",
       customer: customerId,
@@ -70,7 +91,7 @@ export async function POST(request: Request) {
           quantity: 1,
         },
       ],
-      success_url: `${appUrl}/packs/success?session_id={CHECKOUT_SESSION_ID}`,
+      success_url: successUrl,
       cancel_url: `${appUrl}/packs`,
       metadata: {
         userId: user.id,
@@ -79,7 +100,8 @@ export async function POST(request: Request) {
       },
       client_reference_id: user.id,
       allow_promotion_codes: true,
-      billing_address_collection: "required",
+      // "auto" only requests billing address when required for tax/payment method
+      billing_address_collection: "auto",
     });
 
     return NextResponse.json({ url: session.url });

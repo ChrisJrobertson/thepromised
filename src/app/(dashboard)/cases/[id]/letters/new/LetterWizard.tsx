@@ -62,6 +62,28 @@ export function LetterWizard({
   const isLetterExhausted = aiLettersLimit > 0 && localLettersUsed >= aiLettersLimit;
   // Show credit indicator for free and basic users
   const showLetterCreditIndicator = tier !== "pro" && aiLettersLimit > 0;
+  const [isCheckingOut, setIsCheckingOut] = useState(false);
+
+  async function handleUpgradeToBasic() {
+    setIsCheckingOut(true);
+    try {
+      const res = await fetch("/api/stripe/checkout", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ tier: "basic", returnPath: `/cases/${caseId}` }),
+      });
+      const data = await res.json();
+      if (!res.ok || !data.url) {
+        toast.error(data.error ?? "Failed to start checkout. Please try again.");
+        return;
+      }
+      window.location.href = data.url;
+    } catch {
+      toast.error("Network error. Please try again.");
+    } finally {
+      setIsCheckingOut(false);
+    }
+  }
 
   const selectedTemplate = templates.find((t) => t.type === selectedType);
   const stepProgress = {
@@ -568,13 +590,15 @@ export function LetterWizard({
             >
               Browse Packs
             </Link>
-            <Link
-              className="inline-flex items-center justify-center rounded-md bg-primary px-4 py-2 text-sm font-medium text-white hover:opacity-90 transition-opacity"
-              href="/pricing"
-              onClick={() => setShowExhaustedModal(false)}
+            {/* Goes directly to Stripe Checkout — no extra pricing page click needed */}
+            <button
+              className="inline-flex items-center justify-center rounded-md bg-primary px-4 py-2 text-sm font-medium text-white hover:opacity-90 transition-opacity disabled:opacity-50"
+              disabled={isCheckingOut}
+              onClick={handleUpgradeToBasic}
+              type="button"
             >
-              Upgrade Plan
-            </Link>
+              {isCheckingOut ? "Loading…" : "Upgrade to Basic — £4.99/mo"}
+            </button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
