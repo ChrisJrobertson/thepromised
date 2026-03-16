@@ -406,7 +406,7 @@ export async function GET(request: Request) {
     const resend = getResendClient();
     const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? "https://www.theypromised.app";
 
-    const listItems = (rows: Array<Record<string, string | null>>, label: string) =>
+    const listItems = (rows: Array<Record<string, string | null>>) =>
       rows
         .map(
           (row) =>
@@ -425,7 +425,6 @@ export async function GET(request: Request) {
           staleEnquiries.length
             ? `<h3>Uncontacted enquiries >48h (${staleEnquiries.length})</h3><ul>${listItems(
                 staleEnquiries as Array<Record<string, string | null>>,
-                "enquiries",
               )}</ul>`
             : ""
         }
@@ -433,7 +432,6 @@ export async function GET(request: Request) {
           staleContacted.length
             ? `<h3>Contacted but no pilot progress >7d (${staleContacted.length})</h3><ul>${listItems(
                 staleContacted as Array<Record<string, string | null>>,
-                "contacted",
               )}</ul>`
             : ""
         }
@@ -441,7 +439,6 @@ export async function GET(request: Request) {
           stalePilots.length
             ? `<h3>Pilots started but no review >30d (${stalePilots.length})</h3><ul>${listItems(
                 stalePilots as Array<Record<string, string | null>>,
-                "pilots",
               )}</ul>`
             : ""
         }

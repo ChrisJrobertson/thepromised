@@ -171,10 +171,10 @@ export default async function CasePage({
   const pendingPromises = typedInteractions.filter(
     (i) => i.promises_made && i.promise_fulfilled === null
   );
-  const overdueResponse =
-    Boolean(theCase.response_deadline) &&
-    !theCase.response_received &&
-    new Date(theCase.response_deadline).getTime() < Date.now();
+  const overdueResponse = theCase.response_deadline
+    ? !theCase.response_received &&
+      new Date(theCase.response_deadline).getTime() < Date.now()
+    : false;
 
   const recommendedPackId = (() => {
     if (theCase.escalation_stage === "ombudsman" || typedInteractions.length >= 6) {
