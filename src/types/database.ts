@@ -974,6 +974,82 @@ export type Database = {
           created_at?: string | null;
         };
       };
+      journey_templates: {
+        Row: {
+          id: string;
+          name: string;
+          description: string;
+          category: string;
+          steps: Json;
+          estimated_duration_days: number | null;
+          created_at: string | null;
+          updated_at: string | null;
+        };
+        Insert: {
+          id: string;
+          name: string;
+          description: string;
+          category: string;
+          steps: Json;
+          estimated_duration_days?: number | null;
+          created_at?: string | null;
+          updated_at?: string | null;
+        };
+        Update: {
+          id?: string;
+          name?: string;
+          description?: string;
+          category?: string;
+          steps?: Json;
+          estimated_duration_days?: number | null;
+          created_at?: string | null;
+          updated_at?: string | null;
+        };
+      };
+      case_journeys: {
+        Row: {
+          id: string;
+          case_id: string;
+          journey_template_id: string;
+          current_step_id: string;
+          step_statuses: Json;
+          step_completed_at: Json;
+          waiting_until: string | null;
+          started_at: string | null;
+          completed_at: string | null;
+          dismissed: boolean | null;
+          created_at: string | null;
+          updated_at: string | null;
+        };
+        Insert: {
+          id?: string;
+          case_id: string;
+          journey_template_id: string;
+          current_step_id: string;
+          step_statuses?: Json;
+          step_completed_at?: Json;
+          waiting_until?: string | null;
+          started_at?: string | null;
+          completed_at?: string | null;
+          dismissed?: boolean | null;
+          created_at?: string | null;
+          updated_at?: string | null;
+        };
+        Update: {
+          id?: string;
+          case_id?: string;
+          journey_template_id?: string;
+          current_step_id?: string;
+          step_statuses?: Json;
+          step_completed_at?: Json;
+          waiting_until?: string | null;
+          started_at?: string | null;
+          completed_at?: string | null;
+          dismissed?: boolean | null;
+          created_at?: string | null;
+          updated_at?: string | null;
+        };
+      };
     };
     Views: {
       outcome_stats_by_company: {
