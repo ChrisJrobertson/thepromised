@@ -34,6 +34,10 @@ type BillingClientProps = {
   subscriptionStatus: string;
   aiCreditsUsed: number;
   aiCreditsLimit: number;
+  aiSuggestionsUsed: number;
+  aiSuggestionsLimit: number;
+  aiLettersUsed: number;
+  aiLettersLimit: number;
   invoices: Invoice[];
   nextBillingDate: string | null;
   hasStripeCustomer: boolean;
@@ -64,6 +68,10 @@ export function BillingClient({
   subscriptionStatus,
   aiCreditsUsed,
   aiCreditsLimit,
+  aiSuggestionsUsed,
+  aiSuggestionsLimit,
+  aiLettersUsed,
+  aiLettersLimit,
   invoices,
   nextBillingDate,
   hasStripeCustomer,
@@ -162,8 +170,8 @@ export function BillingClient({
         />
       )}
 
-      {/* AI credits usage */}
-      {tier !== "free" && aiCreditsLimit > 0 && (
+      {/* AI credits usage — shown for all tiers */}
+      {(aiSuggestionsLimit > 0 || aiLettersLimit > 0) && (
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-base">
@@ -171,28 +179,72 @@ export function BillingClient({
               AI Credits this month
             </CardTitle>
           </CardHeader>
-          <CardContent className="space-y-3">
-            <div className="flex items-center justify-between text-sm">
-              <span className="text-muted-foreground">Used</span>
-              <span className="font-medium">
-                {aiCreditsUsed} / {aiCreditsLimit}
-              </span>
-            </div>
-            <Progress
-              className="h-2"
-              value={(aiCreditsUsed / aiCreditsLimit) * 100}
-            />
-            <p className="text-xs text-muted-foreground">
-              Credits include AI case analyses and letter drafts. Reset on your
-              monthly billing date.
-            </p>
-            {tier === "basic" && (
-              <Link
-                className="text-xs text-primary hover:underline"
-                href="/pricing"
-              >
-                Upgrade to Pro for 50 analyses + 30 letters/month →
-              </Link>
+          <CardContent className="space-y-4">
+            {tier === "free" ? (
+              /* Free tier: show per-feature breakdown */
+              <>
+                <div className="space-y-3">
+                  <div>
+                    <div className="flex items-center justify-between text-sm mb-1">
+                      <span className="text-muted-foreground">Case analyses</span>
+                      <span className="font-medium tabular-nums">
+                        {aiSuggestionsUsed} / {aiSuggestionsLimit}
+                      </span>
+                    </div>
+                    <Progress
+                      className="h-1.5"
+                      value={(aiSuggestionsUsed / aiSuggestionsLimit) * 100}
+                    />
+                  </div>
+                  <div>
+                    <div className="flex items-center justify-between text-sm mb-1">
+                      <span className="text-muted-foreground">AI letters</span>
+                      <span className="font-medium tabular-nums">
+                        {aiLettersUsed} / {aiLettersLimit}
+                      </span>
+                    </div>
+                    <Progress
+                      className="h-1.5"
+                      value={(aiLettersUsed / aiLettersLimit) * 100}
+                    />
+                  </div>
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  Your free credits reset monthly. Upgrade for more AI power.
+                </p>
+                <Link
+                  className="text-xs font-medium text-primary hover:underline"
+                  href="/pricing"
+                >
+                  Upgrade to Basic for 10 analyses + 5 letters/month →
+                </Link>
+              </>
+            ) : (
+              /* Basic / Pro: combined view */
+              <>
+                <div className="flex items-center justify-between text-sm">
+                  <span className="text-muted-foreground">Used</span>
+                  <span className="font-medium">
+                    {aiCreditsUsed} / {aiCreditsLimit}
+                  </span>
+                </div>
+                <Progress
+                  className="h-2"
+                  value={(aiCreditsUsed / aiCreditsLimit) * 100}
+                />
+                <p className="text-xs text-muted-foreground">
+                  Credits include AI case analyses and letter drafts. Reset on your
+                  monthly billing date.
+                </p>
+                {tier === "basic" && (
+                  <Link
+                    className="text-xs text-primary hover:underline"
+                    href="/pricing"
+                  >
+                    Upgrade to Pro for 50 analyses + 30 letters/month →
+                  </Link>
+                )}
+              </>
             )}
           </CardContent>
         </Card>

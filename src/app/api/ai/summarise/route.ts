@@ -2,6 +2,8 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 
 import { quickSummary } from "@/lib/ai/haiku";
+import { AI_LIMITS } from "@/lib/ai/constants";
+import { ensureCreditsResetIfDue } from "@/lib/ai/credits";
 import { enforcePackScopedCaseAccess } from "@/lib/packs/access";
 import { checkRateLimit } from "@/lib/rate-limit";
 import { createClient } from "@/lib/supabase/server";
@@ -50,13 +52,12 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Profile not found" }, { status: 404 });
     }
     const profile = profileData as Profile;
-    const tierLimits = {
-      free: { suggestions: 0, letters: 0 },
-      basic: { suggestions: 10, letters: 5 },
-      pro: { suggestions: 50, letters: 30 },
-    } as const;
-    const limits = tierLimits[profile.subscription_tier] ?? tierLimits.free;
-    if (limits.suggestions === 0 || profile.ai_suggestions_used >= limits.suggestions) {
+    const limits = AI_LIMITS[profile.subscription_tier] ?? AI_LIMITS.free;
+
+    // Lazy monthly reset for users without Stripe subscriptions (e.g. free tier)
+    const { ai_suggestions_used } = await ensureCreditsResetIfDue(profile, user.id, supabase);
+
+    if (ai_suggestions_used >= limits.summaries) {
       return NextResponse.json(
         { error: "Monthly AI credit limit reached. Upgrade your plan for more." },
         { status: 403 }
@@ -115,7 +116,7 @@ export async function POST(request: Request) {
     await supabase
       .from("profiles")
       .update({
-        ai_suggestions_used: profile.ai_suggestions_used + 1,
+        ai_suggestions_used: ai_suggestions_used + 1,
         ai_credits_used: profile.ai_credits_used + 1,
       })
       .eq("id", user.id);

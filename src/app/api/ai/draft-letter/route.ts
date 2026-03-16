@@ -2,6 +2,8 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 
 import { CLAUDE_MODELS, anthropic } from "@/lib/ai/client";
+import { AI_LIMITS } from "@/lib/ai/constants";
+import { ensureCreditsResetIfDue } from "@/lib/ai/credits";
 import { getJourneyLetterPrompt } from "@/lib/ai/journey-prompts";
 import { LETTER_SYSTEM, buildLetterPrompt } from "@/lib/ai/prompts";
 import { getTemplate } from "@/lib/ai/letter-templates";
@@ -61,29 +63,18 @@ export async function POST(request: Request) {
     }
     const profile = profileData as Profile;
     const tier = profile.subscription_tier;
-    const tierLimits = {
-      free: { suggestions: 0, letters: 0 },
-      basic: { suggestions: 10, letters: 5 },
-      pro: { suggestions: 50, letters: 30 },
-    } as const;
-    const limits = tierLimits[tier] ?? tierLimits.free;
-    const limit = limits.letters;
+    const limits = AI_LIMITS[tier] ?? AI_LIMITS.free;
 
-    if (limit === 0) {
+    // Lazy monthly reset for users without Stripe subscriptions (e.g. free tier)
+    const { ai_letters_used } = await ensureCreditsResetIfDue(profile, user.id, supabase);
+
+    if (ai_letters_used >= limits.letters) {
       return NextResponse.json(
         {
-          error: "upgrade_required",
-          message: "AI letter drafting requires a Basic or Pro plan.",
-          requiredTier: "basic",
-        },
-        { status: 403 }
-      );
-    }
-
-    if (profile.ai_letters_used >= limit) {
-      return NextResponse.json(
-        {
-          error: "Monthly AI credit limit reached. Upgrade your plan for more.",
+          error: "credits_exhausted",
+          message: `You've used all ${limits.letters} AI ${tier === "free" ? "free " : ""}letter${limits.letters === 1 ? "" : "s"} this month.`,
+          creditsUsed: ai_letters_used,
+          creditsLimit: limits.letters,
         },
         { status: 403 }
       );
@@ -235,11 +226,13 @@ export async function POST(request: Request) {
       );
     }
 
+    const newLettersUsed = ai_letters_used + 1;
+
     // Increment AI counters after successful model call
     await supabase
       .from("profiles")
       .update({
-        ai_letters_used: profile.ai_letters_used + 1,
+        ai_letters_used: newLettersUsed,
         ai_credits_used: profile.ai_credits_used + 1,
       })
       .eq("id", user.id);
@@ -250,6 +243,8 @@ export async function POST(request: Request) {
       letterId: letter.id,
       subject,
       body: letterBody,
+      creditsUsed: newLettersUsed,
+      creditsLimit: limits.letters,
     });
   } catch (error) {
     if (error instanceof z.ZodError) {

@@ -103,6 +103,10 @@ export default async function BillingPage({
       <BillingClient
         aiCreditsUsed={profile.ai_credits_used}
         aiCreditsLimit={aiLimit}
+        aiSuggestionsUsed={profile.ai_suggestions_used}
+        aiSuggestionsLimit={AI_LIMITS[tier].suggestions}
+        aiLettersUsed={profile.ai_letters_used}
+        aiLettersLimit={AI_LIMITS[tier].letters}
         invoices={invoices}
         nextBillingDate={nextBillingDate}
         hasStripeCustomer={!!profile.stripe_customer_id}

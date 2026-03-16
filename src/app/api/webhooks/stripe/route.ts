@@ -134,6 +134,8 @@ export async function POST(request: Request) {
             subscription_status: "active",
             subscription_id: subscription.id,
             stripe_customer_id: session.customer as string,
+            ai_suggestions_used: 0,
+            ai_letters_used: 0,
             ai_credits_used: 0,
             ai_credits_reset_at: addMonths(now, 1).toISOString(),
             pack_pro_expires_at: null,
@@ -312,6 +314,8 @@ export async function POST(request: Request) {
             subscription_status: "active",
             ...(shouldReset
               ? {
+                  ai_suggestions_used: 0,
+                  ai_letters_used: 0,
                   ai_credits_used: 0,
                   ai_credits_reset_at: addMonths(now, 1).toISOString(),
                 }

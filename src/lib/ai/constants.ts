@@ -1,8 +1,4 @@
-export type AiTier = "free" | "basic" | "pro";
-export type AiFeature = "suggestions" | "letters" | "summaries";
-
-export const AI_LIMITS: Record<AiTier, Record<AiFeature, number>> = {
-  free: { suggestions: 0, letters: 0, summaries: 0 },
-  basic: { suggestions: 10, letters: 5, summaries: 100 },
-  pro: { suggestions: 50, letters: 30, summaries: 500 },
-} as const;
+// Re-exports from the consolidated tier config.
+// Do not add new limit definitions here — update src/lib/config/tiers.ts instead.
+export { TIER_AI_LIMITS as AI_LIMITS } from "@/lib/config/tiers";
+export type { SubscriptionTier as AiTier, AiFeature } from "@/lib/config/tiers";
