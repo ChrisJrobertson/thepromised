@@ -21,7 +21,12 @@ export type Database = {
           postcode: string | null;
           stripe_customer_id: string | null;
           subscription_tier: "free" | "basic" | "pro";
-          subscription_status: "active" | "cancelled" | "past_due" | "trialing";
+          subscription_status:
+            | "active"
+            | "cancelled"
+            | "past_due"
+            | "trialing"
+            | "pack_temporary";
           subscription_id: string | null;
           cases_count: number;
           ai_suggestions_used: number;
@@ -44,7 +49,12 @@ export type Database = {
           postcode?: string | null;
           stripe_customer_id?: string | null;
           subscription_tier?: "free" | "basic" | "pro";
-          subscription_status?: "active" | "cancelled" | "past_due" | "trialing";
+          subscription_status?:
+            | "active"
+            | "cancelled"
+            | "past_due"
+            | "trialing"
+            | "pack_temporary";
           subscription_id?: string | null;
           cases_count?: number;
           ai_suggestions_used?: number;
@@ -67,7 +77,12 @@ export type Database = {
           postcode?: string | null;
           stripe_customer_id?: string | null;
           subscription_tier?: "free" | "basic" | "pro";
-          subscription_status?: "active" | "cancelled" | "past_due" | "trialing";
+          subscription_status?:
+            | "active"
+            | "cancelled"
+            | "past_due"
+            | "trialing"
+            | "pack_temporary";
           subscription_id?: string | null;
           cases_count?: number;
           ai_suggestions_used?: number;
@@ -107,6 +122,109 @@ export type Database = {
           role?: string | null;
           message?: string | null;
           created_at?: string | null;
+        };
+      };
+      complaint_packs: {
+        Row: {
+          id: string;
+          user_id: string;
+          case_id: string | null;
+          pack_type: string;
+          status: string;
+          stripe_payment_id: string | null;
+          amount_paid: number;
+          currency: string;
+          purchased_at: string | null;
+          completed_at: string | null;
+          notes: string | null;
+          created_at: string | null;
+          updated_at: string | null;
+        };
+        Insert: {
+          id?: string;
+          user_id: string;
+          case_id?: string | null;
+          pack_type: string;
+          status?: string;
+          stripe_payment_id?: string | null;
+          amount_paid: number;
+          currency?: string;
+          purchased_at?: string | null;
+          completed_at?: string | null;
+          notes?: string | null;
+          created_at?: string | null;
+          updated_at?: string | null;
+        };
+        Update: {
+          id?: string;
+          user_id?: string;
+          case_id?: string | null;
+          pack_type?: string;
+          status?: string;
+          stripe_payment_id?: string | null;
+          amount_paid?: number;
+          currency?: string;
+          purchased_at?: string | null;
+          completed_at?: string | null;
+          notes?: string | null;
+          created_at?: string | null;
+          updated_at?: string | null;
+        };
+      };
+      b2b_pilots: {
+        Row: {
+          id: string;
+          company_name: string;
+          contact_name: string;
+          contact_email: string;
+          contact_role: string | null;
+          organisation_id: string | null;
+          plan_type: string;
+          monthly_fee: number;
+          currency: string;
+          status: string;
+          stripe_customer_id: string | null;
+          stripe_subscription_id: string | null;
+          started_at: string | null;
+          notes: string | null;
+          created_at: string | null;
+          updated_at: string | null;
+        };
+        Insert: {
+          id?: string;
+          company_name: string;
+          contact_name: string;
+          contact_email: string;
+          contact_role?: string | null;
+          organisation_id?: string | null;
+          plan_type?: string;
+          monthly_fee: number;
+          currency?: string;
+          status?: string;
+          stripe_customer_id?: string | null;
+          stripe_subscription_id?: string | null;
+          started_at?: string | null;
+          notes?: string | null;
+          created_at?: string | null;
+          updated_at?: string | null;
+        };
+        Update: {
+          id?: string;
+          company_name?: string;
+          contact_name?: string;
+          contact_email?: string;
+          contact_role?: string | null;
+          organisation_id?: string | null;
+          plan_type?: string;
+          monthly_fee?: number;
+          currency?: string;
+          status?: string;
+          stripe_customer_id?: string | null;
+          stripe_subscription_id?: string | null;
+          started_at?: string | null;
+          notes?: string | null;
+          created_at?: string | null;
+          updated_at?: string | null;
         };
       };
       organisations: {
@@ -886,6 +1004,9 @@ export type EscalationRule =
 export type Reminder = Database["public"]["Tables"]["reminders"]["Row"];
 export type BusinessEnquiry =
   Database["public"]["Tables"]["business_enquiries"]["Row"];
+export type ComplaintPack =
+  Database["public"]["Tables"]["complaint_packs"]["Row"];
+export type B2BPilot = Database["public"]["Tables"]["b2b_pilots"]["Row"];
 
 export type ProfileInsert = Database["public"]["Tables"]["profiles"]["Insert"];
 export type ProfileUpdate = Database["public"]["Tables"]["profiles"]["Update"];
@@ -915,3 +1036,11 @@ export type BusinessEnquiryInsert =
   Database["public"]["Tables"]["business_enquiries"]["Insert"];
 export type BusinessEnquiryUpdate =
   Database["public"]["Tables"]["business_enquiries"]["Update"];
+export type ComplaintPackInsert =
+  Database["public"]["Tables"]["complaint_packs"]["Insert"];
+export type ComplaintPackUpdate =
+  Database["public"]["Tables"]["complaint_packs"]["Update"];
+export type B2BPilotInsert =
+  Database["public"]["Tables"]["b2b_pilots"]["Insert"];
+export type B2BPilotUpdate =
+  Database["public"]["Tables"]["b2b_pilots"]["Update"];

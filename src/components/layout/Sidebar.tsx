@@ -1,4 +1,15 @@
-import { Compass, Folder, Home, PlusCircle, Settings, Shield, FileText } from "lucide-react";
+import {
+  Bell,
+  Calculator,
+  Compass,
+  FileText,
+  Folder,
+  Home,
+  Package,
+  PlusCircle,
+  Settings,
+  Shield,
+} from "lucide-react";
 import Link from "next/link";
 
 import { SubscriptionBadge } from "@/components/layout/SubscriptionBadge";
@@ -16,16 +27,19 @@ type SidebarProps = {
 const NAV_ITEMS = [
   { href: "/dashboard", label: "Dashboard", icon: Home },
   { href: "/cases", label: "My Cases", icon: Folder },
-  { href: "/cases/new", label: "New Case", icon: PlusCircle },
+  { href: "/cases/new", label: "New Case (+)", icon: PlusCircle },
   { href: "/letters", label: "Letters", icon: FileText },
+  { href: "/dashboard/packs", label: "Packs", icon: Package },
   { href: "/templates", label: "Templates", icon: FileText },
+  { href: "/calculator", label: "Calculator", icon: Calculator },
   { href: "/escalation-guides", label: "Escalation Guides", icon: Compass },
+  { href: "/reminders", label: "Reminders", icon: Bell },
   { href: "/settings", label: "Settings", icon: Settings },
 ];
 
 export function Sidebar({ pathname, userName, userEmail, tier, isAdmin = false }: SidebarProps) {
   const items = isAdmin
-    ? [...NAV_ITEMS, { href: "/admin", label: "Admin Dashboard", icon: Shield }]
+    ? [...NAV_ITEMS, { href: "/admin", label: "Admin", icon: Shield }]
     : NAV_ITEMS;
 
   return (

@@ -13,7 +13,9 @@ import {
   Home,
   Landmark,
   MapPin,
+  MessageSquare,
   Phone,
+  Send,
   Shield,
   Sparkles,
   Star,
@@ -83,24 +85,24 @@ const FEATURES = [
 
 const HOW_STEPS = [
   {
-    number: "01",
-    title: "Create a Case",
-    body: "Select the organisation and describe what happened. Takes 2 minutes.",
+    icon: FileText,
+    title: "Start your case",
+    body: "Tell us which company let you down. We'll load their complaint contacts and escalation path automatically.",
   },
   {
-    number: "02",
-    title: "Log Every Interaction",
-    body: "After every call, email, or chat — log it. Channel, who you spoke to, what was promised. 30 seconds.",
+    icon: MessageSquare,
+    title: "Log every interaction",
+    body: "Phone calls, emails, letters, webchat — record what happened, who you spoke to, and what they promised.",
   },
   {
-    number: "03",
-    title: "Follow the Guide",
-    body: "We tell you when to escalate, who to contact, and remind you of every deadline automatically.",
+    icon: Shield,
+    title: "Watch the evidence build",
+    body: "Your timeline fills with timestamped records, tracked promises, and delivery receipts. Broken promises turn red automatically.",
   },
   {
-    number: "04",
-    title: "Export Your Case File",
-    body: "A clean, professional PDF ready for the ombudsman. Built from every interaction you've logged.",
+    icon: Send,
+    title: "Fight back with proof",
+    body: "Export a professional case file, send complaint letters directly, or escalate to the ombudsman with everything you need.",
   },
 ];
 
@@ -177,7 +179,7 @@ export default function LandingPage() {
                 className="text-base font-medium text-white underline underline-offset-4 hover:text-blue-100"
                 href="/how-it-works"
               >
-                See how it works
+                See How It Works
               </Link>
             </motion.div>
             <motion.p
@@ -320,7 +322,7 @@ export default function LandingPage() {
 
       {/* ── HOW IT WORKS ──────────────────────────────────────────────────────── */}
       <section className="py-20 md:py-28">
-        <div className="mx-auto max-w-4xl px-4">
+        <div className="mx-auto max-w-5xl px-4">
           <motion.div
             animate="visible"
             initial="hidden"
@@ -332,27 +334,30 @@ export default function LandingPage() {
               className="mb-12 text-center text-3xl font-bold tracking-tight md:text-4xl"
               variants={fadeUp}
             >
-              How it works
+              How TheyPromised Works
             </motion.h2>
-            <div className="space-y-0">
+            <div className="space-y-4">
               {HOW_STEPS.map((step, i) => (
                 <motion.div
-                  className="relative flex gap-6 pb-10"
-                  key={step.number}
+                  className={`rounded-xl border bg-white p-6 ${
+                    i % 2 === 1 ? "md:ml-16" : "md:mr-16"
+                  }`}
+                  key={step.title}
                   variants={fadeUp}
                 >
-                  {/* Vertical connector */}
-                  {i < HOW_STEPS.length - 1 && (
-                    <div className="absolute left-5 top-10 h-full w-0.5 bg-primary/15" />
-                  )}
-                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-primary text-sm font-bold text-white">
-                    {step.number}
-                  </div>
-                  <div className="pt-1">
-                    <h3 className="font-semibold text-slate-900">{step.title}</h3>
-                    <p className="mt-1 text-sm leading-relaxed text-muted-foreground">
-                      {step.body}
-                    </p>
+                  <div className="flex items-start gap-4">
+                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary">
+                      <step.icon className="h-5 w-5" />
+                    </div>
+                    <div>
+                      <p className="text-xs font-semibold uppercase tracking-wide text-primary">
+                        {i + 1}. {step.title}
+                      </p>
+                      <h3 className="font-semibold text-slate-900">{step.title}</h3>
+                      <p className="mt-1 text-sm leading-relaxed text-muted-foreground">
+                        {step.body}
+                      </p>
+                    </div>
                   </div>
                 </motion.div>
               ))}
@@ -366,6 +371,24 @@ export default function LandingPage() {
               </Link>
             </motion.div>
           </motion.div>
+        </div>
+      </section>
+
+      {/* ── SOCIAL PROOF PLACEHOLDER ─────────────────────────────────────────── */}
+      <section className="bg-slate-50 py-16">
+        <div className="mx-auto max-w-4xl px-4 text-center">
+          <h2 className="text-2xl font-bold">Trusted by UK consumers fighting back</h2>
+          <blockquote className="mx-auto mt-4 max-w-3xl rounded-lg border-l-4 border-teal-500 bg-white p-5 text-left text-sm text-slate-700">
+            &ldquo;I&apos;d been going back and forth with British Gas for 6 weeks.
+            TheyPromised showed them a timeline of 5 broken promises. They
+            refunded me £347 within 3 days.&rdquo;
+          </blockquote>
+          <Link
+            className="mt-4 inline-flex text-sm font-medium text-primary underline underline-offset-4"
+            href="/about"
+          >
+            More stories →
+          </Link>
         </div>
       </section>
 
@@ -493,68 +516,35 @@ export default function LandingPage() {
       {/* ── PRICING PREVIEW ───────────────────────────────────────────────────── */}
       <section className="bg-slate-50 py-20">
         <div className="mx-auto max-w-3xl px-4 text-center">
-          <h2 className="mb-3 text-2xl font-bold">Simple pricing</h2>
-          <p className="mb-8 text-muted-foreground">
-            Start free. Upgrade when your case needs it.
-          </p>
-          <div className="grid gap-4 sm:grid-cols-3">
-            {[
-              {
-                name: "Free",
-                price: "£0",
-                features: ["1 case", "All channels", "Escalation guides"],
-                href: "/register",
-                cta: "Start Free",
-                highlight: false,
-              },
-              {
-                name: "Basic",
-                price: "£4.99/mo",
-                features: ["Unlimited cases", "PDF export", "Email reminders", "10 AI analyses/mo"],
-                href: "/pricing",
-                cta: "Get Basic",
-                highlight: true,
-              },
-              {
-                name: "Pro",
-                price: "£9.99/mo",
-                features: ["Full case file PDF", "50 AI analyses/mo", "Voice memos", "Priority support"],
-                href: "/pricing",
-                cta: "Go Pro",
-                highlight: false,
-              },
-            ].map((plan) => (
-              <div
-                className={`rounded-xl border p-5 text-left ${plan.highlight ? "border-primary shadow-md bg-white" : "bg-white"}`}
-                key={plan.name}
-              >
-                {plan.highlight && (
-                  <p className="mb-2 text-xs font-semibold text-primary">Most popular</p>
-                )}
-                <p className="font-bold">{plan.name}</p>
-                <p className="mt-1 text-2xl font-bold">{plan.price}</p>
-                <ul className="mt-3 space-y-1.5">
-                  {plan.features.map((f) => (
-                    <li className="flex items-center gap-1.5 text-xs text-muted-foreground" key={f}>
-                      <div className="h-1.5 w-1.5 rounded-full bg-teal-400 shrink-0" />
-                      {f}
-                    </li>
-                  ))}
-                </ul>
-                <Link
-                  className={`mt-4 block rounded-lg py-2 text-center text-sm font-medium transition-colors ${plan.highlight ? "bg-primary text-white hover:opacity-90" : "border hover:bg-muted"}`}
-                  href={plan.href}
-                >
-                  {plan.cta}
-                </Link>
-              </div>
-            ))}
+          <h2 className="mb-3 text-2xl font-bold">Simple Pricing</h2>
+          <div className="mx-auto max-w-2xl space-y-3 text-left text-sm text-slate-700">
+            <p><strong>Free —</strong> Track 1 case, log interactions, upload evidence</p>
+            <p><strong>Basic £4.99/mo —</strong> AI letters, email sending, delivery tracking, PDF exports</p>
+            <p><strong>Pro £9.99/mo —</strong> Full case files, 50 AI suggestions, priority support</p>
+            <p><strong>Packs from £29 —</strong> One-off help when you need it most</p>
           </div>
           <Link
-            className="mt-4 block text-sm text-muted-foreground underline underline-offset-4"
+            className="mt-5 inline-block text-sm font-medium text-primary underline underline-offset-4"
             href="/pricing"
           >
-            Full pricing and feature comparison →
+            See All Plans →
+          </Link>
+        </div>
+      </section>
+
+      {/* ── FOR BUSINESS TEASER ──────────────────────────────────────────────── */}
+      <section className="py-12">
+        <div className="mx-auto max-w-4xl rounded-xl border bg-white px-6 py-8 text-center shadow-sm">
+          <h2 className="text-2xl font-bold">For Business</h2>
+          <p className="mt-2 text-sm text-slate-700">
+            See what your customers are really saying about your complaint
+            handling. Complaint scorecards. Response analytics. Benchmark reports.
+          </p>
+          <Link
+            className="mt-4 inline-flex font-medium text-primary underline underline-offset-4"
+            href="/business"
+          >
+            Learn More →
           </Link>
         </div>
       </section>

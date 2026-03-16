@@ -39,7 +39,7 @@ export function BusinessEnquiryForm() {
 
   return (
     <form className="space-y-3 rounded-lg border bg-white p-5" onSubmit={onSubmit}>
-      <h2 className="text-lg font-semibold">Request Your Company Report</h2>
+      <h2 className="text-lg font-semibold">Request Your Free Scorecard Preview</h2>
 
       <input
         className={inputClass}
@@ -81,7 +81,7 @@ export function BusinessEnquiryForm() {
         disabled={status === "submitting"}
         type="submit"
       >
-        {status === "submitting" ? "Submitting..." : "Request Your Company Report"}
+        {status === "submitting" ? "Submitting..." : "Request Your Free Scorecard Preview"}
       </button>
 
       {status === "success" ? <p className="text-sm text-green-700">Thanks — we’ll get back to you shortly.</p> : null}

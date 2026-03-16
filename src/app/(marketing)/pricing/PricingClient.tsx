@@ -14,6 +14,7 @@ import { useState } from "react";
 import { toast } from "sonner";
 
 import { Badge } from "@/components/ui/badge";
+import { COMPLAINT_PACKS } from "@/lib/packs/config";
 import { PLAN_PRICES, getPriceId, type BillingPeriod } from "@/lib/stripe/config";
 
 type PricingClientProps = {
@@ -63,19 +64,19 @@ const COMPARISON_ROWS: Array<{
   basic: string | boolean;
   pro: string | boolean;
 }> = [
-  { feature: "Active cases", free: "1 case", basic: "Unlimited", pro: "Unlimited" },
+  { feature: "Active cases", free: "1", basic: "Unlimited", pro: "Unlimited" },
   { feature: "Interaction logging", free: true, basic: true, pro: true },
-  { feature: "Evidence upload", free: true, basic: true, pro: true },
-  { feature: "Escalation guides", free: "Read-only", basic: "Interactive", pro: "Interactive" },
-  { feature: "Timeline PDF export", free: false, basic: true, pro: true },
-  { feature: "Letters PDF export", free: false, basic: true, pro: true },
-  { feature: "Full case file PDF", free: false, basic: false, pro: true },
+  { feature: "Evidence uploads", free: true, basic: true, pro: true },
+  { feature: "Escalation guides", free: "View only", basic: "Full access", pro: "Full access" },
   { feature: "Email reminders", free: false, basic: true, pro: true },
-  { feature: "AI case analysis", free: false, basic: "10/month", pro: "50/month" },
-  { feature: "AI letter drafting", free: false, basic: "5/month", pro: "30/month" },
-  { feature: "Voice memo recording", free: false, basic: false, pro: true },
-  { feature: "Email forwarding parser", free: false, basic: false, pro: true },
-  { feature: "AI auto-summaries", free: false, basic: false, pro: true },
+  { feature: "Send letters via email", free: false, basic: true, pro: true },
+  { feature: "Delivery tracking", free: false, basic: true, pro: true },
+  { feature: "Timeline PDF export", free: false, basic: true, pro: true },
+  { feature: "Full case file PDF", free: false, basic: false, pro: true },
+  { feature: "AI suggestions/month", free: "0", basic: "10", pro: "50" },
+  { feature: "AI letters/month", free: "0", basic: "5", pro: "30" },
+  { feature: "Response timer", free: false, basic: true, pro: true },
+  { feature: "Shareable case links", free: false, basic: true, pro: true },
   { feature: "Priority support", free: false, basic: false, pro: true },
 ];
 
@@ -164,13 +165,13 @@ export function PricingClient({ isLoggedIn }: PricingClientProps) {
 
   return (
     <main className="mx-auto max-w-6xl space-y-16 px-4 py-12 md:py-20">
-      {/* Header */}
-      <div className="space-y-4 text-center">
+      <section className="space-y-4">
         <h1 className="text-4xl font-bold tracking-tight md:text-5xl">
-          Simple, honest pricing
+          For Consumers — Track Your Complaint
         </h1>
-        <p className="mx-auto max-w-xl text-lg text-muted-foreground">
-          Start free. Upgrade when your case needs it. Cancel any time.
+        <p className="max-w-3xl text-muted-foreground">
+          Start free, then upgrade for AI letters, exports, and guided escalation when
+          your case needs more firepower.
         </p>
 
         {/* Billing toggle */}
@@ -203,7 +204,7 @@ export function PricingClient({ isLoggedIn }: PricingClientProps) {
             </Badge>
           )}
         </div>
-      </div>
+      </section>
 
       {/* Pricing cards */}
       <div className="grid gap-6 md:grid-cols-3">
@@ -236,7 +237,7 @@ export function PricingClient({ isLoggedIn }: PricingClientProps) {
             className="block w-full rounded-lg border px-4 py-2.5 text-center text-sm font-medium transition-colors hover:bg-muted"
             href={isLoggedIn ? "/dashboard" : "/register"}
           >
-            {isLoggedIn ? "Current plan" : "Start Free"}
+            Start Free
           </Link>
         </div>
 
@@ -286,9 +287,7 @@ export function PricingClient({ isLoggedIn }: PricingClientProps) {
           >
             {loadingPlan === "basic"
               ? "Redirecting..."
-              : isLoggedIn
-                ? "Upgrade to Basic"
-                : "Get Basic"}
+              : "Choose Basic"}
           </button>
         </div>
 
@@ -332,18 +331,15 @@ export function PricingClient({ isLoggedIn }: PricingClientProps) {
           >
             {loadingPlan === "pro"
               ? "Redirecting..."
-              : isLoggedIn
-                ? "Go Pro"
-                : "Get Pro"}
+              : "Choose Pro"}
           </button>
         </div>
       </div>
 
-      {/* Trust signals */}
+      {/* Annual pricing summary */}
       <div className="rounded-xl border bg-muted/30 px-6 py-5 text-center text-sm text-muted-foreground">
         <p>
-          🔒 Secure payments via Stripe · Cancel any time · All prices include VAT ·
-          No hidden fees
+          Annual pricing: Basic £39.99/yr (save 33%), Pro £79.99/yr (save 33%)
         </p>
       </div>
 
@@ -385,6 +381,61 @@ export function PricingClient({ isLoggedIn }: PricingClientProps) {
         </div>
       </div>
 
+      {/* Complaint packs */}
+      <section className="space-y-4">
+        <h2 className="text-2xl font-bold">Need More Help? Complaint Packs</h2>
+        <p className="text-muted-foreground">
+          One-off payment. No subscription needed. Works with or without a plan.
+        </p>
+        <div className="grid gap-4 md:grid-cols-3">
+          {COMPLAINT_PACKS.map((pack) => (
+            <article
+              className={`rounded-xl border bg-white p-5 ${pack.popular ? "border-primary ring-1 ring-primary/30" : ""}`}
+              key={pack.id}
+            >
+              {pack.popular ? (
+                <Badge className="mb-2 bg-primary text-white">Most Popular</Badge>
+              ) : null}
+              <p className="text-lg font-semibold">{pack.name}</p>
+              <p className="mt-1 text-2xl font-bold">{pack.priceDisplay}</p>
+              <p className="mt-2 text-sm text-muted-foreground">{pack.description}</p>
+              <Link
+                className="mt-4 inline-flex rounded-md border px-3 py-2 text-sm font-medium hover:bg-muted"
+                href="/packs"
+              >
+                View Pack
+              </Link>
+            </article>
+          ))}
+        </div>
+      </section>
+
+      {/* B2B summary */}
+      <section className="space-y-4">
+        <h2 className="text-2xl font-bold">For Business — Complaint Intelligence</h2>
+        <div className="grid gap-3 sm:grid-cols-3">
+          <div className="rounded-lg border bg-white p-4 text-sm">
+            <p className="font-semibold">Insight</p>
+            <p className="text-muted-foreground">£500/month</p>
+          </div>
+          <div className="rounded-lg border bg-white p-4 text-sm">
+            <p className="font-semibold">Professional</p>
+            <p className="text-muted-foreground">£1,000/month</p>
+          </div>
+          <div className="rounded-lg border bg-white p-4 text-sm">
+            <p className="font-semibold">Enterprise</p>
+            <p className="text-muted-foreground">Custom</p>
+          </div>
+        </div>
+        <p className="text-sm text-muted-foreground">
+          See what your customers are really saying.
+          {" "}
+          <Link className="font-medium text-primary underline" href="/business">
+            Learn More →
+          </Link>
+        </p>
+      </section>
+
       {/* FAQ */}
       <div className="space-y-4">
         <h2 className="text-2xl font-bold">Frequently asked questions</h2>
@@ -413,16 +464,16 @@ export function PricingClient({ isLoggedIn }: PricingClientProps) {
 
       {/* Bottom CTA */}
       <div className="rounded-xl border-2 border-primary/20 bg-primary/5 py-12 text-center space-y-4">
-        <h2 className="text-2xl font-bold">Ready to start winning?</h2>
+        <h2 className="text-2xl font-bold">Not sure what you need?</h2>
         <p className="text-muted-foreground">
-          Join thousands of UK consumers taking back control of their complaints.
+          Start free. Track your complaint. Upgrade when it matters.
         </p>
         <div className="flex justify-center gap-3">
           <Link
             className="rounded-lg bg-primary px-6 py-2.5 text-sm font-medium text-white hover:opacity-90"
             href={isLoggedIn ? "/cases/new" : "/register"}
           >
-            {isLoggedIn ? "Start a case" : "Start for free"}
+            {isLoggedIn ? "Start Your Case — Free" : "Start Your Case — Free"}
           </Link>
           <Link
             className="rounded-lg border px-6 py-2.5 text-sm font-medium hover:bg-muted"

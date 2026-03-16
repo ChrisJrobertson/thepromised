@@ -297,6 +297,21 @@ export default async function CasePage({
           </div>
         </div>
 
+        {tier === "free" ? (
+          <div className="rounded-lg border border-teal-200 bg-teal-50 p-4 text-sm text-teal-900">
+            <p>
+              Need help with this case? Our Complaint Packs include AI letters,
+              case review, and ombudsman-ready exports.
+            </p>
+            <Link
+              className="mt-2 inline-flex font-medium text-teal-800 underline underline-offset-2"
+              href="/packs"
+            >
+              View Packs →
+            </Link>
+          </div>
+        ) : null}
+
         {theCase.response_deadline ? (
           <ResponseTimer
             caseId={id}

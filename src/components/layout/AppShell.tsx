@@ -15,12 +15,15 @@ type AppShellProps = {
 };
 
 function getTitle(pathname: string) {
+  if (pathname.startsWith("/dashboard/packs")) return "Packs";
+  if (pathname.startsWith("/packs")) return "Packs";
   if (pathname.startsWith("/dashboard")) return "Dashboard";
   if (pathname.startsWith("/cases")) return "My Cases";
   if (pathname.startsWith("/settings")) return "Settings";
   if (pathname.startsWith("/reminders")) return "Reminders";
   if (pathname.startsWith("/letters")) return "Letters";
   if (pathname.startsWith("/templates")) return "Templates";
+  if (pathname.startsWith("/calculator")) return "Calculator";
   if (pathname.startsWith("/admin")) return "Admin";
   return "TheyPromised";
 }

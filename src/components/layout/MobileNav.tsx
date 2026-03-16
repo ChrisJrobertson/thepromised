@@ -1,6 +1,17 @@
 "use client";
 
-import { Compass, FileText, Folder, Home, Menu, PlusCircle, Settings } from "lucide-react";
+import {
+  Bell,
+  Calculator,
+  Compass,
+  FileText,
+  Folder,
+  Home,
+  Menu,
+  Package,
+  PlusCircle,
+  Settings,
+} from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
@@ -11,10 +22,13 @@ import { cn } from "@/lib/utils";
 const NAV_ITEMS = [
   { href: "/dashboard", label: "Dashboard", icon: Home },
   { href: "/cases", label: "My Cases", icon: Folder },
-  { href: "/cases/new", label: "New Case", icon: PlusCircle },
+  { href: "/cases/new", label: "New Case (+)", icon: PlusCircle },
   { href: "/letters", label: "Letters", icon: FileText },
+  { href: "/dashboard/packs", label: "Packs", icon: Package },
   { href: "/templates", label: "Templates", icon: FileText },
+  { href: "/calculator", label: "Calculator", icon: Calculator },
   { href: "/escalation-guides", label: "Escalation Guides", icon: Compass },
+  { href: "/reminders", label: "Reminders", icon: Bell },
   { href: "/settings", label: "Settings", icon: Settings },
 ];
 

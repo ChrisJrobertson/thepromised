@@ -38,6 +38,19 @@ export async function GET(request: Request) {
     })
     .lt("ai_credits_reset_at", new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString());
 
+  // Revert temporary pack Pro access after 7 days
+  const sevenDaysAgo = new Date(
+    Date.now() - 7 * 24 * 60 * 60 * 1000,
+  ).toISOString();
+  await supabase
+    .from("profiles")
+    .update({
+      subscription_tier: "free",
+      subscription_status: "active",
+    })
+    .eq("subscription_status", "pack_temporary")
+    .lt("updated_at", sevenDaysAgo);
+
   // ── 1. Send daily reminder digest emails ────────────────────────────────────
   // Get all users who have reminders due today/overdue and have email reminders enabled
   const { data: allUsers } = await supabase

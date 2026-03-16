@@ -44,6 +44,46 @@ export async function POST(request: Request) {
       // ── New subscription / checkout completed ──────────────────────────────
       case "checkout.session.completed": {
         const session = event.data.object as Stripe.Checkout.Session;
+        if (session.mode === "payment") {
+          const userId = session.metadata?.userId;
+          const packId = session.metadata?.packId;
+          const caseId = session.metadata?.caseId;
+
+          if (!userId || !packId) break;
+
+          await supabase.from("complaint_packs").insert({
+            user_id: userId,
+            case_id: caseId ? caseId : null,
+            pack_type: packId,
+            status: "purchased",
+            stripe_payment_id:
+              typeof session.payment_intent === "string"
+                ? session.payment_intent
+                : null,
+            amount_paid: session.amount_total ?? 0,
+            currency: session.currency ?? "gbp",
+            purchased_at: new Date().toISOString(),
+          });
+
+          const { data: profile } = await supabase
+            .from("profiles")
+            .select("subscription_tier")
+            .eq("id", userId)
+            .maybeSingle();
+
+          if (profile?.subscription_tier === "free") {
+            await supabase
+              .from("profiles")
+              .update({
+                subscription_tier: "pro",
+                subscription_status: "pack_temporary",
+              })
+              .eq("id", userId);
+          }
+
+          break;
+        }
+
         const userId = session.metadata?.supabase_user_id;
         if (!userId) break;
 
