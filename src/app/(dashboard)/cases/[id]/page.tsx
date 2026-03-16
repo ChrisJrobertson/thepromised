@@ -11,6 +11,7 @@ import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 
 import { AISuggestion } from "@/components/cases/AISuggestion";
+import { UpgradeSuccessToast } from "@/components/ui/UpgradeSuccessToast";
 import { CaseTimeline } from "@/components/cases/CaseTimeline";
 import { EscalationGuide } from "@/components/cases/EscalationGuide";
 import { EvidenceGallery } from "@/components/cases/EvidenceGallery";
@@ -22,6 +23,7 @@ import { buttonVariants } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { formatUkDate } from "@/lib/date";
+import { AI_LIMITS } from "@/lib/ai/constants";
 import { COMPLAINT_PACKS_BY_ID } from "@/lib/packs/config";
 import { createClient } from "@/lib/supabase/server";
 import type { Profile } from "@/types/database";
@@ -75,7 +77,7 @@ export default async function CasePage({
   searchParams,
 }: {
   params: Promise<{ id: string }>;
-  searchParams: Promise<{ created?: string; tab?: string }>;
+  searchParams: Promise<{ created?: string; tab?: string; upgraded?: string; pack_activated?: string }>;
 }) {
   const { id } = await params;
   const sp = await searchParams;
@@ -87,13 +89,16 @@ export default async function CasePage({
 
   if (!user) redirect("/login");
 
-  // Fetch profile for AI tier
+  // Fetch profile for AI tier and credit counts
   const { data: profileData } = await supabase
     .from("profiles")
-    .select("subscription_tier")
+    .select("subscription_tier, ai_suggestions_used, ai_letters_used")
     .eq("id", user.id)
     .maybeSingle();
-  const tier = (profileData as Pick<Profile, "subscription_tier"> | null)?.subscription_tier ?? "free";
+  const profileRow = profileData as Pick<Profile, "subscription_tier" | "ai_suggestions_used" | "ai_letters_used"> | null;
+  const tier = profileRow?.subscription_tier ?? "free";
+  const aiSuggestionsUsed = profileRow?.ai_suggestions_used ?? 0;
+  const suggestionsLimit = AI_LIMITS[tier as keyof typeof AI_LIMITS]?.suggestions ?? 0;
 
   // Fetch case + organisation in one query
   const { data: caseData } = await supabase
@@ -195,6 +200,10 @@ export default async function CasePage({
 
   return (
     <div className="space-y-6 pb-16">
+      {/* Upgrade / pack activation confirmation toasts */}
+      {sp.upgraded === "true" && <UpgradeSuccessToast type="subscription" />}
+      {sp.pack_activated === "true" && <UpgradeSuccessToast type="pack" />}
+
       {/* Top section */}
       <div className="space-y-4">
         {sp.created && (
@@ -533,7 +542,12 @@ export default async function CasePage({
           )}
 
           {/* AI Suggestion (lazy-loaded client component) */}
-          <AISuggestion caseId={id} tier={tier} />
+          <AISuggestion
+            caseId={id}
+            tier={tier}
+            initialSuggestionsUsed={aiSuggestionsUsed}
+            suggestionsLimit={suggestionsLimit}
+          />
 
           {/* Quick actions */}
           <Card>

@@ -61,29 +61,21 @@ export async function POST(request: Request) {
     }
     const profile = profileData as Profile;
     const tier = profile.subscription_tier;
+    // TODO: Consolidate tier limits into single config (e.g. src/lib/config/tiers.ts)
     const tierLimits = {
-      free: { suggestions: 0, letters: 0 },
+      free: { suggestions: 2, letters: 1 },
       basic: { suggestions: 10, letters: 5 },
       pro: { suggestions: 50, letters: 30 },
     } as const;
     const limits = tierLimits[tier] ?? tierLimits.free;
     const limit = limits.letters;
 
-    if (limit === 0) {
-      return NextResponse.json(
-        {
-          error: "upgrade_required",
-          message: "AI letter drafting requires a Basic or Pro plan.",
-          requiredTier: "basic",
-        },
-        { status: 403 }
-      );
-    }
-
     if (profile.ai_letters_used >= limit) {
       return NextResponse.json(
         {
-          error: "Monthly AI credit limit reached. Upgrade your plan for more.",
+          error: "credits_exhausted",
+          message: "Monthly AI letter limit reached. Upgrade your plan for more.",
+          requiredTier: tier === "free" ? "basic" : "pro",
         },
         { status: 403 }
       );

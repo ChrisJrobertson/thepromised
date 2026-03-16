@@ -22,15 +22,18 @@ export function canExportPDF(profile: Profile, exportType: ExportType): boolean 
 }
 
 // ── AI features ────────────────────────────────────────────────────────────────
+// Checks the per-feature counter against the per-feature limit.
 export function canUseAI(profile: Profile, feature: AiFeature): boolean {
   const tier = profile.subscription_tier;
   const limit = AI_LIMITS[tier][feature];
   if (limit === 0) return false;
-  return profile.ai_credits_used < limit;
+  if (feature === "letters") return profile.ai_letters_used < limit;
+  return profile.ai_suggestions_used < limit;
 }
 
+// Free users can view AI suggestions now that the free tier has a non-zero limit.
 export function canViewAISuggestions(profile: Profile): boolean {
-  return profile.subscription_tier !== "free";
+  return AI_LIMITS[profile.subscription_tier as keyof typeof AI_LIMITS]?.suggestions > 0;
 }
 
 // ── Voice memos (Pro only) ─────────────────────────────────────────────────────
@@ -72,15 +75,22 @@ export function getUpgradeReason(
         };
       }
       return null;
-    case "ai":
-      if (profile.subscription_tier === "free") {
+    case "ai": {
+      // Only block when credits are actually exhausted, not based on tier alone.
+      const tier = profile.subscription_tier;
+      const limit = AI_LIMITS[tier as keyof typeof AI_LIMITS]?.suggestions ?? 0;
+      if (limit === 0 || profile.ai_suggestions_used >= limit) {
         return {
           blocked: true,
-          reason: "AI features require Basic or Pro.",
-          requiredTier: "basic",
+          reason:
+            limit === 0
+              ? "AI features require Basic or Pro."
+              : "Monthly AI credit limit reached. Upgrade your plan for more.",
+          requiredTier: tier === "free" ? "basic" : "pro",
         };
       }
       return null;
+    }
     case "voice":
       if (profile.subscription_tier !== "pro") {
         return {

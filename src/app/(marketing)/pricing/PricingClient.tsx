@@ -23,17 +23,16 @@ type PricingClientProps = {
 
 const FREE_FEATURES = [
   "1 active case",
-  "All interaction channels",
-  "Escalation guides (read-only)",
-  "Evidence upload",
-  "Basic timeline view",
+  "2 AI suggestions/month",
+  "1 AI letter/month",
+  "Basic complaint tracking",
+  "Escalation guides",
 ];
 
 const FREE_NOT_INCLUDED = [
   "PDF export",
   "Email reminders",
-  "AI suggestions",
-  "Letter drafting",
+  "AI summaries",
   "Voice memos",
 ];
 
@@ -73,8 +72,8 @@ const COMPARISON_ROWS: Array<{
   { feature: "Delivery tracking", free: false, basic: true, pro: true },
   { feature: "Timeline PDF export", free: false, basic: true, pro: true },
   { feature: "Full case file PDF", free: false, basic: false, pro: true },
-  { feature: "AI suggestions/month", free: "0", basic: "10", pro: "50" },
-  { feature: "AI letters/month", free: "0", basic: "5", pro: "30" },
+  { feature: "AI suggestions/month", free: "2", basic: "10", pro: "50" },
+  { feature: "AI letters/month", free: "1", basic: "5", pro: "30" },
   { feature: "Response timer", free: false, basic: true, pro: true },
   { feature: "Shareable case links", free: false, basic: true, pro: true },
   { feature: "Priority support", free: false, basic: false, pro: true },

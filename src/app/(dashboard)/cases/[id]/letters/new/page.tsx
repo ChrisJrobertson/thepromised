@@ -1,8 +1,7 @@
 import { redirect, notFound } from "next/navigation";
 
 import { createClient } from "@/lib/supabase/server";
-import { canUseAI } from "@/lib/stripe/feature-gates";
-import { UpgradePrompt } from "@/components/ui/UpgradePrompt";
+import { AI_LIMITS } from "@/lib/ai/constants";
 import { LETTER_TEMPLATES } from "@/lib/ai/letter-templates";
 import type { Profile } from "@/types/database";
 
@@ -56,20 +55,9 @@ export default async function NewLetterPage({
     if (org) orgName = org.name;
   }
 
-  const canUseLetter = canUseAI(profile, "letters");
-
-  if (!canUseLetter) {
-    return (
-      <div className="mx-auto max-w-2xl space-y-4 py-8">
-        <h1 className="text-2xl font-semibold">Generate Letter</h1>
-        <UpgradePrompt
-          description="AI letter drafting requires a Basic or Pro plan. Upgrade to draft professional complaint letters instantly."
-          requiredTier="basic"
-          title="Letter drafting requires Basic or Pro"
-        />
-      </div>
-    );
-  }
+  const tier = profile.subscription_tier;
+  const aiLettersUsed = profile.ai_letters_used;
+  const aiLettersLimit = AI_LIMITS[tier as keyof typeof AI_LIMITS]?.letters ?? 0;
 
   const preselectedType = sp.type ?? null;
 
@@ -84,9 +72,12 @@ export default async function NewLetterPage({
       </div>
 
       <LetterWizard
+        aiLettersLimit={aiLettersLimit}
+        aiLettersUsed={aiLettersUsed}
         caseId={id}
         preselectedType={preselectedType}
         templates={LETTER_TEMPLATES}
+        tier={tier}
       />
     </div>
   );

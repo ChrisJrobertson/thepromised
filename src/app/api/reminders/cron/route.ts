@@ -1,4 +1,4 @@
-import { differenceInDays, format, isPast, isToday } from "date-fns";
+import { addMonths, differenceInDays, format, isPast, isToday } from "date-fns";
 import { enGB } from "date-fns/locale";
 import { NextResponse } from "next/server";
 
@@ -29,16 +29,23 @@ export async function GET(request: Request) {
     b2b_sla_alerts_sent: 0,
   };
 
-  // Reset AI credits monthly
+  // Reset AI credits monthly.
+  // Uses OR to also catch free users whose ai_credits_reset_at is NULL
+  // (new signups never had it set). Without this, NULL rows are excluded by
+  // a plain .lt() filter in PostgreSQL.
+  // NOTE: ai_credits_used/ai_suggestions_used/ai_letters_used default to 0 in
+  // the database schema — verify this is enforced as a NOT NULL DEFAULT 0
+  // column before launch to avoid unexpected NULLs.
+  const resetThreshold = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString();
   await supabase
     .from("profiles")
     .update({
       ai_suggestions_used: 0,
       ai_letters_used: 0,
       ai_credits_used: 0,
-      ai_credits_reset_at: now.toISOString(),
+      ai_credits_reset_at: addMonths(now, 1).toISOString(),
     })
-    .lt("ai_credits_reset_at", new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString());
+    .or(`ai_credits_reset_at.is.null,ai_credits_reset_at.lt.${resetThreshold}`);
 
   // Revert temporary pack Pro access after 7 days
   const nowIso = now.toISOString();

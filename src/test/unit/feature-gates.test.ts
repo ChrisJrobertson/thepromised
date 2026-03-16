@@ -91,28 +91,57 @@ describe("canExportPDF", () => {
 });
 
 describe("canUseAI", () => {
-  it("blocks free users from all AI features", () => {
-    expect(canUseAI(makeProfile(), "suggestions")).toBe(false);
-    expect(canUseAI(makeProfile(), "letters")).toBe(false);
+  // Free tier now has 2 suggestions/month and 1 letter/month.
+  // canUseAI checks the per-feature counter (ai_suggestions_used / ai_letters_used).
+
+  it("allows free users with remaining suggestion credits", () => {
+    expect(canUseAI(makeProfile({ ai_suggestions_used: 0 }), "suggestions")).toBe(true);
+    expect(canUseAI(makeProfile({ ai_suggestions_used: 1 }), "suggestions")).toBe(true);
+  });
+
+  it("blocks free users when suggestion credits are exhausted", () => {
+    expect(canUseAI(makeProfile({ ai_suggestions_used: 2 }), "suggestions")).toBe(false);
+  });
+
+  it("allows free users with remaining letter credits", () => {
+    expect(canUseAI(makeProfile({ ai_letters_used: 0 }), "letters")).toBe(true);
+  });
+
+  it("blocks free users when letter credits are exhausted", () => {
+    expect(canUseAI(makeProfile({ ai_letters_used: 1 }), "letters")).toBe(false);
+  });
+
+  it("blocks free users from summaries (limit remains 0)", () => {
+    expect(canUseAI(makeProfile(), "summaries")).toBe(false);
   });
 
   it("allows basic users up to their suggestion limit", () => {
-    const profile = makeProfile({ subscription_tier: "basic", ai_credits_used: 5 });
+    const profile = makeProfile({ subscription_tier: "basic", ai_suggestions_used: 9 });
     expect(canUseAI(profile, "suggestions")).toBe(true);
   });
 
   it("blocks basic users at suggestion limit", () => {
-    const profile = makeProfile({ subscription_tier: "basic", ai_credits_used: 10 });
+    const profile = makeProfile({ subscription_tier: "basic", ai_suggestions_used: 10 });
     expect(canUseAI(profile, "suggestions")).toBe(false);
   });
 
+  it("allows basic users up to their letter limit", () => {
+    const profile = makeProfile({ subscription_tier: "basic", ai_letters_used: 4 });
+    expect(canUseAI(profile, "letters")).toBe(true);
+  });
+
+  it("blocks basic users at letter limit", () => {
+    const profile = makeProfile({ subscription_tier: "basic", ai_letters_used: 5 });
+    expect(canUseAI(profile, "letters")).toBe(false);
+  });
+
   it("allows pro users up to their limit", () => {
-    const profile = makeProfile({ subscription_tier: "pro", ai_credits_used: 49 });
+    const profile = makeProfile({ subscription_tier: "pro", ai_suggestions_used: 49 });
     expect(canUseAI(profile, "suggestions")).toBe(true);
   });
 
   it("blocks pro users at their limit", () => {
-    const profile = makeProfile({ subscription_tier: "pro", ai_credits_used: 50 });
+    const profile = makeProfile({ subscription_tier: "pro", ai_suggestions_used: 50 });
     expect(canUseAI(profile, "suggestions")).toBe(false);
   });
 });
@@ -143,8 +172,9 @@ describe("canUseEmailForward", () => {
 });
 
 describe("canViewAISuggestions", () => {
-  it("blocks free users", () => {
-    expect(canViewAISuggestions(makeProfile())).toBe(false);
+  // Free tier now has a non-zero suggestions limit, so free users can view AI suggestions.
+  it("allows free users (non-zero free limit)", () => {
+    expect(canViewAISuggestions(makeProfile())).toBe(true);
   });
 
   it("allows basic and pro users", () => {
