@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 
 import { CLAUDE_MODELS, anthropic } from "@/lib/ai/client";
-import { LETTER_SYSTEM, buildLetterPrompt } from "@/lib/ai/prompts";
+import { LETTER_SYSTEM, buildLetterPrompt, JOURNEY_LETTER_CONTEXTS } from "@/lib/ai/prompts";
 import { getTemplate } from "@/lib/ai/letter-templates";
 import { trackServerEvent } from "@/lib/analytics/posthog-server";
 import { enforcePackScopedCaseAccess } from "@/lib/packs/access";
@@ -16,6 +16,7 @@ const inputSchema = z.object({
   caseId: z.string().uuid(),
   letterType: z.string().min(1),
   additionalInstructions: z.string().max(500).optional(),
+  journeyPromptContext: z.string().optional(), // e.g. 'energy_billing_initial'
 });
 
 export async function POST(request: Request) {
@@ -45,7 +46,7 @@ export async function POST(request: Request) {
     }
 
     const json = await request.json();
-    const { caseId, letterType, additionalInstructions } = inputSchema.parse(json);
+    const { caseId, letterType, additionalInstructions, journeyPromptContext } = inputSchema.parse(json);
 
     // Profile + tier check
     const { data: profileData } = await supabase
@@ -170,7 +171,10 @@ export async function POST(request: Request) {
         promiseFulfilled: i.promise_fulfilled,
         referenceNumber: i.reference_number,
       })),
-      additionalInstructions,
+      additionalInstructions: [
+        additionalInstructions,
+        journeyPromptContext ? JOURNEY_LETTER_CONTEXTS[journeyPromptContext] : undefined,
+      ].filter(Boolean).join("\n\n") || undefined,
     });
 
     // Call Claude
