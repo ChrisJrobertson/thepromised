@@ -3,7 +3,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 
 import { trackServerEvent } from "@/lib/analytics/posthog-server";
-import { getPublicScorecardForSlug } from "@/lib/analytics/scorecards";
+import { getCompanyOutcomeStats, getPublicScorecardForSlug } from "@/lib/analytics/scorecards";
 
 type Params = Promise<{ slug: string }>;
 
@@ -38,6 +38,8 @@ export default async function CompanyScorecardPage({ params }: { params: Params 
   const { slug } = await params;
   const scorecard = await getPublicScorecardForSlug(slug);
   if (!scorecard) notFound();
+
+  const outcomeStats = await getCompanyOutcomeStats(scorecard.company_name);
 
   trackServerEvent(`scorecard:${slug}`, "scorecard_viewed", {
     company: scorecard.company_name,
@@ -104,6 +106,82 @@ export default async function CompanyScorecardPage({ params }: { params: Params 
             ).toFixed(1)}%)</p>
           </div>
         </section>
+
+        {/* Outcome stats section */}
+        {outcomeStats && outcomeStats.total_resolved >= 5 ? (
+          <section className="rounded-xl border bg-white p-6 shadow-sm space-y-4">
+            <h2 className="text-sm font-semibold uppercase tracking-wide text-slate-500">
+              Resolution Outcomes
+            </h2>
+            <p className="text-sm text-slate-600">
+              Based on {outcomeStats.total_resolved} resolved cases tracked on TheyPromised.
+            </p>
+
+            {/* Satisfaction breakdown */}
+            <div>
+              <p className="mb-2 text-xs font-medium text-slate-500">Satisfaction breakdown</p>
+              <div className="flex h-4 overflow-hidden rounded-full">
+                {outcomeStats.total_resolved > 0 && (
+                  <>
+                    <div
+                      className="bg-green-500"
+                      style={{ width: `${(outcomeStats.fully_satisfied / outcomeStats.total_resolved) * 100}%` }}
+                      title={`Fully satisfied: ${outcomeStats.fully_satisfied}`}
+                    />
+                    <div
+                      className="bg-amber-400"
+                      style={{ width: `${(outcomeStats.partially_satisfied / outcomeStats.total_resolved) * 100}%` }}
+                      title={`Partially satisfied: ${outcomeStats.partially_satisfied}`}
+                    />
+                    <div
+                      className="bg-red-400"
+                      style={{ width: `${(outcomeStats.not_satisfied / outcomeStats.total_resolved) * 100}%` }}
+                      title={`Not satisfied: ${outcomeStats.not_satisfied}`}
+                    />
+                  </>
+                )}
+              </div>
+              <div className="mt-1 flex gap-4 text-xs text-slate-500">
+                <span className="flex items-center gap-1">
+                  <span className="inline-block h-2 w-2 rounded-full bg-green-500" />
+                  Satisfied ({outcomeStats.fully_satisfied})
+                </span>
+                <span className="flex items-center gap-1">
+                  <span className="inline-block h-2 w-2 rounded-full bg-amber-400" />
+                  Partial ({outcomeStats.partially_satisfied})
+                </span>
+                <span className="flex items-center gap-1">
+                  <span className="inline-block h-2 w-2 rounded-full bg-red-400" />
+                  Unsatisfied ({outcomeStats.not_satisfied})
+                </span>
+              </div>
+            </div>
+
+            <div className="grid gap-3 text-sm sm:grid-cols-3">
+              <div className="rounded-lg bg-slate-50 p-3 text-center">
+                <p className="text-xl font-bold">{outcomeStats.refunds + outcomeStats.compensations}</p>
+                <p className="text-xs text-slate-500">Refunds/compensations</p>
+              </div>
+              {outcomeStats.avg_amount_pence != null && (
+                <div className="rounded-lg bg-slate-50 p-3 text-center">
+                  <p className="text-xl font-bold">
+                    £{(outcomeStats.avg_amount_pence / 100).toLocaleString("en-GB", { maximumFractionDigits: 0 })}
+                  </p>
+                  <p className="text-xs text-slate-500">Average amount</p>
+                </div>
+              )}
+              <div className="rounded-lg bg-slate-50 p-3 text-center">
+                <p className="text-xl font-bold">{outcomeStats.satisfaction_pct.toFixed(0)}%</p>
+                <p className="text-xs text-slate-500">Some satisfaction</p>
+              </div>
+            </div>
+          </section>
+        ) : (
+          <div className="rounded-lg border bg-slate-50 p-5 text-sm text-slate-500">
+            <p>Not enough outcome data yet for {scorecard.company_name}.</p>
+            <p className="mt-1">Resolve your case to contribute.</p>
+          </div>
+        )}
 
         <div className="rounded-lg border bg-slate-50 p-5">
           <p className="mb-3 text-sm">Track your {scorecard.company_name} complaint</p>

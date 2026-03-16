@@ -15,6 +15,7 @@ import { CaseTimeline } from "@/components/cases/CaseTimeline";
 import { EscalationGuide } from "@/components/cases/EscalationGuide";
 import { EvidenceGallery } from "@/components/cases/EvidenceGallery";
 import { ForwardReplyPanel } from "@/components/cases/ForwardReplyPanel";
+import { OutcomeSummaryCard } from "@/components/cases/OutcomeSummaryCard";
 import { ResponseTimer } from "@/components/cases/ResponseTimer";
 import { ShareCaseButton } from "@/components/cases/ShareCaseButton";
 import { Badge } from "@/components/ui/badge";
@@ -36,6 +37,7 @@ import type {
 } from "@/types/database";
 
 import { CaseActions } from "./CaseActions";
+import { RecordOutcomeButton } from "./RecordOutcomeButton";
 
 export async function generateMetadata({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
@@ -232,6 +234,7 @@ export default async function CasePage({
               currentPriority={theCase.priority}
               currentStage={theCase.escalation_stage}
               currentStatus={theCase.status}
+              hasOutcome={Boolean(theCase.outcome_satisfaction)}
             />
           </div>
         </div>
@@ -251,6 +254,12 @@ export default async function CasePage({
             {theCase.priority.charAt(0).toUpperCase() + theCase.priority.slice(1)} priority
           </Badge>
         </div>
+
+        {/* Outcome prompt banner for closed/resolved cases without outcome */}
+        {(theCase.status === "resolved" || theCase.status === "closed") &&
+          !theCase.outcome_satisfaction && (
+            <MissingOutcomeBanner caseId={id} />
+          )}
 
         {/* Escalation stage stepper */}
         <div className="overflow-x-auto pb-1">
@@ -535,6 +544,20 @@ export default async function CasePage({
             </Card>
           )}
 
+          {/* Outcome summary */}
+          {theCase.outcome_satisfaction && (
+            <OutcomeSummaryCard
+              theCase={{
+                id: theCase.id,
+                outcome_satisfaction: theCase.outcome_satisfaction,
+                outcome_resolution_type: theCase.outcome_resolution_type,
+                outcome_amount_pence: theCase.outcome_amount_pence,
+                outcome_notes: theCase.outcome_notes,
+                resolved_at: theCase.resolved_at,
+              }}
+            />
+          )}
+
           {/* AI Suggestion (lazy-loaded client component) */}
           <AISuggestion
             caseId={id}
@@ -572,6 +595,18 @@ export default async function CasePage({
 }
 
 // --- Inline sub-components ---
+
+function MissingOutcomeBanner({ caseId }: { caseId: string }) {
+  return (
+    <div className="flex items-center justify-between gap-3 rounded-md border border-blue-200 bg-blue-50 px-4 py-3 text-sm text-blue-900">
+      <p>
+        How did this case end?{" "}
+        <span className="font-medium">Record your outcome</span> to help other consumers know what to expect.
+      </p>
+      <RecordOutcomeButton caseId={caseId} />
+    </div>
+  );
+}
 
 function InteractionTable({ interactions }: { interactions: Interaction[] }) {
   const CHANNEL_ICONS: Record<string, string> = {
