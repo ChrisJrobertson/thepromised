@@ -2,7 +2,7 @@ import { differenceInDays, format, isPast, isToday } from "date-fns";
 import { enGB } from "date-fns/locale";
 import { NextResponse } from "next/server";
 
-import { sendReminderDigest, sendEscalationAlert, sendPromiseBroken } from "@/lib/email/send";
+import { sendReminderDigest, sendEscalationAlert, sendPromiseBroken, sendActivityNudge } from "@/lib/email/send";
 import { EMAIL_FROM, getResendClient } from "@/lib/email/client";
 import { createServiceRoleClient } from "@/lib/supabase/admin";
 import type { ReminderInsert } from "@/types/database";
@@ -26,6 +26,7 @@ export async function GET(request: Request) {
     promise_alerts_created: 0,
     promise_emails_sent: 0,
     deadline_alerts_created: 0,
+    activity_nudges_sent: 0,
     b2b_sla_alerts_sent: 0,
   };
 
@@ -374,7 +375,82 @@ export async function GET(request: Request) {
     }
   }
 
-  // ── 5. B2B pipeline SLA alerts for admin ops ───────────────────────────────
+  // ── 5. Activity nudges — cases with no interaction for 7+ days ──────────────
+  const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
+  const threeDaysAgo = new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString();
+
+  type NudgeCase = {
+    id: string;
+    user_id: string;
+    title: string;
+    custom_organisation_name: string | null;
+    organisation_id: string | null;
+    last_interaction_at: string | null;
+    nudge_sent_at: string | null;
+    created_at: string | null;
+  };
+
+  const { data: nudgeCasesRaw } = await supabase
+    .from("cases")
+    .select("id, user_id, title, custom_organisation_name, organisation_id, last_interaction_at, nudge_sent_at, created_at")
+    .in("status", ["open", "escalated"])
+    .lt("created_at", threeDaysAgo)
+    .or(`last_interaction_at.is.null,last_interaction_at.lt.${sevenDaysAgo}`)
+    .or(`nudge_sent_at.is.null,nudge_sent_at.lt.${sevenDaysAgo}`);
+
+  const nudgeCases = (nudgeCasesRaw ?? []) as NudgeCase[];
+
+  for (const nudgeCase of nudgeCases) {
+    // Look up user profile and check notification preferences
+    const { data: nudgeProfileRaw } = await supabase
+      .from("profiles")
+      .select("email, full_name, notification_preferences")
+      .eq("id", nudgeCase.user_id)
+      .maybeSingle();
+
+    if (!nudgeProfileRaw) continue;
+
+    const nudgeProfile = nudgeProfileRaw as unknown as {
+      email: string;
+      full_name: string | null;
+      notification_preferences: Record<string, boolean> | null;
+    };
+
+    const notifPrefs = nudgeProfile.notification_preferences;
+    if (notifPrefs && notifPrefs.activity_nudges_enabled === false) continue;
+
+    // Resolve organisation name
+    let nudgeOrgName = nudgeCase.custom_organisation_name ?? "the company";
+    if (nudgeCase.organisation_id) {
+      const { data: nudgeOrgRow } = await supabase
+        .from("organisations")
+        .select("name")
+        .eq("id", nudgeCase.organisation_id)
+        .maybeSingle();
+      if (nudgeOrgRow) nudgeOrgName = (nudgeOrgRow as { name: string }).name;
+    }
+
+    const lastUpdate = nudgeCase.last_interaction_at ?? nudgeCase.created_at ?? now.toISOString();
+    const daysSince = Math.floor((now.getTime() - new Date(lastUpdate).getTime()) / (24 * 60 * 60 * 1000));
+
+    const emailResult = await sendActivityNudge(
+      nudgeProfile.email,
+      nudgeProfile.full_name?.split(" ")[0] ?? "there",
+      nudgeOrgName,
+      nudgeCase.id,
+      daysSince
+    );
+
+    if (emailResult.success) {
+      results.activity_nudges_sent++;
+      await supabase
+        .from("cases")
+        .update({ nudge_sent_at: now.toISOString() } as Record<string, unknown>)
+        .eq("id", nudgeCase.id);
+    }
+  }
+
+  // ── 6. B2B pipeline SLA alerts for admin ops ───────────────────────────────
   const [staleEnquiriesRes, staleContactedRes, stalePilotRes] = await Promise.all([
     supabase
       .from("business_enquiries")

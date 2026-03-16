@@ -48,6 +48,7 @@ export type NotificationPreferences = {
   escalation_window_alerts: boolean;
   weekly_case_summary: boolean;
   product_updates: boolean;
+  activity_nudges_enabled: boolean;
 };
 
 export async function updateNotificationPreferences(

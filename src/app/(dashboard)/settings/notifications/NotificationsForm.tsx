@@ -46,6 +46,13 @@ const NOTIFICATION_OPTIONS: Array<{
     requiresPaid: true,
   },
   {
+    key: "activity_nudges_enabled",
+    label: "Activity nudges",
+    description:
+      "A gentle reminder when you haven't updated a case in 7 days — keeps your timeline complete.",
+    requiresPaid: false,
+  },
+  {
     key: "product_updates",
     label: "Product updates and tips",
     description: "Occasional emails about new features, guides, and complaint tips.",
