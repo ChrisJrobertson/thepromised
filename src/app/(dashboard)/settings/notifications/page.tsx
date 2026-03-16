@@ -35,6 +35,7 @@ export default async function NotificationSettingsPage() {
     promise_deadline_reminders: prefs?.promise_deadline_reminders ?? true,
     escalation_window_alerts: prefs?.escalation_window_alerts ?? true,
     weekly_case_summary: prefs?.weekly_case_summary ?? false,
+    activity_nudges_enabled: prefs?.activity_nudges_enabled ?? true,
     product_updates: prefs?.product_updates ?? true,
   };
 

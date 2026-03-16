@@ -7,6 +7,7 @@ import { ReminderDigestEmail } from "./templates/ReminderDigestEmail";
 import { EscalationAlertEmail } from "./templates/EscalationAlertEmail";
 import { PromiseBrokenEmail } from "./templates/PromiseBrokenEmail";
 import { SubscriptionConfirmEmail } from "./templates/SubscriptionConfirmEmail";
+import { ActivityNudgeEmail } from "./templates/ActivityNudgeEmail";
 
 type ReminderItem = {
   title: string;
@@ -110,6 +111,28 @@ export async function sendPromiseBroken(
       promiseText,
       deadline,
       caseUrl,
+      appUrl: APP_URL,
+    })
+  );
+  return send(email, subject, html);
+}
+
+export async function sendActivityNudge(
+  email: string,
+  name: string,
+  companyName: string,
+  caseId: string,
+  daysSinceLastUpdate: number
+) {
+  const caseUrl = `${APP_URL}/cases/${caseId}`;
+  const subject = `Any updates on your case with ${companyName}?`;
+
+  const html = await render(
+    createElement(ActivityNudgeEmail, {
+      name,
+      companyName,
+      caseUrl,
+      daysSinceLastUpdate,
       appUrl: APP_URL,
     })
   );

@@ -37,6 +37,8 @@ export default async function DashboardPage() {
   const userId = user?.id ?? "";
   const now = new Date().toISOString();
 
+  const sevenDaysAgoIso = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
+
   const [
     { count: activeCases },
     { count: totalCases },
@@ -47,6 +49,7 @@ export default async function DashboardPage() {
     { data: resolvedData },
     { data: escalationCandidates },
     { data: overdueResponses },
+    { data: staleCases },
   ] = await Promise.all([
     supabase
       .from("cases")
@@ -132,6 +135,23 @@ export default async function DashboardPage() {
           id: string;
           title: string;
           response_deadline: string | null;
+          custom_organisation_name: string | null;
+          organisations: { name: string } | null;
+        }[]
+      >(),
+    // Stale active cases (no interaction in 7+ days)
+    supabase
+      .from("cases")
+      .select("id, title, last_interaction_at, custom_organisation_name, organisations(name)")
+      .eq("user_id", userId)
+      .in("status", ["open", "escalated"])
+      .or(`last_interaction_at.is.null,last_interaction_at.lt.${sevenDaysAgoIso}`)
+      .limit(10)
+      .returns<
+        {
+          id: string;
+          title: string;
+          last_interaction_at: string | null;
           custom_organisation_name: string | null;
           organisations: { name: string } | null;
         }[]
@@ -308,6 +328,41 @@ export default async function DashboardPage() {
                   </Link>
                 </li>
               ))}
+            </ul>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Stale case nudges */}
+      {staleCases && staleCases.length > 0 && (
+        <Card className="border-l-4 border-amber-400 bg-amber-50">
+          <CardHeader className="pb-2">
+            <CardTitle className="flex items-center gap-2 text-amber-800 text-sm">
+              <AlertTriangle className="size-4" />
+              Cases needing attention
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <ul className="space-y-2">
+              {staleCases.map((staleCase) => {
+                const orgName = staleCase.organisations?.name ?? staleCase.custom_organisation_name ?? "Company";
+                const daysSince = staleCase.last_interaction_at
+                  ? Math.floor(differenceInDays(today, new Date(staleCase.last_interaction_at)))
+                  : null;
+                return (
+                  <li className="flex items-center justify-between rounded border border-amber-200 bg-white px-3 py-2 text-sm" key={staleCase.id}>
+                    <div>
+                      <p className="font-medium">{orgName}</p>
+                      <p className="text-xs text-amber-700">
+                        {daysSince != null ? `No updates for ${daysSince} day${daysSince === 1 ? "" : "s"}` : "No interactions logged yet"}
+                      </p>
+                    </div>
+                    <Link href={`/cases/${staleCase.id}`}>
+                      <Button size="sm" variant="outline">Update →</Button>
+                    </Link>
+                  </li>
+                );
+              })}
             </ul>
           </CardContent>
         </Card>

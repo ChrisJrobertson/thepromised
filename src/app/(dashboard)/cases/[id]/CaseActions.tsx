@@ -2,9 +2,10 @@
 
 import { ChevronDown } from "lucide-react";
 import Link from "next/link";
-import { useTransition } from "react";
+import { useState, useTransition } from "react";
 import { toast } from "sonner";
 
+import { OutcomeForm } from "@/components/cases/OutcomeForm";
 import { buttonVariants } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -23,19 +24,31 @@ type CaseActionsProps = {
   currentStatus: Case["status"];
   currentPriority: Case["priority"];
   currentStage?: Case["escalation_stage"];
+  hasOutcome?: boolean;
 };
 
 const STATUS_OPTIONS: Case["status"][] = ["open", "escalated", "resolved", "closed"];
 const PRIORITY_OPTIONS: Case["priority"][] = ["low", "medium", "high", "urgent"];
 
+const CLOSING_STATUSES: Case["status"][] = ["resolved", "closed"];
+
 export function CaseActions({
   caseId,
   currentStatus,
   currentPriority,
+  hasOutcome = false,
 }: CaseActionsProps) {
   const [isPending, startTransition] = useTransition();
+  const [outcomeOpen, setOutcomeOpen] = useState(false);
+  const [pendingStatus, setPendingStatus] = useState<Case["status"] | null>(null);
 
   function handleStatusChange(status: Case["status"]) {
+    if (CLOSING_STATUSES.includes(status) && !hasOutcome) {
+      setPendingStatus(status);
+      setOutcomeOpen(true);
+      return;
+    }
+
     startTransition(async () => {
       const result = await updateCaseStatus(caseId, { status });
       if (result?.error) {
@@ -44,6 +57,21 @@ export function CaseActions({
         toast.success(`Status updated to ${status}`);
       }
     });
+  }
+
+  function handleSkipOutcome() {
+    setOutcomeOpen(false);
+    if (pendingStatus) {
+      startTransition(async () => {
+        const result = await updateCaseStatus(caseId, { status: pendingStatus });
+        if (result?.error) {
+          toast.error(result.error);
+        } else {
+          toast.success(`Status updated to ${pendingStatus}`);
+        }
+        setPendingStatus(null);
+      });
+    }
   }
 
   function handlePriorityChange(priority: Case["priority"]) {
@@ -58,6 +86,7 @@ export function CaseActions({
   }
 
   return (
+    <>
     <div className="flex flex-wrap gap-2">
       <Link
         className={buttonVariants({ size: "sm" })}
@@ -114,5 +143,16 @@ export function CaseActions({
         </DropdownMenuContent>
       </DropdownMenu>
     </div>
+
+    <OutcomeForm
+      caseId={caseId}
+      onOpenChange={(open) => {
+        setOutcomeOpen(open);
+        if (!open) setPendingStatus(null);
+      }}
+      onSkip={handleSkipOutcome}
+      open={outcomeOpen}
+    />
+    </>
   );
 }

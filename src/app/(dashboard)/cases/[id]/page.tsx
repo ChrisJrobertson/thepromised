@@ -15,6 +15,9 @@ import { CaseTimeline } from "@/components/cases/CaseTimeline";
 import { EscalationGuide } from "@/components/cases/EscalationGuide";
 import { EvidenceGallery } from "@/components/cases/EvidenceGallery";
 import { ForwardReplyPanel } from "@/components/cases/ForwardReplyPanel";
+import { JourneyStartBanner } from "@/components/cases/JourneyStartBanner";
+import { JourneyTracker } from "@/components/cases/JourneyTracker";
+import { OutcomeSummaryCard } from "@/components/cases/OutcomeSummaryCard";
 import { ResponseTimer } from "@/components/cases/ResponseTimer";
 import { ShareCaseButton } from "@/components/cases/ShareCaseButton";
 import { Badge } from "@/components/ui/badge";
@@ -24,6 +27,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { formatUkDate } from "@/lib/date";
 import { COMPLAINT_PACKS_BY_ID } from "@/lib/packs/config";
 import { createClient } from "@/lib/supabase/server";
+import { getJourneyForCase, getJourneyTemplatesForCategory } from "@/lib/services/journeyService";
 import type { Profile } from "@/types/database";
 import type {
   Case,
@@ -36,6 +40,7 @@ import type {
 } from "@/types/database";
 
 import { CaseActions } from "./CaseActions";
+import { RecordOutcomeButton } from "./RecordOutcomeButton";
 
 export async function generateMetadata({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
@@ -87,13 +92,16 @@ export default async function CasePage({
 
   if (!user) redirect("/login");
 
-  // Fetch profile for AI tier
+  // Fetch profile for AI tier and usage
   const { data: profileData } = await supabase
     .from("profiles")
-    .select("subscription_tier")
+    .select("subscription_tier, ai_suggestions_used, ai_letters_used")
     .eq("id", user.id)
     .maybeSingle();
-  const tier = (profileData as Pick<Profile, "subscription_tier"> | null)?.subscription_tier ?? "free";
+  const typedProfile = profileData as Pick<Profile, "subscription_tier" | "ai_suggestions_used" | "ai_letters_used"> | null;
+  const tier = typedProfile?.subscription_tier ?? "free";
+  const aiSuggestionsUsed = typedProfile?.ai_suggestions_used ?? 0;
+  const aiSuggestionsLimit = tier === "free" ? 3 : tier === "basic" ? 10 : 50;
 
   // Fetch case + organisation in one query
   const { data: caseData } = await supabase
@@ -114,6 +122,8 @@ export default async function CasePage({
     { data: letters },
     { data: reminders },
     { data: escalationRules },
+    caseJourney,
+    availableJourneyTemplates,
   ] = await Promise.all([
     supabase
       .from("interactions")
@@ -147,6 +157,8 @@ export default async function CasePage({
       .select("*")
       .eq("category", theCase.category)
       .order("stage_order", { ascending: true }),
+    getJourneyForCase(id),
+    getJourneyTemplatesForCategory(theCase.category),
   ]);
 
   const orgName =
@@ -229,6 +241,7 @@ export default async function CasePage({
               currentPriority={theCase.priority}
               currentStage={theCase.escalation_stage}
               currentStatus={theCase.status}
+              hasOutcome={Boolean(theCase.outcome_satisfaction)}
             />
           </div>
         </div>
@@ -248,6 +261,12 @@ export default async function CasePage({
             {theCase.priority.charAt(0).toUpperCase() + theCase.priority.slice(1)} priority
           </Badge>
         </div>
+
+        {/* Outcome prompt banner for closed/resolved cases without outcome */}
+        {(theCase.status === "resolved" || theCase.status === "closed") &&
+          !theCase.outcome_satisfaction && (
+            <MissingOutcomeBanner caseId={id} />
+          )}
 
         {/* Escalation stage stepper */}
         <div className="overflow-x-auto pb-1">
@@ -532,8 +551,43 @@ export default async function CasePage({
             </Card>
           )}
 
+          {/* Guided journey tracker or start banner */}
+          {caseJourney && !caseJourney.dismissed && (
+            <JourneyTracker
+              caseId={id}
+              companyName={orgName}
+              journey={caseJourney}
+            />
+          )}
+
+          {!caseJourney && availableJourneyTemplates.length > 0 && availableJourneyTemplates[0] && (
+            <JourneyStartBanner
+              caseId={id}
+              template={availableJourneyTemplates[0]}
+            />
+          )}
+
+          {/* Outcome summary */}
+          {theCase.outcome_satisfaction && (
+            <OutcomeSummaryCard
+              theCase={{
+                id: theCase.id,
+                outcome_satisfaction: theCase.outcome_satisfaction,
+                outcome_resolution_type: theCase.outcome_resolution_type,
+                outcome_amount_pence: theCase.outcome_amount_pence,
+                outcome_notes: theCase.outcome_notes,
+                resolved_at: theCase.resolved_at,
+              }}
+            />
+          )}
+
           {/* AI Suggestion (lazy-loaded client component) */}
-          <AISuggestion caseId={id} tier={tier} />
+          <AISuggestion
+            caseId={id}
+            tier={tier}
+            suggestionsUsed={aiSuggestionsUsed}
+            suggestionsLimit={aiSuggestionsLimit}
+          />
 
           {/* Quick actions */}
           <Card>
@@ -564,6 +618,18 @@ export default async function CasePage({
 }
 
 // --- Inline sub-components ---
+
+function MissingOutcomeBanner({ caseId }: { caseId: string }) {
+  return (
+    <div className="flex items-center justify-between gap-3 rounded-md border border-blue-200 bg-blue-50 px-4 py-3 text-sm text-blue-900">
+      <p>
+        How did this case end?{" "}
+        <span className="font-medium">Record your outcome</span> to help other consumers know what to expect.
+      </p>
+      <RecordOutcomeButton caseId={caseId} />
+    </div>
+  );
+}
 
 function InteractionTable({ interactions }: { interactions: Interaction[] }) {
   const CHANNEL_ICONS: Record<string, string> = {

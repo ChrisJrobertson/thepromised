@@ -26,11 +26,20 @@ export function canUseAI(profile: Profile, feature: AiFeature): boolean {
   const tier = profile.subscription_tier;
   const limit = AI_LIMITS[tier][feature];
   if (limit === 0) return false;
+  if (feature === "suggestions") return profile.ai_suggestions_used < limit;
+  if (feature === "letters") return profile.ai_letters_used < limit;
   return profile.ai_credits_used < limit;
 }
 
 export function canViewAISuggestions(profile: Profile): boolean {
-  return profile.subscription_tier !== "free";
+  return true; // Free tier now gets 3 suggestions/month
+}
+
+export function getRemainingAI(profile: Profile, feature: AiFeature): { used: number; limit: number; remaining: number } {
+  const tier = profile.subscription_tier;
+  const limit = AI_LIMITS[tier][feature];
+  const used = feature === "suggestions" ? profile.ai_suggestions_used : feature === "letters" ? profile.ai_letters_used : profile.ai_credits_used;
+  return { used, limit, remaining: Math.max(0, limit - used) };
 }
 
 // ── Voice memos (Pro only) ─────────────────────────────────────────────────────
@@ -74,11 +83,13 @@ export function getUpgradeReason(
       return null;
     case "ai":
       if (profile.subscription_tier === "free") {
-        return {
-          blocked: true,
-          reason: "AI features require Basic or Pro.",
-          requiredTier: "basic",
-        };
+        if (profile.ai_suggestions_used >= AI_LIMITS.free.suggestions) {
+          return {
+            blocked: true,
+            reason: `You've used your ${AI_LIMITS.free.suggestions} free AI suggestions this month. Upgrade for unlimited suggestions, or wait until next month.`,
+            requiredTier: "basic",
+          };
+        }
       }
       return null;
     case "voice":

@@ -36,6 +36,16 @@ export const AI_PROMPTS = {
   summarise: `${BASE_SYSTEM}\n\nSummarise the following interaction note into one clear, factual sentence. Output only the summary sentence with no preamble.`,
 };
 
+// Journey-specific AI letter prompt contexts
+// These are appended as additional instructions when generating letters for guided journeys
+export const JOURNEY_LETTER_CONTEXTS: Record<string, string> = {
+  energy_billing_initial: `This is a formal complaint about an energy billing error. Reference the customer's specific billing dispute from the case data. Cite the customer's right to accurate billing under Ofgem's Standards of Conduct (SLC 0 and SLC 25). State clearly what resolution the customer is seeking (refund of overcharges, bill correction, compensation). Request a written response within 14 days. Mention that failure to resolve will result in escalation to the Energy Ombudsman. Tone: firm but professional. Do NOT use threatening language.`,
+
+  energy_billing_followup: `This is a follow-up to a previous complaint about energy billing that was either not responded to or not resolved satisfactorily. Reference the original complaint date and any reference numbers from the case timeline. Note that the supplier has failed to meet their obligations under Ofgem's Standards of Conduct. State that the customer considers this complaint unresolved and will escalate to the Energy Ombudsman if not resolved within a further 14 days. If the supplier made a partial offer, explain why it is inadequate. Tone: firmer than the initial letter, referencing the pattern of inadequate response.`,
+
+  energy_billing_ombudsman: `This is a referral to the Energy Ombudsman. Summarise the complaint chronology: when the initial complaint was made, what responses (if any) were received, what follow-up was sent, and why the matter remains unresolved. Reference all broken promises from the case data. State clearly what outcome the customer is seeking. Note that 8 weeks have passed (or a deadlock letter was received). Format for submission alongside the case PDF export. Tone: factual and thorough — this is for an adjudicator, not the company.`,
+};
+
 export function buildCaseAnalysisPrompt(caseContext: {
   title: string;
   category: string;

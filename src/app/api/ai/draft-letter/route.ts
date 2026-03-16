@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 
 import { CLAUDE_MODELS, anthropic } from "@/lib/ai/client";
-import { LETTER_SYSTEM, buildLetterPrompt } from "@/lib/ai/prompts";
+import { LETTER_SYSTEM, buildLetterPrompt, JOURNEY_LETTER_CONTEXTS } from "@/lib/ai/prompts";
 import { getTemplate } from "@/lib/ai/letter-templates";
 import { trackServerEvent } from "@/lib/analytics/posthog-server";
 import { enforcePackScopedCaseAccess } from "@/lib/packs/access";
@@ -16,6 +16,7 @@ const inputSchema = z.object({
   caseId: z.string().uuid(),
   letterType: z.string().min(1),
   additionalInstructions: z.string().max(500).optional(),
+  journeyPromptContext: z.string().optional(), // e.g. 'energy_billing_initial'
 });
 
 export async function POST(request: Request) {
@@ -45,7 +46,7 @@ export async function POST(request: Request) {
     }
 
     const json = await request.json();
-    const { caseId, letterType, additionalInstructions } = inputSchema.parse(json);
+    const { caseId, letterType, additionalInstructions, journeyPromptContext } = inputSchema.parse(json);
 
     // Profile + tier check
     const { data: profileData } = await supabase
@@ -60,28 +61,24 @@ export async function POST(request: Request) {
     const profile = profileData as Profile;
     const tier = profile.subscription_tier;
     const tierLimits = {
-      free: { suggestions: 0, letters: 0 },
+      free: { suggestions: 3, letters: 1 },
       basic: { suggestions: 10, letters: 5 },
       pro: { suggestions: 50, letters: 30 },
     } as const;
     const limits = tierLimits[tier] ?? tierLimits.free;
     const limit = limits.letters;
 
-    if (limit === 0) {
-      return NextResponse.json(
-        {
-          error: "upgrade_required",
-          message: "AI letter drafting requires a Basic or Pro plan.",
-          requiredTier: "basic",
-        },
-        { status: 403 }
-      );
-    }
-
     if (profile.ai_letters_used >= limit) {
+      const isFree = tier === "free";
       return NextResponse.json(
         {
-          error: "Monthly AI credit limit reached. Upgrade your plan for more.",
+          error: "credits_exhausted",
+          message: isFree
+            ? "You've used your free AI letter this month. Upgrade or purchase a complaint pack for more."
+            : "Monthly AI letter limit reached. Upgrade your plan for more.",
+          requiredTier: isFree ? "basic" : "pro",
+          creditsUsed: profile.ai_letters_used,
+          creditsLimit: limit,
         },
         { status: 403 }
       );
@@ -174,7 +171,10 @@ export async function POST(request: Request) {
         promiseFulfilled: i.promise_fulfilled,
         referenceNumber: i.reference_number,
       })),
-      additionalInstructions,
+      additionalInstructions: [
+        additionalInstructions,
+        journeyPromptContext ? JOURNEY_LETTER_CONTEXTS[journeyPromptContext] : undefined,
+      ].filter(Boolean).join("\n\n") || undefined,
     });
 
     // Call Claude
