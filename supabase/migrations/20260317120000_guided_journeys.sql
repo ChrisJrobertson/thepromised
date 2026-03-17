@@ -37,23 +37,26 @@ CREATE INDEX IF NOT EXISTS user_journeys_case_id_idx ON user_journeys (case_id);
 ALTER TABLE journey_templates ENABLE ROW LEVEL SECURITY;
 ALTER TABLE user_journeys ENABLE ROW LEVEL SECURITY;
 
--- Templates are public (all authenticated users can read them).
+-- Drop if exists so migration is idempotent (policy may exist from 20260316160000).
+DROP POLICY IF EXISTS "Authenticated users can read journey templates" ON journey_templates;
 CREATE POLICY "Authenticated users can read journey templates"
   ON journey_templates FOR SELECT
   TO authenticated
   USING (is_active = true);
 
--- Users can only see their own journeys.
+DROP POLICY IF EXISTS "Users can view own journeys" ON user_journeys;
 CREATE POLICY "Users can view own journeys"
   ON user_journeys FOR SELECT
   TO authenticated
   USING (auth.uid() = user_id);
 
+DROP POLICY IF EXISTS "Users can insert own journeys" ON user_journeys;
 CREATE POLICY "Users can insert own journeys"
   ON user_journeys FOR INSERT
   TO authenticated
   WITH CHECK (auth.uid() = user_id);
 
+DROP POLICY IF EXISTS "Users can update own journeys" ON user_journeys;
 CREATE POLICY "Users can update own journeys"
   ON user_journeys FOR UPDATE
   TO authenticated
@@ -69,6 +72,7 @@ BEGIN
 END;
 $$;
 
+DROP TRIGGER IF EXISTS user_journeys_updated_at ON user_journeys;
 CREATE TRIGGER user_journeys_updated_at
   BEFORE UPDATE ON user_journeys
   FOR EACH ROW EXECUTE FUNCTION update_user_journeys_updated_at();
