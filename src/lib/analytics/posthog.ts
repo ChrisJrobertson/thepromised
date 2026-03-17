@@ -1,77 +1,54 @@
 import posthog from "posthog-js";
 
-const POSTHOG_KEY = process.env.NEXT_PUBLIC_POSTHOG_KEY;
-const POSTHOG_HOST =
-  process.env.NEXT_PUBLIC_POSTHOG_HOST ?? "https://eu.i.posthog.com";
+let isInitialised = false;
 
-let initialised = false;
+export function initPostHog(): void {
+  if (isInitialised) return;
+  if (typeof window === "undefined") return;
 
-/**
- * Probe whether the PostHog endpoint is reachable (not blocked by ad/tracking blockers).
- * If the request fails (e.g. net::ERR_BLOCKED_BY_CLIENT), we skip init to avoid
- * posthog-js retrying and spamming the console.
- */
-async function isPostHogReachable(): Promise<boolean> {
-  try {
-    const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), 2000);
-    const res = await fetch(`${POSTHOG_HOST}/i/v0/e/`, {
-      method: "POST",
-      body: "{}",
-      mode: "cors",
-      signal: controller.signal,
-    });
-    clearTimeout(timeout);
-    return res.ok || res.status === 400; // 400 = invalid payload but endpoint reached
-  } catch {
-    return false;
-  }
-}
+  const key = process.env.NEXT_PUBLIC_POSTHOG_KEY;
+  if (!key) return;
 
-export function initPostHog() {
-  if (typeof window === "undefined" || initialised || !POSTHOG_KEY) {
-    return;
-  }
-
-  const consentCookie = document.cookie
-    .split("; ")
-    .find((c) => c.startsWith("tp_consent="));
-  if (consentCookie?.split("=")[1] !== "accepted") {
-    return;
-  }
-
-  void isPostHogReachable().then((ok) => {
-    if (!ok) return; // Ad/tracking blocker or unreachable — skip init to avoid console spam
-    posthog.init(POSTHOG_KEY!, {
-      api_host: POSTHOG_HOST,
-      person_profiles: "identified_only",
-      capture_pageview: true,
-      capture_pageleave: true,
-      persistence: "localStorage",
-    });
-    initialised = true;
+  posthog.init(key, {
+    // Route through our own domain — ad blockers won't see posthog.com
+    api_host: "/ingest",
+    ui_host: "https://eu.posthog.com",
+    // GDPR: only create person profiles for identified (logged-in) users
+    person_profiles: "identified_only",
+    // Don't capture pageviews automatically — we handle this via the PostHogPageView component
+    capture_pageview: false,
+    capture_pageleave: true,
+    // Respect Do Not Track browser setting
+    respect_dnt: true,
+    // Disable session recording unless explicitly enabled in PostHog dashboard
+    disable_session_recording: true,
   });
+
+  isInitialised = true;
 }
 
 export function trackEvent(
-  event: string,
+  eventName: string,
   properties?: Record<string, unknown>
-) {
-  if (typeof window === "undefined" || !POSTHOG_KEY || !initialised) return;
-  posthog.capture(event, properties);
+): void {
+  if (!isInitialised) return;
+  posthog.capture(eventName, properties);
 }
 
-export function identifyUser(userId: string, email: string, tier?: string) {
-  if (typeof window === "undefined" || !POSTHOG_KEY || !initialised) return;
-  posthog.identify(userId, { email, tier });
+export function identifyUser(
+  userId: string,
+  properties?: Record<string, unknown>
+): void {
+  if (!isInitialised) return;
+  posthog.identify(userId, properties);
 }
 
-export function resetUser() {
-  if (typeof window === "undefined" || !POSTHOG_KEY || !initialised) return;
+export function resetUser(): void {
+  if (!isInitialised) return;
   posthog.reset();
 }
 
-// Typed event helpers
+// Typed event helpers (unchanged event names and properties)
 export const analytics = {
   signUp: (method: "email" | "google") =>
     trackEvent("sign_up", { method }),

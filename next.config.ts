@@ -12,7 +12,13 @@ if (!supabaseUrl || !supabaseAnonKey) {
 }
 
 const nextConfig: NextConfig = {
-  /* config options here */
+  async rewrites() {
+    return [
+      // PostHog proxy — browser sends to our domain so ad blockers don't block
+      { source: "/ingest/static/:path*", destination: "https://eu-assets.i.posthog.com/static/:path*" },
+      { source: "/ingest/:path*", destination: "https://eu.i.posthog.com/:path*" },
+    ];
+  },
 };
 
 export default withSentryConfig(nextConfig, {
