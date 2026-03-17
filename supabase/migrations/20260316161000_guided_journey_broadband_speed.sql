@@ -1,3 +1,20 @@
+-- Ensure journey_templates has required columns (idempotent for differing existing schemas)
+ALTER TABLE journey_templates ADD COLUMN IF NOT EXISTS category TEXT NOT NULL DEFAULT '';
+ALTER TABLE journey_templates ADD COLUMN IF NOT EXISTS title TEXT NOT NULL DEFAULT '';
+ALTER TABLE journey_templates ADD COLUMN IF NOT EXISTS description TEXT;
+ALTER TABLE journey_templates ADD COLUMN IF NOT EXISTS sector TEXT NOT NULL DEFAULT '';
+ALTER TABLE journey_templates ADD COLUMN IF NOT EXISTS steps JSONB NOT NULL DEFAULT '[]';
+ALTER TABLE journey_templates ADD COLUMN IF NOT EXISTS is_active BOOLEAN NOT NULL DEFAULT true;
+ALTER TABLE journey_templates ADD COLUMN IF NOT EXISTS created_at TIMESTAMPTZ NOT NULL DEFAULT now();
+-- If table has "name" (InvestiGator schema), allow NULL/default so our INSERT (title only) works
+DO $$
+BEGIN
+  IF EXISTS (SELECT 1 FROM information_schema.columns WHERE table_schema = 'public' AND table_name = 'journey_templates' AND column_name = 'name') THEN
+    ALTER TABLE journey_templates ALTER COLUMN name DROP NOT NULL;
+    ALTER TABLE journey_templates ALTER COLUMN name SET DEFAULT '';
+  END IF;
+END $$;
+
 -- 11E-1: Broadband Speed guided journey
 INSERT INTO journey_templates (id, category, title, description, sector, is_active, steps) VALUES (
   'broadband-speed',

@@ -10,7 +10,8 @@ COMMENT ON COLUMN cases.outcome_amount_pence IS 'Amount received in pence (store
 COMMENT ON COLUMN cases.resolved_at IS 'When the user recorded the outcome (may differ from status change).';
 
 -- Aggregated outcome stats by company (min 5 resolved for privacy)
-CREATE OR REPLACE VIEW outcome_stats_by_company AS
+DROP VIEW IF EXISTS outcome_stats_by_company;
+CREATE VIEW outcome_stats_by_company AS
 SELECT
   COALESCE(o.name, c.custom_organisation_name) AS company_name,
   COUNT(*) AS total_resolved,
