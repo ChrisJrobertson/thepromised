@@ -23,18 +23,19 @@ type PricingClientProps = {
 
 const FREE_FEATURES = [
   "1 active case",
-  "All interaction channels",
+  "3 AI suggestions/month",
+  "1 AI letter/month",
+  "Basic complaint tracking",
   "Escalation guides (read-only)",
   "Evidence upload",
-  "Basic timeline view",
 ];
 
 const FREE_NOT_INCLUDED = [
   "PDF export",
   "Email reminders",
-  "AI suggestions",
-  "Letter drafting",
+  "Unlimited cases",
   "Voice memos",
+  "Email forwarding parser",
 ];
 
 const BASIC_FEATURES = [
@@ -73,8 +74,8 @@ const COMPARISON_ROWS: Array<{
   { feature: "Delivery tracking", free: false, basic: true, pro: true },
   { feature: "Timeline PDF export", free: false, basic: true, pro: true },
   { feature: "Full case file PDF", free: false, basic: false, pro: true },
-  { feature: "AI suggestions/month", free: "0", basic: "10", pro: "50" },
-  { feature: "AI letters/month", free: "0", basic: "5", pro: "30" },
+  { feature: "AI suggestions/month", free: "3", basic: "10", pro: "50" },
+  { feature: "AI letters/month", free: "1", basic: "5", pro: "30" },
   { feature: "Response timer", free: false, basic: true, pro: true },
   { feature: "Shareable case links", free: false, basic: true, pro: true },
   { feature: "Priority support", free: false, basic: false, pro: true },
@@ -90,8 +91,12 @@ const FAQS: Array<{ q: string; a: string }> = [
     a: "Each complaint you're tracking is a case — for example, a billing dispute with British Gas is one case, and a PIP appeal with DWP is another. On the free plan, you can have 1 active case at a time.",
   },
   {
+    q: "Does the free plan include AI?",
+    a: "Yes — the free plan includes 3 AI case analyses and 1 AI-drafted letter per month so you can experience the product before deciding to upgrade. Credits reset monthly.",
+  },
+  {
     q: "Are AI credits shared between features?",
-    a: "No — AI case analyses and AI letter drafts have separate limits. Your credits reset on your billing date each month.",
+    a: "No — AI case analyses and AI letter drafts have separate limits. Your credits reset on your billing date each month (or monthly for free users).",
   },
   {
     q: "Will my data be deleted if I downgrade?",

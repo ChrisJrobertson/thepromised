@@ -1,4 +1,4 @@
-import { differenceInDays } from "date-fns";
+import { addMonths, differenceInDays } from "date-fns";
 import {
   AlertCircle,
   Clock,
@@ -23,6 +23,7 @@ import { buttonVariants } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { formatUkDate } from "@/lib/date";
+import { AI_LIMITS, type AiTier } from "@/lib/ai/constants";
 import { COMPLAINT_PACKS_BY_ID } from "@/lib/packs/config";
 import { createClient } from "@/lib/supabase/server";
 import type { Profile } from "@/types/database";
@@ -88,13 +89,32 @@ export default async function CasePage({
 
   if (!user) redirect("/login");
 
-  // Fetch profile for AI tier
+  // Fetch profile for AI tier and credit data
   const { data: profileData } = await supabase
     .from("profiles")
-    .select("subscription_tier")
+    .select("subscription_tier, ai_suggestions_used, ai_letters_used, ai_credits_reset_at")
     .eq("id", user.id)
     .maybeSingle();
-  const tier = (profileData as Pick<Profile, "subscription_tier"> | null)?.subscription_tier ?? "free";
+
+  type ProfileCredits = Pick<Profile, "subscription_tier" | "ai_suggestions_used" | "ai_letters_used" | "ai_credits_reset_at">;
+  const profileCredits = profileData as ProfileCredits | null;
+  const tier = profileCredits?.subscription_tier ?? "free";
+
+  // Lazily reset credit counters if the monthly window has passed
+  // (free users have no invoice.paid event to trigger reset via webhook)
+  let suggestionsUsed = profileCredits?.ai_suggestions_used ?? 0;
+  const resetAt = profileCredits?.ai_credits_reset_at ? new Date(profileCredits.ai_credits_reset_at) : null;
+  if (!resetAt || resetAt < new Date()) {
+    suggestionsUsed = 0;
+    await supabase.from("profiles").update({
+      ai_suggestions_used: 0,
+      ai_letters_used: 0,
+      ai_credits_used: 0,
+      ai_credits_reset_at: addMonths(new Date(), 1).toISOString(),
+    }).eq("id", user.id);
+  }
+
+  const suggestionsLimit = AI_LIMITS[tier as AiTier].suggestions;
 
   // Fetch case + organisation in one query
   const { data: caseData } = await supabase
@@ -537,7 +557,12 @@ export default async function CasePage({
           )}
 
           {/* AI Suggestion (lazy-loaded client component) */}
-          <AISuggestion caseId={id} tier={tier} />
+          <AISuggestion
+            caseId={id}
+            suggestionsLimit={suggestionsLimit}
+            suggestionsUsed={suggestionsUsed}
+            tier={tier}
+          />
 
           {/* Quick actions */}
           <Card>

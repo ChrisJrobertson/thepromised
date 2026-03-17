@@ -1,9 +1,9 @@
+import { addMonths } from "date-fns";
 import { redirect, notFound } from "next/navigation";
 
-import { createClient } from "@/lib/supabase/server";
-import { canUseAI } from "@/lib/stripe/feature-gates";
-import { UpgradePrompt } from "@/components/ui/UpgradePrompt";
+import { AI_LIMITS, type AiTier } from "@/lib/ai/constants";
 import { LETTER_TEMPLATES } from "@/lib/ai/letter-templates";
+import { createClient } from "@/lib/supabase/server";
 import type { Profile } from "@/types/database";
 
 import { LetterWizard } from "./LetterWizard";
@@ -29,12 +29,14 @@ export default async function NewLetterPage({
 
   const { data: profileData } = await supabase
     .from("profiles")
-    .select("*")
+    .select("subscription_tier, ai_letters_used, ai_credits_reset_at")
     .eq("id", user.id)
     .maybeSingle();
 
   if (!profileData) redirect("/login");
-  const profile = profileData as Profile;
+
+  type ProfileCredits = Pick<Profile, "subscription_tier" | "ai_letters_used" | "ai_credits_reset_at">;
+  const profile = profileData as ProfileCredits;
 
   const { data: caseData } = await supabase
     .from("cases")
@@ -56,20 +58,22 @@ export default async function NewLetterPage({
     if (org) orgName = org.name;
   }
 
-  const canUseLetter = canUseAI(profile, "letters");
+  const tier = profile.subscription_tier;
 
-  if (!canUseLetter) {
-    return (
-      <div className="mx-auto max-w-2xl space-y-4 py-8">
-        <h1 className="text-2xl font-semibold">Generate Letter</h1>
-        <UpgradePrompt
-          description="AI letter drafting requires a Basic or Pro plan. Upgrade to draft professional complaint letters instantly."
-          requiredTier="basic"
-          title="Letter drafting requires Basic or Pro"
-        />
-      </div>
-    );
+  // Lazily reset credit counters if the monthly window has passed
+  const resetAt = profile.ai_credits_reset_at ? new Date(profile.ai_credits_reset_at) : null;
+  let lettersUsed = profile.ai_letters_used ?? 0;
+  if (!resetAt || resetAt < new Date()) {
+    lettersUsed = 0;
+    await supabase.from("profiles").update({
+      ai_suggestions_used: 0,
+      ai_letters_used: 0,
+      ai_credits_used: 0,
+      ai_credits_reset_at: addMonths(new Date(), 1).toISOString(),
+    }).eq("id", user.id);
   }
+
+  const lettersLimit = AI_LIMITS[tier as AiTier].letters;
 
   const preselectedType = sp.type ?? null;
 
@@ -85,8 +89,11 @@ export default async function NewLetterPage({
 
       <LetterWizard
         caseId={id}
+        lettersLimit={lettersLimit}
+        lettersUsed={lettersUsed}
         preselectedType={preselectedType}
         templates={LETTER_TEMPLATES}
+        tier={tier as "free" | "basic" | "pro"}
       />
     </div>
   );

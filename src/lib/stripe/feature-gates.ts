@@ -1,8 +1,7 @@
 import type { Profile } from "@/types/database";
-import { AI_LIMITS } from "@/lib/ai/constants";
+import { AI_LIMITS, type AiTier, type AiFeature } from "@/lib/ai/constants";
 
 type ExportType = "full_case" | "timeline_only" | "letters_only";
-type AiFeature = "suggestions" | "letters";
 
 // ── Case creation ──────────────────────────────────────────────────────────────
 export function canCreateCase(profile: Profile): boolean {
@@ -23,14 +22,20 @@ export function canExportPDF(profile: Profile, exportType: ExportType): boolean 
 
 // ── AI features ────────────────────────────────────────────────────────────────
 export function canUseAI(profile: Profile, feature: AiFeature): boolean {
-  const tier = profile.subscription_tier;
+  const tier = profile.subscription_tier as AiTier;
   const limit = AI_LIMITS[tier][feature];
-  if (limit === 0) return false;
-  return profile.ai_credits_used < limit;
+  if (feature === "letters") {
+    return profile.ai_letters_used < limit;
+  }
+  // suggestions and summaries both use the ai_suggestions_used counter
+  return profile.ai_suggestions_used < limit;
 }
 
 export function canViewAISuggestions(profile: Profile): boolean {
-  return profile.subscription_tier !== "free";
+  // Free users can view AI suggestions up to their monthly limit.
+  const tier = profile.subscription_tier as AiTier;
+  const limit = AI_LIMITS[tier].suggestions;
+  return profile.ai_suggestions_used < limit;
 }
 
 // ── Voice memos (Pro only) ─────────────────────────────────────────────────────
@@ -72,15 +77,21 @@ export function getUpgradeReason(
         };
       }
       return null;
-    case "ai":
-      if (profile.subscription_tier === "free") {
+    case "ai": {
+      const tier = profile.subscription_tier as AiTier;
+      const limit = AI_LIMITS[tier].suggestions;
+      if (profile.ai_suggestions_used >= limit) {
         return {
           blocked: true,
-          reason: "AI features require Basic or Pro.",
-          requiredTier: "basic",
+          reason:
+            tier === "free"
+              ? `You've used your ${limit} free AI suggestions this month. Upgrade for more.`
+              : "Monthly AI credit limit reached. Upgrade your plan for more.",
+          requiredTier: tier === "free" ? "basic" : "pro",
         };
       }
       return null;
+    }
     case "voice":
       if (profile.subscription_tier !== "pro") {
         return {

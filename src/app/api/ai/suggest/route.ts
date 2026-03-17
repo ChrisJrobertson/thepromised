@@ -3,6 +3,8 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 
 import { CLAUDE_MODEL, anthropic } from "@/lib/ai/client";
+import { AI_LIMITS } from "@/lib/ai/constants";
+import { ensureCreditsResetIfDue } from "@/lib/ai/credits";
 import { CASE_ANALYSIS_SYSTEM, buildCaseAnalysisPrompt } from "@/lib/ai/prompts";
 import { trackServerEvent } from "@/lib/analytics/posthog-server";
 import { enforcePackScopedCaseAccess } from "@/lib/packs/access";
@@ -63,28 +65,18 @@ export async function POST(request: Request) {
     }
     const profile = profileData as Profile;
     const tier = profile.subscription_tier;
-    const tierLimits = {
-      free: { suggestions: 0, letters: 0 },
-      basic: { suggestions: 10, letters: 5 },
-      pro: { suggestions: 50, letters: 30 },
-    } as const;
-    const limits = tierLimits[tier] ?? tierLimits.free;
+    const limits = AI_LIMITS[tier] ?? AI_LIMITS.free;
 
-    if (limits.suggestions === 0) {
+    // Lazy monthly reset for users without Stripe subscriptions (e.g. free tier)
+    const { ai_suggestions_used } = await ensureCreditsResetIfDue(profile, user.id, supabase);
+
+    if (ai_suggestions_used >= limits.suggestions) {
       return NextResponse.json(
         {
-          error: "upgrade_required",
-          message: "AI case analysis is not available on the free plan. Upgrade to Basic or Pro.",
-          requiredTier: "basic",
-        },
-        { status: 403 }
-      );
-    }
-
-    if (profile.ai_suggestions_used >= limits.suggestions) {
-      return NextResponse.json(
-        {
-          error: "Monthly AI credit limit reached. Upgrade your plan for more.",
+          error: "credits_exhausted",
+          message: `You've used all ${limits.suggestions} AI ${tier === "free" ? "free " : ""}case analyses this month.`,
+          creditsUsed: ai_suggestions_used,
+          creditsLimit: limits.suggestions,
         },
         { status: 403 }
       );
@@ -206,11 +198,13 @@ export async function POST(request: Request) {
       };
     }
 
+    const newSuggestionsUsed = ai_suggestions_used + 1;
+
     // Increment credits after successful model call
     await supabase
       .from("profiles")
       .update({
-        ai_suggestions_used: profile.ai_suggestions_used + 1,
+        ai_suggestions_used: newSuggestionsUsed,
         ai_credits_used: profile.ai_credits_used + 1,
       })
       .eq("id", user.id);
@@ -219,7 +213,7 @@ export async function POST(request: Request) {
 
     return NextResponse.json({
       suggestion: parsed,
-      creditsUsed: profile.ai_suggestions_used + 1,
+      creditsUsed: newSuggestionsUsed,
       creditsLimit: limits.suggestions,
     });
   } catch (error) {
