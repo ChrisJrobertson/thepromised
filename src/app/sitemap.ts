@@ -55,7 +55,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     priority: 0.85,
   }));
 
-  const companyScorecards = await getPublicScorecardIndex(5);
+  const companyScorecards = await getPublicScorecardIndex(1);
   const companyRoutes: MetadataRoute.Sitemap = companyScorecards.map((card) => ({
     url: `${baseUrl}/companies/${card.slug}`,
     lastModified: new Date(),

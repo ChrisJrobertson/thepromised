@@ -17,9 +17,8 @@ function getRedis(): Redis | null {
 
 let _aiLimiter: Ratelimit | null = null;
 let _enquiryLimiter: Ratelimit | null = null;
-let _generalLimiter: Ratelimit | null = null;
 
-function getLimiter(type: "ai" | "enquiry" | "general"): Ratelimit | null {
+function getLimiter(type: "ai" | "enquiry"): Ratelimit | null {
   const redis = getRedis();
   if (!redis) return null;
 
@@ -35,27 +34,15 @@ function getLimiter(type: "ai" | "enquiry" | "general"): Ratelimit | null {
     return _aiLimiter;
   }
 
-  if (type === "enquiry") {
-    if (!_enquiryLimiter) {
-      _enquiryLimiter = new Ratelimit({
-        redis,
-        limiter: Ratelimit.slidingWindow(5, "1 h"),
-        analytics: true,
-        prefix: "ratelimit:enquiry",
-      });
-    }
-    return _enquiryLimiter;
-  }
-
-  if (!_generalLimiter) {
-    _generalLimiter = new Ratelimit({
+  if (!_enquiryLimiter) {
+    _enquiryLimiter = new Ratelimit({
       redis,
-      limiter: Ratelimit.slidingWindow(60, "60 s"),
+      limiter: Ratelimit.slidingWindow(5, "1 h"),
       analytics: true,
-      prefix: "ratelimit:general",
+      prefix: "ratelimit:enquiry",
     });
   }
-  return _generalLimiter;
+  return _enquiryLimiter;
 }
 
 export type RateLimitResult = {
@@ -75,7 +62,7 @@ export type RateLimitResult = {
  */
 export async function checkRateLimit(
   identifier: string,
-  type: "ai" | "enquiry" | "general" = "general"
+  type: "ai" | "enquiry"
 ): Promise<RateLimitResult> {
   const limiter = getLimiter(type);
 

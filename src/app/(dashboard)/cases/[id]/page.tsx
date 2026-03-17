@@ -1,29 +1,28 @@
 import { differenceInDays } from "date-fns";
 import {
   AlertCircle,
-  Clock,
   Download,
-  Edit,
   FileText,
-  MessageSquare,
 } from "lucide-react";
 import Link from "next/link";
+import dynamic from "next/dynamic";
 import { notFound, redirect } from "next/navigation";
 
-import { AISuggestion } from "@/components/cases/AISuggestion";
-import { CaseTimeline } from "@/components/cases/CaseTimeline";
-import { EscalationGuide } from "@/components/cases/EscalationGuide";
-import { JOURNEY_TEMPLATES } from "@/lib/journeys/templates";
-import { EvidenceGallery } from "@/components/cases/EvidenceGallery";
-import { ForwardReplyPanel } from "@/components/cases/ForwardReplyPanel";
-import { ResponseTimer } from "@/components/cases/ResponseTimer";
 import { MarkResolvedButton } from "@/components/cases/MarkResolvedButton";
 import { ShareCaseButton } from "@/components/cases/ShareCaseButton";
+
+// Conditionally-rendered heavy client components — code-split into separate chunks
+const ResponseTimer = dynamic(() =>
+  import("@/components/cases/ResponseTimer").then((m) => ({ default: m.ResponseTimer }))
+);
+const ForwardReplyPanel = dynamic(() =>
+  import("@/components/cases/ForwardReplyPanel").then((m) => ({ default: m.ForwardReplyPanel }))
+);
 import { Badge } from "@/components/ui/badge";
 import { buttonVariants } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { formatUkDate } from "@/lib/date";
+import { JOURNEY_TEMPLATES } from "@/lib/journeys/templates";
 import { COMPLAINT_PACKS_BY_ID } from "@/lib/packs/config";
 import { createClient } from "@/lib/supabase/server";
 import type { Profile } from "@/types/database";
@@ -36,6 +35,7 @@ import type {
   Organisation,
   Reminder,
 } from "@/types/database";
+import { AISuggestionLazy, CaseTabs } from "./CaseTabs";
 
 import { CaseActions } from "./CaseActions";
 
@@ -389,87 +389,18 @@ export default async function CasePage({
 
       {/* Main content + sidebar */}
       <div className="grid gap-6 lg:grid-cols-[1fr_300px]">
-        {/* Tabs */}
-        <Tabs defaultValue={activeTab}>
-          <TabsList className="w-full justify-start overflow-x-auto">
-            <TabsTrigger value="timeline">
-              <Clock className="mr-1.5 h-4 w-4" />
-              Timeline
-            </TabsTrigger>
-            <TabsTrigger value="interactions">
-              <MessageSquare className="mr-1.5 h-4 w-4" />
-              Interactions
-            </TabsTrigger>
-            <TabsTrigger value="evidence">
-              <FileText className="mr-1.5 h-4 w-4" />
-              Evidence
-            </TabsTrigger>
-            <TabsTrigger value="letters">
-              <Edit className="mr-1.5 h-4 w-4" />
-              Letters
-            </TabsTrigger>
-            <TabsTrigger value="escalation">
-              <AlertCircle className="mr-1.5 h-4 w-4" />
-              Escalation
-            </TabsTrigger>
-          </TabsList>
-
-          <TabsContent className="mt-4" value="timeline">
-            <div className="mb-4 flex items-center justify-between">
-              <p className="text-sm text-muted-foreground">
-                {interactions?.length ?? 0} interactions logged
-              </p>
-              <Link className={buttonVariants({ size: "sm" })} href={`/cases/${id}/interactions/new`}>
-                + Log Interaction
-              </Link>
-            </div>
-            <CaseTimeline
-              caseId={id}
-              interactions={typedInteractions}
-            />
-          </TabsContent>
-
-          <TabsContent className="mt-4" value="interactions">
-            <div className="mb-4 flex items-center justify-between">
-              <p className="text-sm text-muted-foreground">
-                All interactions
-              </p>
-              <Link className={buttonVariants({ size: "sm" })} href={`/cases/${id}/interactions/new`}>
-                + Log Interaction
-              </Link>
-            </div>
-            <InteractionTable interactions={typedInteractions} />
-          </TabsContent>
-
-          <TabsContent className="mt-4" value="evidence">
-            <EvidenceGallery
-              caseId={id}
-              evidence={(evidence ?? []) as Evidence[]}
-            />
-          </TabsContent>
-
-          <TabsContent className="mt-4" value="letters">
-            <div className="mb-4 flex items-center justify-between">
-              <p className="text-sm text-muted-foreground">
-                {letters?.length ?? 0} letter{letters?.length !== 1 ? "s" : ""}
-              </p>
-              <Link className={buttonVariants({ size: "sm" })} href={`/cases/${id}/letters/new`}>
-                + Generate Letter
-              </Link>
-            </div>
-            <LettersList caseId={id} letters={(letters ?? []) as Letter[]} />
-          </TabsContent>
-
-          <TabsContent className="mt-4" value="escalation">
-            <EscalationGuide
-              caseId={id}
-              category={theCase.category}
-              currentStage={theCase.escalation_stage}
-              firstContactDate={theCase.first_contact_date}
-              rules={(escalationRules ?? []) as EscalationRule[]}
-            />
-          </TabsContent>
-        </Tabs>
+        {/* Tabs — heavy tab components are lazy-loaded on first activation */}
+        <CaseTabs
+          caseId={id}
+          defaultTab={activeTab}
+          interactions={typedInteractions}
+          evidence={(evidence ?? []) as Evidence[]}
+          letters={(letters ?? []) as Letter[]}
+          escalationRules={(escalationRules ?? []) as EscalationRule[]}
+          caseCategory={theCase.category}
+          caseEscalationStage={theCase.escalation_stage}
+          caseFirstContactDate={theCase.first_contact_date}
+        />
 
         {/* Right sidebar */}
         <aside className="hidden space-y-4 lg:block">
@@ -560,8 +491,8 @@ export default async function CasePage({
             </Card>
           )}
 
-          {/* AI Suggestion (lazy-loaded client component) */}
-          <AISuggestion caseId={id} tier={tier} />
+          {/* AI Suggestion — dynamically loaded client component */}
+          <AISuggestionLazy caseId={id} tier={tier} />
 
           {/* Quick actions */}
           <Card>
@@ -591,115 +522,3 @@ export default async function CasePage({
   );
 }
 
-// --- Inline sub-components ---
-
-function InteractionTable({ interactions }: { interactions: Interaction[] }) {
-  const CHANNEL_ICONS: Record<string, string> = {
-    phone: "📞",
-    email: "✉️",
-    letter: "📄",
-    webchat: "💬",
-    in_person: "🤝",
-    social_media: "📱",
-    app: "📲",
-    other: "📋",
-  };
-
-  if (interactions.length === 0) {
-    return (
-      <p className="py-8 text-center text-sm text-muted-foreground">
-        No interactions logged yet.{" "}
-        <Link className="underline" href="?tab=timeline">
-          Log your first interaction.
-        </Link>
-      </p>
-    );
-  }
-
-  return (
-    <div className="space-y-2">
-      {interactions.map((i) => (
-        <Card key={i.id}>
-          <CardContent className="p-3 text-sm">
-            <div className="flex items-start justify-between gap-2">
-              <div className="flex items-center gap-2">
-                <span className="text-lg">{CHANNEL_ICONS[i.channel] ?? "📋"}</span>
-                <div>
-                  <p className="font-medium">
-                    {i.direction === "outbound" ? "You → them" : "Them → you"}
-                    {i.contact_name ? ` · ${i.contact_name}` : ""}
-                  </p>
-                  <p className="text-xs text-muted-foreground">
-                    {formatUkDate(i.interaction_date)}
-                    {i.duration_minutes ? ` · ${i.duration_minutes} min` : ""}
-                  </p>
-                </div>
-              </div>
-              {i.outcome && (
-                <Badge variant="outline">{i.outcome.replace(/_/g, " ")}</Badge>
-              )}
-            </div>
-            <p className="mt-2 text-xs text-muted-foreground line-clamp-2">{i.summary}</p>
-            {i.promises_made && (
-              <p className="mt-1 rounded-sm border border-amber-200 bg-amber-50 px-2 py-1 text-xs text-amber-800">
-                Promise: {i.promises_made}
-              </p>
-            )}
-          </CardContent>
-        </Card>
-      ))}
-    </div>
-  );
-}
-
-function LettersList({ caseId, letters }: { caseId: string; letters: Letter[] }) {
-  const STATUS_COLOURS: Record<string, string> = {
-    draft: "border-muted bg-muted/50 text-muted-foreground",
-    sent: "border-blue-200 bg-blue-50 text-blue-700",
-    delivered: "border-green-200 bg-green-50 text-green-700",
-    opened: "border-teal-200 bg-teal-50 text-teal-700",
-    bounced: "border-red-200 bg-red-50 text-red-700",
-    failed: "border-red-200 bg-red-50 text-red-700",
-    acknowledged: "border-green-200 bg-green-50 text-green-700",
-  };
-
-  if (letters.length === 0) {
-    return (
-      <div className="py-8 text-center text-sm text-muted-foreground">
-        <p>No letters yet.</p>
-        <Link
-          className="mt-2 inline-block underline"
-          href={`/cases/${caseId}/letters/new`}
-        >
-          Generate your first letter
-        </Link>
-      </div>
-    );
-  }
-
-  return (
-    <div className="space-y-2">
-      {letters.map((letter) => (
-        <Card key={letter.id}>
-          <CardContent className="p-3 text-sm">
-            <div className="flex items-start justify-between gap-2">
-              <div>
-                <p className="font-medium">{letter.subject}</p>
-                <p className="text-xs capitalize text-muted-foreground">
-                  {letter.letter_type.replace(/_/g, " ")}
-                  {letter.ai_generated ? " · AI generated" : ""}
-                </p>
-              </div>
-              <Badge
-                className={STATUS_COLOURS[letter.delivery_status ?? letter.status] ?? ""}
-                variant="outline"
-              >
-                {(letter.delivery_status ?? letter.status).replace(/_/g, " ")}
-              </Badge>
-            </div>
-          </CardContent>
-        </Card>
-      ))}
-    </div>
-  );
-}
