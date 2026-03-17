@@ -132,7 +132,10 @@ export async function getPublicScorecardForSlug(slug: string) {
   const { data: organisations, error: orgError } = await supabase
     .from("organisations")
     .select("id, name");
-  if (orgError) throw orgError;
+  if (orgError) {
+    console.error("Scorecard org query failed:", orgError.message);
+    return null;
+  }
 
   const organisationRows = (organisations ?? []) as Array<{ id: string; name: string }>;
   const organisation = organisationRows.find((o) => slugifyCompanyName(o.name) === slug);
@@ -143,7 +146,10 @@ export async function getPublicScorecardForSlug(slug: string) {
     .select("*")
     .eq("organisation_id", organisation.id)
     .maybeSingle();
-  if (statsError) throw statsError;
+  if (statsError) {
+    console.error("Scorecard stats query failed:", statsError.message);
+    return null;
+  }
   if (!stats) return null;
 
   const scorecard = buildScorecard(stats as CompanyStatsRow);
@@ -159,7 +165,10 @@ export async function getPublicScorecardIndex(minCases = 5) {
     .select("*")
     .gte("total_cases", minCases)
     .order("total_cases", { ascending: false });
-  if (error) throw error;
+  if (error) {
+    console.error("Scorecard index query failed:", error.message);
+    return [];
+  }
 
   return ((data ?? []) as CompanyStatsRow[])
     .map((row) => buildScorecard(row))

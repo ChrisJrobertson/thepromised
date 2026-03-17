@@ -154,6 +154,26 @@ export const LETTER_TEMPLATES: LetterTemplate[] = [
     icon: "🔍",
   },
   {
+    type: "formal_notice",
+    name: "Formal Notice (Letter Before Action)",
+    description:
+      "A formal pre-court letter giving the organisation 14 days to resolve the matter or face legal proceedings. This is equivalent to a Letter Before Action.",
+    whenToUse:
+      "Use as a last resort before filing a small claims court claim. Required before most court claims. If you have a letter_before_action already, use that instead — this type is retained for backward compatibility.",
+    requiredFields: [
+      "specific amount claimed (if financial)",
+      "precise description of breach",
+      "legal basis for claim",
+    ],
+    legalReferences: [
+      "Pre-Action Protocol for Debt Claims",
+      "Consumer Rights Act 2015",
+      "Civil Procedure Rules Practice Directions",
+    ],
+    suggestedTone: "Firm and legal — unambiguous intent",
+    icon: "⚖️",
+  },
+  {
     type: "custom",
     name: "Custom Letter",
     description: "A bespoke letter drafted by AI based on your case context and additional instructions.",

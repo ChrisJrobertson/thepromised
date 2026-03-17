@@ -16,13 +16,6 @@ const dmSans = DM_Sans({
   weight: ["700", "800"],
 });
 
-// Note: this was historically declared as "--font-geist-sans" but loads Inter.
-// The variable name is kept for backward-compatibility with any CSS referencing it.
-const geistSans = Inter({
-  variable: "--font-geist-sans",
-  subsets: ["latin"],
-});
-
 const geistMono = Geist_Mono({
   variable: "--font-geist-mono",
   subsets: ["latin"],
@@ -61,7 +54,7 @@ export const metadata: Metadata = {
       "The UK's complaint tracking tool. Log every interaction, get escalation guidance, and export professional case files for ombudsmen and courts.",
     images: [
       {
-        url: "/api/og",
+        url: "/og-image.png",
         width: 1200,
         height: 630,
         alt: "TheyPromised — Track Your Complaints",
@@ -72,7 +65,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "TheyPromised — They Promised. You Proved It.",
     description: "The UK's complaint tracking tool for consumers.",
-    images: ["/api/og"],
+    images: ["/og-image.png"],
   },
   robots: {
     index: true,
@@ -176,7 +169,6 @@ export default function RootLayout({
           type="image/png"
         />
         <meta content="yes" name="mobile-web-app-capable" />
-        <meta content="yes" name="apple-mobile-web-app-capable" />
         <meta
           content="black-translucent"
           name="apple-mobile-web-app-status-bar-style"
@@ -193,7 +185,7 @@ export default function RootLayout({
         />
       </head>
       <body
-        className={`${inter.variable} ${dmSans.variable} ${geistSans.variable} ${geistMono.variable} antialiased`}
+        className={`${inter.variable} ${dmSans.variable} ${geistMono.variable} antialiased`}
       >
         <Providers>{children}</Providers>
       </body>

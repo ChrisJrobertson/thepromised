@@ -63,7 +63,7 @@ export async function POST(request: Request) {
 
   const { data: letter } = await supabase
     .from("letters")
-    .select("id, case_id, user_id")
+    .select("id, case_id, user_id, letter_type, sent_to_email")
     .eq("resend_email_id", payload.data.email_id)
     .maybeSingle();
   if (!letter) {
@@ -109,6 +109,70 @@ export async function POST(request: Request) {
       due_date: now,
       is_sent: false,
     });
+  }
+
+  // Send delivery notification emails to the user (fire-and-forget).
+  if (payload.type === "email.delivered" || payload.type === "email.bounced" || payload.type === "email.complained") {
+    try {
+      const [{ data: profile }, { data: caseRow }] = await Promise.all([
+        supabase
+          .from("profiles")
+          .select("email, full_name")
+          .eq("id", letter.user_id)
+          .maybeSingle(),
+        supabase
+          .from("cases")
+          .select("title, organisation_id")
+          .eq("id", letter.case_id)
+          .maybeSingle(),
+      ]);
+
+      let orgName = (caseRow as { title: string; organisation_id: string | null } | null)?.title ?? "the organisation";
+
+      if ((caseRow as { title: string; organisation_id: string | null } | null)?.organisation_id) {
+        const { data: org } = await supabase
+          .from("organisations")
+          .select("name")
+          .eq("id", (caseRow as { title: string; organisation_id: string }).organisation_id)
+          .maybeSingle();
+        if ((org as { name: string } | null)?.name) {
+          orgName = (org as { name: string }).name;
+        }
+      }
+
+      const userEmail = (profile as { email: string; full_name: string | null } | null)?.email;
+      const userName = (profile as { email: string; full_name: string | null } | null)?.full_name ?? "there";
+      const letterTypeName = (letter as { letter_type: string | null }).letter_type ?? "letter";
+      const recipientEmail = (letter as { sent_to_email: string | null }).sent_to_email ?? "";
+
+      if (userEmail) {
+        const { sendLetterDelivered, sendLetterBounced } = await import("@/lib/email/send");
+
+        if (payload.type === "email.delivered") {
+          await sendLetterDelivered(
+            userEmail,
+            userName,
+            letterTypeName,
+            orgName,
+            recipientEmail,
+            now,
+            letter.case_id
+          );
+        } else {
+          await sendLetterBounced(
+            userEmail,
+            userName,
+            letterTypeName,
+            orgName,
+            recipientEmail,
+            letter.case_id,
+            letter.id
+          );
+        }
+      }
+    } catch {
+      // Email failure must not block the webhook response.
+    }
   }
 
   return NextResponse.json({ ok: true });

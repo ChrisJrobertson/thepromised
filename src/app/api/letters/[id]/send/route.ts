@@ -200,6 +200,27 @@ export async function POST(
       recipient: recipientEmail,
     });
 
+    // Notify the sender that their letter has been sent (fire-and-forget).
+    try {
+      const senderEmail = profile?.email ?? user.email;
+      if (senderEmail) {
+        const senderName =
+          (profile as { email: string; full_name?: string | null } | null)?.full_name ?? "there";
+        const { sendLetterSentConfirm } = await import("@/lib/email/send");
+        await sendLetterSentConfirm(
+          senderEmail,
+          senderName,
+          letter.letter_type ?? "letter",
+          companyName,
+          recipientEmail,
+          letter.case_id,
+          letter.id
+        );
+      }
+    } catch {
+      // Email failure must not fail the letter send response.
+    }
+
     return NextResponse.json({
       ok: true,
       sent_to_email: recipientEmail,

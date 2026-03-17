@@ -13,6 +13,7 @@ import { notFound, redirect } from "next/navigation";
 import { AISuggestion } from "@/components/cases/AISuggestion";
 import { CaseTimeline } from "@/components/cases/CaseTimeline";
 import { EscalationGuide } from "@/components/cases/EscalationGuide";
+import { JOURNEY_TEMPLATES } from "@/lib/journeys/templates";
 import { EvidenceGallery } from "@/components/cases/EvidenceGallery";
 import { ForwardReplyPanel } from "@/components/cases/ForwardReplyPanel";
 import { ResponseTimer } from "@/components/cases/ResponseTimer";
@@ -194,6 +195,10 @@ export default async function CasePage({
 
   const activeTab = sp.tab ?? "timeline";
 
+  const matchingJourney = sp.created
+    ? JOURNEY_TEMPLATES.find((j) => j.category === theCase.category && j.is_active)
+    : null;
+
   return (
     <div className="space-y-6 pb-16">
       {/* Top section */}
@@ -202,6 +207,25 @@ export default async function CasePage({
           <div className="flex items-center gap-2 rounded-md border border-green-200 bg-green-50 px-4 py-3 text-sm text-green-800">
             <AlertCircle className="h-4 w-4 shrink-0" />
             <span>Case created successfully. Start logging your interactions below.</span>
+          </div>
+        )}
+
+        {sp.created && matchingJourney && (
+          <div className="rounded-xl border border-teal-200 bg-teal-50 p-5">
+            <h3 className="font-semibold text-teal-900">Want step-by-step guidance?</h3>
+            <p className="mt-1 text-sm text-teal-700">
+              We have a guided journey for{" "}
+              <strong>{matchingJourney.title.toLowerCase()}</strong> complaints
+              that walks you through exactly what to do and when to escalate.
+            </p>
+            <div className="mt-3">
+              <Link
+                className="inline-flex items-center rounded-lg bg-teal-600 px-4 py-2 text-sm font-semibold text-white hover:bg-teal-700"
+                href="/journeys/new"
+              >
+                Start Guided Journey →
+              </Link>
+            </div>
           </div>
         )}
 

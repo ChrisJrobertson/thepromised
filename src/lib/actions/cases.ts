@@ -236,12 +236,91 @@ export async function updateCaseStatus(
   return { success: true };
 }
 
-export async function closeCase(caseId: string, resolutionSummary?: string) {
-  return updateCaseStatus(caseId, {
+export async function closeCase(
+  caseId: string,
+  resolutionSummary?: string,
+  outcomeType?: string,
+  compensationAmount?: number
+) {
+  const result = await updateCaseStatus(caseId, {
     status: "closed",
     resolved_date: new Date().toISOString(),
     resolution_summary: resolutionSummary ?? null,
   });
+
+  if (result.error) return result;
+
+  // Send case resolved email (fire-and-forget).
+  try {
+    const supabase = await createClient();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+
+    if (user) {
+      const [{ data: caseRow }, { data: profile }] = await Promise.all([
+        supabase
+          .from("cases")
+          .select("title, organisation_id")
+          .eq("id", caseId)
+          .maybeSingle(),
+        supabase
+          .from("profiles")
+          .select("email, full_name")
+          .eq("id", user.id)
+          .maybeSingle(),
+      ]);
+
+      let orgName =
+        (caseRow as { title: string; organisation_id: string | null } | null)?.title ??
+        "the organisation";
+
+      if ((caseRow as { title: string; organisation_id: string | null } | null)?.organisation_id) {
+        const { data: org } = await supabase
+          .from("organisations")
+          .select("name")
+          .eq("id", (caseRow as { title: string; organisation_id: string }).organisation_id)
+          .maybeSingle();
+        if ((org as { name: string } | null)?.name) {
+          orgName = (org as { name: string }).name;
+        }
+      }
+
+      const userEmail = (profile as { email: string; full_name: string | null } | null)?.email;
+      const userName =
+        (profile as { email: string; full_name: string | null } | null)?.full_name ?? "there";
+
+      if (userEmail) {
+        const positiveOutcomes = new Set([
+          "full_resolution",
+          "goodwill_gesture",
+          "ombudsman_upheld",
+          "court_awarded",
+          "court_settled",
+        ]);
+        const outcomeBucket =
+          outcomeType === "partial_resolution"
+            ? "partially"
+            : outcomeType && positiveOutcomes.has(outcomeType)
+              ? "yes"
+              : "no";
+
+        const { sendCaseResolved } = await import("@/lib/email/send");
+        await sendCaseResolved(
+          userEmail,
+          userName,
+          orgName,
+          caseId,
+          outcomeBucket as import("@/lib/email/templates/CaseResolvedEmail").CaseOutcomeBucket,
+          compensationAmount && compensationAmount > 0 ? compensationAmount : undefined
+        );
+      }
+    }
+  } catch {
+    // Email failure must not block the case resolution.
+  }
+
+  return result;
 }
 
 export async function advanceEscalationStage(

@@ -19,7 +19,7 @@ export async function POST(request: Request) {
   const admin = createServiceRoleClient();
   const { data: profile } = await admin
     .from("profiles")
-    .select("stripe_customer_id")
+    .select("stripe_customer_id, email, full_name")
     .eq("id", user.id)
     .maybeSingle();
 
@@ -63,6 +63,25 @@ export async function POST(request: Request) {
 
   await admin.from("profiles").delete().eq("id", user.id);
   await admin.auth.admin.deleteUser(user.id);
+
+  // Send deletion confirmation email (fire-and-forget — address captured before deletion).
+  try {
+    const deletedProfile = profile as {
+      stripe_customer_id: string | null;
+      email: string | null;
+      full_name: string | null;
+    } | null;
+    const recipientEmail = deletedProfile?.email ?? user.email;
+    if (recipientEmail) {
+      const { sendAccountDeleted } = await import("@/lib/email/send");
+      await sendAccountDeleted(
+        recipientEmail,
+        deletedProfile?.full_name ?? "there"
+      );
+    }
+  } catch {
+    // Email failure must not fail the deletion response.
+  }
 
   return NextResponse.json({ ok: true, redirectUrl: "/" });
 }

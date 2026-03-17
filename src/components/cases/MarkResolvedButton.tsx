@@ -95,7 +95,12 @@ export function MarkResolvedButton({ caseId, caseTitle }: MarkResolvedButtonProp
         .filter(Boolean)
         .join(" — ");
 
-      const result = await closeCase(caseId, summary);
+      const result = await closeCase(
+        caseId,
+        summary,
+        data.outcome_type,
+        !isNaN(compensationNum) && compensationNum > 0 ? compensationNum : undefined
+      );
 
       if (result.error) {
         toast.error(result.error);

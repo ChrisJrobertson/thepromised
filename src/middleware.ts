@@ -10,6 +10,8 @@ const PROTECTED_PREFIXES = [
   "/settings",
   "/reminders",
   "/letters",
+  "/packs/success",
+  "/journeys",
 ];
 
 function isProtectedRoute(pathname: string) {

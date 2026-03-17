@@ -34,6 +34,8 @@ export default function robots(): MetadataRoute.Robots {
           "/letters",
           "/callback",
           "/admin",
+          "/journeys",
+          "/packs/success",
         ],
       },
     ],

@@ -113,6 +113,33 @@ export async function POST(request: Request) {
               .eq("id", userId);
           }
 
+          // Send pack purchase confirmation email (fire-and-forget).
+          try {
+            const { data: packProfile } = await supabase
+              .from("profiles")
+              .select("email, full_name")
+              .eq("id", userId)
+              .maybeSingle();
+            if (packProfile) {
+              const expiryFormatted = new Date(entitlementExpiresAt).toLocaleDateString("en-GB", {
+                day: "numeric",
+                month: "long",
+                year: "numeric",
+              });
+              const { sendPackPurchaseConfirm } = await import("@/lib/email/send");
+              await sendPackPurchaseConfirm(
+                (packProfile as { email: string; full_name: string | null }).email,
+                (packProfile as { email: string; full_name: string | null }).full_name ?? "there",
+                (packId as import("@/lib/email/templates/PackPurchaseConfirmEmail").PackType),
+                expiryFormatted,
+                session.amount_total ?? 0,
+                caseId ?? undefined
+              );
+            }
+          } catch {
+            // Email failure must not fail the webhook.
+          }
+
           break;
         }
 
@@ -229,9 +256,11 @@ export async function POST(request: Request) {
       // ── Subscription cancelled ─────────────────────────────────────────────
       case "customer.subscription.deleted": {
         const subscription = event.data.object as Stripe.Subscription;
+
+        // Fetch profile (including tier/email) BEFORE downgrading to free.
         const { data: profileRow } = await supabase
           .from("profiles")
-          .select("id")
+          .select("id, email, full_name, subscription_tier")
           .eq("subscription_id", subscription.id)
           .maybeSingle();
 
@@ -262,6 +291,26 @@ export async function POST(request: Request) {
           trackServerEvent(profileRow.id, "subscription_cancelled", {
             subscription_id: subscription.id,
           });
+
+          // Send cancellation email (fire-and-forget).
+          try {
+            const row = profileRow as {
+              id: string;
+              email: string;
+              full_name: string | null;
+              subscription_tier: string | null;
+            };
+            const tierName =
+              row.subscription_tier === "pro" ? "Pro" : "Basic";
+            const { sendSubscriptionCancelled } = await import("@/lib/email/send");
+            await sendSubscriptionCancelled(
+              row.email,
+              row.full_name ?? "there",
+              tierName
+            );
+          } catch {
+            // Email failure must not fail the webhook.
+          }
         }
 
         break;
