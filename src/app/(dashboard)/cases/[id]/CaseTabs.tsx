@@ -25,11 +25,6 @@ const EscalationGuide = dynamic(
   { ssr: false, loading: () => <TabSkeleton /> }
 );
 
-// Sidebar AI widget — also split since it pulls in the AI client code
-export const AISuggestionLazy = dynamic(
-  () => import("@/components/cases/AISuggestion").then((m) => ({ default: m.AISuggestion })),
-  { ssr: false, loading: () => <div className="h-24 animate-pulse rounded-lg bg-muted" /> }
-);
 
 function TabSkeleton() {
   return (

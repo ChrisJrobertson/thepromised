@@ -28,7 +28,8 @@ import type {
   Organisation,
   Reminder,
 } from "@/types/database";
-import { AISuggestionLazy, CaseTabs } from "./CaseTabs";
+import { AISuggestion } from "@/components/cases/AISuggestion";
+import { CaseTabs } from "./CaseTabs";
 
 import { CaseActions } from "./CaseActions";
 
@@ -484,8 +485,7 @@ export default async function CasePage({
             </Card>
           )}
 
-          {/* AI Suggestion — dynamically loaded client component */}
-          <AISuggestionLazy caseId={id} tier={tier} />
+          <AISuggestion caseId={id} tier={tier} />
 
           {/* Quick actions */}
           <Card>
