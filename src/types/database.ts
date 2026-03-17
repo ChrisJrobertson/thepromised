@@ -104,6 +104,67 @@ export type Database = {
           updated_at?: string | null;
         };
       };
+      monthly_ai_usage: {
+        Row: {
+          id: string;
+          user_id: string;
+          month_year: string;
+          suggestions_used: number;
+          letters_used: number;
+          created_at: string | null;
+          updated_at: string | null;
+        };
+        Insert: {
+          id?: string;
+          user_id: string;
+          month_year: string;
+          suggestions_used?: number;
+          letters_used?: number;
+          created_at?: string | null;
+          updated_at?: string | null;
+        };
+        Update: {
+          id?: string;
+          user_id?: string;
+          month_year?: string;
+          suggestions_used?: number;
+          letters_used?: number;
+          created_at?: string | null;
+          updated_at?: string | null;
+        };
+      };
+      journey_templates: {
+        Row: {
+          id: string;
+          name: string;
+          description: string;
+          category: string;
+          steps: Json;
+          estimated_duration_days: number | null;
+          created_at: string | null;
+          updated_at: string | null;
+        };
+        Insert: {
+          id: string;
+          name: string;
+          description: string;
+          category: string;
+          steps: Json;
+          estimated_duration_days?: number | null;
+          created_at?: string | null;
+          updated_at?: string | null;
+        };
+        Update: {
+          id?: string;
+          name?: string;
+          description?: string;
+          category?: string;
+          steps?: Json;
+          estimated_duration_days?: number | null;
+          created_at?: string | null;
+          updated_at?: string | null;
+        };
+      };
       business_enquiries: {
         Row: {
           id: string;
@@ -437,6 +498,19 @@ export type Database = {
           resolved_date: string | null;
           resolution_summary: string | null;
           compensation_received: number | null;
+          outcome_satisfaction: "yes" | "partially" | "no" | null;
+          outcome_resolution_type:
+            | "refund"
+            | "compensation"
+            | "apology"
+            | "replacement"
+            | "service_fix"
+            | "nothing"
+            | "other"
+            | null;
+          outcome_amount_pence: number | null;
+          outcome_notes: string | null;
+          resolved_at: string | null;
           interaction_count: number;
           share_token: string | null;
           is_shared: boolean | null;
@@ -472,6 +546,19 @@ export type Database = {
           resolved_date?: string | null;
           resolution_summary?: string | null;
           compensation_received?: number | null;
+          outcome_satisfaction?: "yes" | "partially" | "no" | null;
+          outcome_resolution_type?:
+            | "refund"
+            | "compensation"
+            | "apology"
+            | "replacement"
+            | "service_fix"
+            | "nothing"
+            | "other"
+            | null;
+          outcome_amount_pence?: number | null;
+          outcome_notes?: string | null;
+          resolved_at?: string | null;
           interaction_count?: number;
           share_token?: string | null;
           is_shared?: boolean | null;
@@ -507,6 +594,19 @@ export type Database = {
           resolved_date?: string | null;
           resolution_summary?: string | null;
           compensation_received?: number | null;
+          outcome_satisfaction?: "yes" | "partially" | "no" | null;
+          outcome_resolution_type?:
+            | "refund"
+            | "compensation"
+            | "apology"
+            | "replacement"
+            | "service_fix"
+            | "nothing"
+            | "other"
+            | null;
+          outcome_amount_pence?: number | null;
+          outcome_notes?: string | null;
+          resolved_at?: string | null;
           interaction_count?: number;
           share_token?: string | null;
           is_shared?: boolean | null;
@@ -1040,6 +1140,19 @@ export type Database = {
           helpfulness_score: number | null;
           escalation_rate_pct: number | null;
           total_disputed: number | null;
+        };
+      };
+      outcome_stats_by_company: {
+        Row: {
+          company_name: string | null;
+          total_resolved: number;
+          fully_satisfied: number;
+          partially_satisfied: number;
+          not_satisfied: number;
+          refunds: number;
+          compensations: number;
+          avg_amount_pence: number | null;
+          median_amount_pence: number | null;
         };
       };
     };

@@ -8,6 +8,7 @@ import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { UpgradePrompt } from "@/components/ui/UpgradePrompt";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Progress } from "@/components/ui/progress";
@@ -41,6 +42,7 @@ export function LetterWizard({
   const [sentVia, setSentVia] = useState<"email" | "post" | "not_sent">("not_sent");
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [errorType, setErrorType] = useState<string | null>(null);
 
   const selectedTemplate = templates.find((t) => t.type === selectedType);
   const stepProgress = {
@@ -54,6 +56,7 @@ export function LetterWizard({
   async function handleGenerate() {
     setStep("generating");
     setError(null);
+    setErrorType(null);
 
     try {
       const response = await fetch("/api/ai/draft-letter", {
@@ -69,6 +72,7 @@ export function LetterWizard({
       const data = await response.json();
 
       if (!response.ok) {
+        setErrorType(data.error ?? null);
         setError(data.message ?? data.error ?? "Letter generation failed");
         setStep("instructions");
         return;
@@ -181,10 +185,24 @@ export function LetterWizard({
 
       {/* Error banner */}
       {error && (
-        <div className="flex items-start gap-2 rounded-md border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800">
-          <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" />
-          <span>{error}</span>
-        </div>
+        <>
+          {errorType === "letters_exhausted" || errorType === "upgrade_required" ? (
+            <UpgradePrompt
+              description={error}
+              requiredTier="basic"
+              title={
+                errorType === "letters_exhausted"
+                  ? "Free letter used this month"
+                  : "Upgrade required"
+              }
+            />
+          ) : (
+            <div className="flex items-start gap-2 rounded-md border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800">
+              <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" />
+              <span>{error}</span>
+            </div>
+          )}
+        </>
       )}
 
       {/* Step 1: Select letter type */}

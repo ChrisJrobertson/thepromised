@@ -4,6 +4,8 @@ import { z } from "zod";
 
 import { CLAUDE_MODEL, anthropic } from "@/lib/ai/client";
 import { CASE_ANALYSIS_SYSTEM, buildCaseAnalysisPrompt } from "@/lib/ai/prompts";
+import { getMonthlyUsage, incrementMonthlyUsage } from "@/lib/ai/usage";
+import { AI_LIMITS } from "@/lib/ai/constants";
 import { trackServerEvent } from "@/lib/analytics/posthog-server";
 import { enforcePackScopedCaseAccess } from "@/lib/packs/access";
 import { checkRateLimit } from "@/lib/rate-limit";
@@ -63,28 +65,39 @@ export async function POST(request: Request) {
     }
     const profile = profileData as Profile;
     const tier = profile.subscription_tier;
-    const tierLimits = {
-      free: { suggestions: 0, letters: 0 },
-      basic: { suggestions: 10, letters: 5 },
-      pro: { suggestions: 50, letters: 30 },
-    } as const;
-    const limits = tierLimits[tier] ?? tierLimits.free;
+    const limits = AI_LIMITS[tier] ?? AI_LIMITS.free;
+    const suggestionLimit = limits.suggestions;
 
-    if (limits.suggestions === 0) {
+    if (suggestionLimit === 0) {
       return NextResponse.json(
         {
           error: "upgrade_required",
-          message: "AI case analysis is not available on the free plan. Upgrade to Basic or Pro.",
+          message: "AI case analysis is not available on your plan. Upgrade to Basic or Pro.",
           requiredTier: "basic",
         },
         { status: 403 }
       );
     }
 
-    if (profile.ai_suggestions_used >= limits.suggestions) {
+    if (tier === "free") {
+      const monthly = await getMonthlyUsage(supabase, user.id);
+      if (monthly.suggestions_used >= suggestionLimit) {
+        return NextResponse.json(
+          {
+            error: "suggestions_exhausted",
+            message:
+              "You've used your 3 free AI suggestions this month. Upgrade for unlimited suggestions, or wait until next month.",
+            requiredTier: "basic",
+          },
+          { status: 403 }
+        );
+      }
+    } else if (profile.ai_suggestions_used >= suggestionLimit) {
       return NextResponse.json(
         {
-          error: "Monthly AI credit limit reached. Upgrade your plan for more.",
+          error: "suggestions_exhausted",
+          message: "Monthly AI credit limit reached. Upgrade your plan for more.",
+          requiredTier: "basic",
         },
         { status: 403 }
       );
@@ -206,21 +219,29 @@ export async function POST(request: Request) {
       };
     }
 
-    // Increment credits after successful model call
-    await supabase
-      .from("profiles")
-      .update({
-        ai_suggestions_used: profile.ai_suggestions_used + 1,
-        ai_credits_used: profile.ai_credits_used + 1,
-      })
-      .eq("id", user.id);
+    if (tier === "free") {
+      await incrementMonthlyUsage(supabase, user.id, "suggestions");
+    } else {
+      await supabase
+        .from("profiles")
+        .update({
+          ai_suggestions_used: profile.ai_suggestions_used + 1,
+          ai_credits_used: profile.ai_credits_used + 1,
+        })
+        .eq("id", user.id);
+    }
+
+    const creditsUsed =
+      tier === "free"
+        ? (await getMonthlyUsage(supabase, user.id)).suggestions_used
+        : profile.ai_suggestions_used + 1;
 
     trackServerEvent(user.id, "ai_suggestion_requested", { caseId });
 
     return NextResponse.json({
       suggestion: parsed,
-      creditsUsed: profile.ai_suggestions_used + 1,
-      creditsLimit: limits.suggestions,
+      creditsUsed,
+      creditsLimit: suggestionLimit,
     });
   } catch (error) {
     if (error instanceof z.ZodError) {

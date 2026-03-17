@@ -2,9 +2,11 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 
 import { CLAUDE_MODELS, anthropic } from "@/lib/ai/client";
+import { AI_LIMITS } from "@/lib/ai/constants";
 import { getJourneyLetterPrompt } from "@/lib/ai/journey-prompts";
 import { LETTER_SYSTEM, buildLetterPrompt } from "@/lib/ai/prompts";
 import { getTemplate } from "@/lib/ai/letter-templates";
+import { getMonthlyUsage, incrementMonthlyUsage } from "@/lib/ai/usage";
 import { trackServerEvent } from "@/lib/analytics/posthog-server";
 import { enforcePackScopedCaseAccess } from "@/lib/packs/access";
 import { checkRateLimit } from "@/lib/rate-limit";
@@ -17,7 +19,9 @@ const inputSchema = z.object({
   caseId: z.string().uuid(),
   letterType: z.string().min(1),
   additionalInstructions: z.string().max(500).optional(),
+  /** Journey step prompt context key (e.g. broadband_speed_initial). Also accepted as prompt_context for compatibility. */
   promptContext: z.string().max(100).optional(),
+  prompt_context: z.string().max(100).optional(),
 });
 
 export async function POST(request: Request) {
@@ -40,7 +44,8 @@ export async function POST(request: Request) {
     }
 
     const json = await request.json();
-    const { caseId, letterType, additionalInstructions, promptContext } = inputSchema.parse(json);
+    const { caseId, letterType, additionalInstructions, promptContext: promptContextA, prompt_context: promptContextB } = inputSchema.parse(json);
+    const promptContext = promptContextA ?? promptContextB;
 
     // Profile + tier check
     const { data: profileData } = await supabase
@@ -54,15 +59,10 @@ export async function POST(request: Request) {
     }
     const profile = profileData as Profile;
     const tier = profile.subscription_tier;
-    const tierLimits = {
-      free: { suggestions: 0, letters: 0 },
-      basic: { suggestions: 10, letters: 5 },
-      pro: { suggestions: 50, letters: 30 },
-    } as const;
-    const limits = tierLimits[tier] ?? tierLimits.free;
-    const limit = limits.letters;
+    const limits = AI_LIMITS[tier] ?? AI_LIMITS.free;
+    const letterLimit = limits.letters;
 
-    if (limit === 0) {
+    if (letterLimit === 0) {
       return NextResponse.json(
         {
           error: "upgrade_required",
@@ -73,10 +73,25 @@ export async function POST(request: Request) {
       );
     }
 
-    if (profile.ai_letters_used >= limit) {
+    if (tier === "free") {
+      const monthly = await getMonthlyUsage(supabase, user.id);
+      if (monthly.letters_used >= letterLimit) {
+        return NextResponse.json(
+          {
+            error: "letters_exhausted",
+            message:
+              "You've used your free AI letter this month. Upgrade or purchase a complaint pack for more.",
+            requiredTier: "basic",
+          },
+          { status: 403 }
+        );
+      }
+    } else if (profile.ai_letters_used >= letterLimit) {
       return NextResponse.json(
         {
-          error: "Monthly AI credit limit reached. Upgrade your plan for more.",
+          error: "letters_exhausted",
+          message: "Monthly AI credit limit reached. Upgrade your plan for more.",
+          requiredTier: "basic",
         },
         { status: 403 }
       );
@@ -228,14 +243,17 @@ export async function POST(request: Request) {
       );
     }
 
-    // Increment AI counters after successful model call
-    await supabase
-      .from("profiles")
-      .update({
-        ai_letters_used: profile.ai_letters_used + 1,
-        ai_credits_used: profile.ai_credits_used + 1,
-      })
-      .eq("id", user.id);
+    if (tier === "free") {
+      await incrementMonthlyUsage(supabase, user.id, "letters");
+    } else {
+      await supabase
+        .from("profiles")
+        .update({
+          ai_letters_used: profile.ai_letters_used + 1,
+          ai_credits_used: profile.ai_credits_used + 1,
+        })
+        .eq("id", user.id);
+    }
 
     trackServerEvent(user.id, "letter_generated", { letterType, letterId: letter.id });
 

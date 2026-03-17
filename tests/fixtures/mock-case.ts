@@ -44,6 +44,11 @@ export const MOCK_CASE: Case = {
   response_received: false,
   response_received_at: null,
   inbound_email_alias: null,
+  outcome_satisfaction: null,
+  outcome_resolution_type: null,
+  outcome_amount_pence: null,
+  outcome_notes: null,
+  resolved_at: null,
   created_at: "2025-10-15T00:00:00Z",
   updated_at: "2026-03-10T14:30:00Z",
 };

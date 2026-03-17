@@ -11,6 +11,7 @@ import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 
 import { AISuggestion } from "@/components/cases/AISuggestion";
+import { CaseOutcomeBanner } from "@/components/cases/CaseOutcomeBanner";
 import { CaseTimeline } from "@/components/cases/CaseTimeline";
 import { EscalationGuide } from "@/components/cases/EscalationGuide";
 import { EvidenceGallery } from "@/components/cases/EvidenceGallery";
@@ -337,6 +338,8 @@ export default async function CasePage({
             <p className="text-xs text-muted-foreground">In dispute</p>
           </div>
         </div>
+
+        <CaseOutcomeBanner caseId={id} case={theCase} />
 
         {tier === "free" ? (
           <div className="rounded-lg border border-teal-200 bg-teal-50 p-4 text-sm text-teal-900">

@@ -143,11 +143,8 @@ describe("canUseEmailForward", () => {
 });
 
 describe("canViewAISuggestions", () => {
-  it("blocks free users", () => {
-    expect(canViewAISuggestions(makeProfile())).toBe(false);
-  });
-
-  it("allows basic and pro users", () => {
+  it("allows all tiers (free gets 3 suggestions + 1 letter/month)", () => {
+    expect(canViewAISuggestions(makeProfile())).toBe(true);
     expect(canViewAISuggestions(makeProfile({ subscription_tier: "basic" }))).toBe(true);
     expect(canViewAISuggestions(makeProfile({ subscription_tier: "pro" }))).toBe(true);
   });

@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 
 import { trackServerEvent } from "@/lib/analytics/posthog-server";
 import { getPublicScorecardForSlug } from "@/lib/analytics/scorecards";
+import { getCompanyOutcomeStats } from "@/lib/actions/outcomes";
 
 type Params = Promise<{ slug: string }>;
 
@@ -63,6 +64,8 @@ export default async function CompanyScorecardPage({ params }: { params: Params 
     { label: "Resolution Rate", pct: scorecard.resolution_rate_without_ombudsman },
   ];
 
+  const outcomeStats = await getCompanyOutcomeStats(scorecard.company_name);
+
   return (
     <main className="py-12 md:py-16">
       <div className="mx-auto max-w-4xl space-y-8 px-4">
@@ -104,6 +107,58 @@ export default async function CompanyScorecardPage({ params }: { params: Params 
             ).toFixed(1)}%)</p>
           </div>
         </section>
+
+        {outcomeStats && outcomeStats.total_resolved >= 5 ? (
+          <section className="rounded-xl border bg-white p-6 shadow-sm">
+            <h2 className="text-sm font-semibold uppercase tracking-wide text-slate-500">Outcomes</h2>
+            <p className="mt-2 text-slate-600">
+              {outcomeStats.total_resolved} cases resolved on TheyPromised
+            </p>
+            <p className="mt-1 text-slate-600">
+              {outcomeStats.total_resolved > 0
+                ? Math.round(
+                    ((outcomeStats.refunds + outcomeStats.compensations) / outcomeStats.total_resolved) * 100
+                  )
+                : 0}
+              % resulted in a refund or compensation
+            </p>
+            {outcomeStats.avg_amount_pence != null && outcomeStats.avg_amount_pence > 0 && (
+              <p className="mt-1 text-slate-600">
+                Average resolution amount: £{(outcomeStats.avg_amount_pence / 100).toFixed(2)}
+              </p>
+            )}
+            <div className="mt-3 flex h-2 overflow-hidden rounded bg-slate-100">
+              <span
+                className="bg-green-500"
+                style={{
+                  width: `${(outcomeStats.fully_satisfied / outcomeStats.total_resolved) * 100}%`,
+                }}
+                title="Fully satisfied"
+              />
+              <span
+                className="bg-amber-500"
+                style={{
+                  width: `${(outcomeStats.partially_satisfied / outcomeStats.total_resolved) * 100}%`,
+                }}
+                title="Partially satisfied"
+              />
+              <span
+                className="bg-red-500"
+                style={{
+                  width: `${(outcomeStats.not_satisfied / outcomeStats.total_resolved) * 100}%`,
+                }}
+                title="Not satisfied"
+              />
+            </div>
+            <p className="mt-1 text-xs text-slate-500">
+              Satisfaction: green = yes, amber = partially, red = no
+            </p>
+          </section>
+        ) : (
+          <section className="rounded-xl border border-dashed border-slate-200 bg-slate-50/50 p-6 text-center text-sm text-slate-600">
+            <p>Not enough outcome data yet. Resolve your case to contribute.</p>
+          </section>
+        )}
 
         <div className="rounded-lg border bg-slate-50 p-5">
           <p className="mb-3 text-sm">Track your {scorecard.company_name} complaint</p>

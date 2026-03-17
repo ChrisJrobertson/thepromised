@@ -26,11 +26,14 @@ export function canUseAI(profile: Profile, feature: AiFeature): boolean {
   const tier = profile.subscription_tier;
   const limit = AI_LIMITS[tier][feature];
   if (limit === 0) return false;
+  if (tier === "free") return true; // actual limit enforced per calendar month in API
+  if (feature === "suggestions") return profile.ai_suggestions_used < limit;
+  if (feature === "letters") return profile.ai_letters_used < limit;
   return profile.ai_credits_used < limit;
 }
 
 export function canViewAISuggestions(profile: Profile): boolean {
-  return profile.subscription_tier !== "free";
+  return true; // free tier gets 3 suggestions / 1 letter per month; paywall after use
 }
 
 // ── Voice memos (Pro only) ─────────────────────────────────────────────────────
@@ -74,11 +77,7 @@ export function getUpgradeReason(
       return null;
     case "ai":
       if (profile.subscription_tier === "free") {
-        return {
-          blocked: true,
-          reason: "AI features require Basic or Pro.",
-          requiredTier: "basic",
-        };
+        return null; // free gets 3 suggestions + 1 letter/month; API returns specific message when exhausted
       }
       return null;
     case "voice":

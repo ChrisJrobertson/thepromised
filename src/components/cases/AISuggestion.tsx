@@ -12,7 +12,7 @@ import {
   TrendingUp,
 } from "lucide-react";
 import Link from "next/link";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -71,42 +71,27 @@ export function AISuggestion({ caseId, tier = "free" }: AISuggestionProps) {
     used: number;
     limit: number;
   } | null>(null);
+  const [usageLabel, setUsageLabel] = useState<string | null>(null);
 
-  if (tier === "free") {
-    return (
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2 text-sm font-semibold">
-            <Sparkles className="h-4 w-4 text-amber-500" />
-            AI Case Analysis
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="relative overflow-hidden rounded-md border p-4">
-            {/* Blurred preview */}
-            <div className="select-none blur-sm space-y-2 text-sm text-muted-foreground">
-              <p className="font-medium">Your case looks strong based on the evidence logged.</p>
-              <p>Next step: Request a formal deadlock letter and escalate to the ombudsman.</p>
-              <p>Evidence needed: Call recordings, written confirmation of promises made.</p>
-            </div>
-            <div className="absolute inset-0 flex items-center justify-center bg-background/60 rounded-md">
-              <div className="text-center p-4">
-                <Sparkles className="mx-auto h-6 w-6 text-amber-500 mb-2" />
-                <p className="text-sm font-medium">Unlock AI guidance</p>
-              </div>
-            </div>
-          </div>
-          <div className="mt-3">
-            <UpgradePrompt
-              description="Get AI-powered case analysis, next steps, and strength ratings with Basic or Pro."
-              requiredTier="basic"
-              title="AI analysis requires Basic or Pro"
-            />
-          </div>
-        </CardContent>
-      </Card>
-    );
-  }
+  useEffect(() => {
+    if (tier !== "free") return;
+    let cancelled = false;
+    fetch("/api/ai/usage")
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data) => {
+        if (cancelled || !data) return;
+        if (data.suggestionsLimit != null) {
+          setUsageLabel(
+            `${data.suggestionsLimit - data.suggestionsUsed} of ${data.suggestionsLimit} suggestions remaining this month`
+          );
+          setCreditsInfo({ used: data.suggestionsUsed, limit: data.suggestionsLimit });
+        }
+      })
+      .catch(() => {});
+    return () => {
+      cancelled = true;
+    };
+  }, [tier]);
 
   async function fetchSuggestion() {
     setLoading(true);
@@ -150,9 +135,11 @@ export function AISuggestion({ caseId, tier = "free" }: AISuggestionProps) {
             <Sparkles className="h-4 w-4 text-amber-500" />
             AI Case Analysis
           </span>
-          {creditsInfo && (
+          {(creditsInfo || usageLabel) && (
             <span className="text-xs font-normal text-muted-foreground">
-              {creditsInfo.used}/{creditsInfo.limit} analyses
+              {creditsInfo
+                ? `${creditsInfo.used}/${creditsInfo.limit} ${tier === "free" ? "this month" : "analyses"}`
+                : usageLabel}
             </span>
           )}
         </CardTitle>
@@ -179,14 +166,18 @@ export function AISuggestion({ caseId, tier = "free" }: AISuggestionProps) {
 
         {error && (
           <div className="space-y-3">
-            {errorType === "upgrade_required" || errorType === "credits_exhausted" ? (
+            {errorType === "upgrade_required" ||
+            errorType === "suggestions_exhausted" ||
+            errorType === "credits_exhausted" ? (
               <UpgradePrompt
                 description={error}
-                requiredTier="pro"
+                requiredTier="basic"
                 title={
-                  errorType === "upgrade_required"
-                    ? "Upgrade required"
-                    : "Analysis limit reached"
+                  errorType === "suggestions_exhausted"
+                    ? "Free suggestions used this month"
+                    : errorType === "upgrade_required"
+                      ? "Upgrade required"
+                      : "Analysis limit reached"
                 }
               />
             ) : (

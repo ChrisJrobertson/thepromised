@@ -2,9 +2,11 @@
 
 import { ChevronDown } from "lucide-react";
 import Link from "next/link";
-import { useTransition } from "react";
+import { useRouter } from "next/navigation";
+import { useState, useTransition } from "react";
 import { toast } from "sonner";
 
+import { OutcomeForm } from "@/components/cases/OutcomeForm";
 import { buttonVariants } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -33,9 +35,15 @@ export function CaseActions({
   currentStatus,
   currentPriority,
 }: CaseActionsProps) {
+  const router = useRouter();
   const [isPending, startTransition] = useTransition();
+  const [outcomeDialogOpen, setOutcomeDialogOpen] = useState(false);
 
   function handleStatusChange(status: Case["status"]) {
+    if (status === "resolved" || status === "closed") {
+      setOutcomeDialogOpen(true);
+      return;
+    }
     startTransition(async () => {
       const result = await updateCaseStatus(caseId, { status });
       if (result?.error) {
@@ -43,6 +51,19 @@ export function CaseActions({
       } else {
         toast.success(`Status updated to ${status}`);
       }
+    });
+  }
+
+  function handleOutcomeSkip() {
+    startTransition(async () => {
+      const result = await updateCaseStatus(caseId, { status: "resolved" });
+      if (result?.error) {
+        toast.error(result.error);
+      } else {
+        toast.success("Case closed.");
+      }
+      setOutcomeDialogOpen(false);
+      router.refresh();
     });
   }
 
@@ -58,7 +79,8 @@ export function CaseActions({
   }
 
   return (
-    <div className="flex flex-wrap gap-2">
+    <>
+      <div className="flex flex-wrap gap-2">
       <Link
         className={buttonVariants({ size: "sm" })}
         href={`/cases/${caseId}/interactions/new`}
@@ -114,5 +136,15 @@ export function CaseActions({
         </DropdownMenuContent>
       </DropdownMenu>
     </div>
+
+      <OutcomeForm
+        caseId={caseId}
+        mode="resolve"
+        onOpenChange={setOutcomeDialogOpen}
+        onSuccess={() => router.refresh()}
+        onSkip={handleOutcomeSkip}
+        open={outcomeDialogOpen}
+      />
+    </>
   );
 }
