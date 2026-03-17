@@ -475,6 +475,7 @@ export type Database = {
       cases: {
         Row: {
           id: string;
+          ref: string;
           user_id: string;
           organisation_id: string | null;
           custom_organisation_name: string | null;
@@ -523,6 +524,8 @@ export type Database = {
         };
         Insert: {
           id?: string;
+          /** Auto-generated as TP-XXXXX by database trigger — omit to auto-generate */
+          ref?: string;
           user_id: string;
           organisation_id?: string | null;
           custom_organisation_name?: string | null;
@@ -571,6 +574,7 @@ export type Database = {
         };
         Update: {
           id?: string;
+          ref?: string;
           user_id?: string;
           organisation_id?: string | null;
           custom_organisation_name?: string | null;
