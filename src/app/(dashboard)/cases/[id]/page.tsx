@@ -5,19 +5,12 @@ import {
   FileText,
 } from "lucide-react";
 import Link from "next/link";
-import dynamic from "next/dynamic";
 import { notFound, redirect } from "next/navigation";
 
+import { ForwardReplyPanel } from "@/components/cases/ForwardReplyPanel";
 import { MarkResolvedButton } from "@/components/cases/MarkResolvedButton";
+import { ResponseTimer } from "@/components/cases/ResponseTimer";
 import { ShareCaseButton } from "@/components/cases/ShareCaseButton";
-
-// Conditionally-rendered heavy client components — code-split into separate chunks
-const ResponseTimer = dynamic(() =>
-  import("@/components/cases/ResponseTimer").then((m) => ({ default: m.ResponseTimer }))
-);
-const ForwardReplyPanel = dynamic(() =>
-  import("@/components/cases/ForwardReplyPanel").then((m) => ({ default: m.ForwardReplyPanel }))
-);
 import { Badge } from "@/components/ui/badge";
 import { buttonVariants } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
