@@ -1,16 +1,37 @@
-// Register this webhook URL in the Resend dashboard: https://www.theypromised.app/api/webhooks/resend
+// Resend webhook — receives email delivery events (delivered, opened, bounced, complained).
+// Registered in the Resend dashboard: https://www.theypromised.app/api/webhooks/resend
+// Requires RESEND_WEBHOOK_SECRET set in the Resend dashboard webhook settings.
 
 import { NextResponse } from "next/server";
+import { Webhook } from "svix";
 
 import { createServiceRoleClient } from "@/lib/supabase/admin";
 
 export async function POST(request: Request) {
-  const payload = (await request.json().catch(() => null)) as
-    | {
-        type?: string;
-        data?: { email_id?: string };
-      }
-    | null;
+  const body = await request.text();
+
+  // Verify Svix signature to prevent spoofed delivery events.
+  const secret = process.env.RESEND_WEBHOOK_SECRET;
+  if (secret) {
+    const wh = new Webhook(secret);
+    try {
+      wh.verify(body, {
+        "svix-id": request.headers.get("svix-id") ?? "",
+        "svix-timestamp": request.headers.get("svix-timestamp") ?? "",
+        "svix-signature": request.headers.get("svix-signature") ?? "",
+      });
+    } catch {
+      return new Response("Invalid webhook signature", { status: 401 });
+    }
+  }
+
+  let payload: { type?: string; data?: { email_id?: string } } | null = null;
+  try {
+    payload = JSON.parse(body);
+  } catch {
+    return NextResponse.json({ error: "Invalid JSON payload" }, { status: 400 });
+  }
+
   if (!payload?.type || !payload.data?.email_id) {
     return NextResponse.json({ error: "Invalid payload" }, { status: 400 });
   }

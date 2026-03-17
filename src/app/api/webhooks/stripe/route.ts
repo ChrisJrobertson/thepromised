@@ -209,6 +209,20 @@ export async function POST(request: Request) {
           );
         }
 
+        // Track plan changes (upgrades, downgrades, past_due status).
+        const { data: updatedProfileRow } = await supabase
+          .from("profiles")
+          .select("id")
+          .eq("subscription_id", subscription.id)
+          .maybeSingle();
+        if (updatedProfileRow?.id) {
+          trackServerEvent(updatedProfileRow.id, "subscription_updated", {
+            tier,
+            status,
+            subscription_id: subscription.id,
+          });
+        }
+
         break;
       }
 

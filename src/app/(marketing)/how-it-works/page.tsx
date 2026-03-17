@@ -1,9 +1,14 @@
 import {
   ArrowRight,
   Bell,
+  Building2,
+  Calendar,
+  CheckCircle2,
   ClipboardList,
   Download,
+  FileText,
   MessageSquare,
+  Phone,
   Sparkles,
 } from "lucide-react";
 import Link from "next/link";
@@ -69,6 +74,106 @@ const STEPS = [
     ],
   },
 ];
+
+function StepVisual({ index }: { index: number }) {
+  if (index === 0) {
+    return (
+      <div className="h-48 rounded-xl bg-gradient-to-br from-primary/10 to-primary/5 border border-primary/20 p-6 flex flex-col justify-between md:h-64">
+        <div className="flex items-center gap-3">
+          <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary/15">
+            <Building2 className="h-5 w-5 text-primary" />
+          </div>
+          <div>
+            <p className="text-xs text-muted-foreground">Searching for</p>
+            <p className="font-semibold text-slate-800">British Gas</p>
+          </div>
+        </div>
+        <div className="space-y-2">
+          {["British Gas", "British Gas Business", "British Gas Services"].map((name, i) => (
+            <div
+              key={name}
+              className={`flex items-center gap-2 rounded-lg border px-3 py-2 text-sm ${i === 0 ? "border-primary/40 bg-primary/10 font-medium text-primary" : "border-slate-200 bg-white text-slate-600"}`}
+            >
+              <Building2 className="h-3.5 w-3.5 shrink-0" />
+              {name}
+            </div>
+          ))}
+        </div>
+        <div className="flex items-center gap-2 rounded-lg bg-secondary/20 px-3 py-2">
+          <CheckCircle2 className="h-4 w-4 text-secondary" />
+          <span className="text-xs font-medium text-slate-700">Energy · Ombudsman: Energy Ombudsman</span>
+        </div>
+      </div>
+    );
+  }
+  if (index === 1) {
+    return (
+      <div className="h-48 rounded-xl bg-gradient-to-br from-teal-50 to-emerald-50 border border-teal-200 p-6 flex flex-col gap-3 md:h-64">
+        <p className="text-xs font-semibold uppercase tracking-wide text-teal-700">Recent Interactions</p>
+        {[
+          { icon: Phone, label: "Phone call · 23 mins", note: "Promised a refund by Friday", time: "Mon 10 Mar" },
+          { icon: MessageSquare, label: "Webchat", note: "No resolution given", time: "Wed 12 Mar" },
+          { icon: FileText, label: "Email sent", note: "Formal complaint submitted", time: "Fri 14 Mar" },
+        ].map(({ icon: Icon, label, note, time }) => (
+          <div key={label} className="flex items-start gap-3 rounded-lg bg-white/80 border border-teal-100 px-3 py-2">
+            <div className="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-teal-100">
+              <Icon className="h-3 w-3 text-teal-700" />
+            </div>
+            <div className="min-w-0 flex-1">
+              <p className="text-xs font-medium text-slate-700">{label}</p>
+              <p className="truncate text-xs text-slate-500">{note}</p>
+            </div>
+            <span className="shrink-0 text-xs text-slate-400">{time}</span>
+          </div>
+        ))}
+      </div>
+    );
+  }
+  if (index === 2) {
+    return (
+      <div className="h-48 rounded-xl bg-gradient-to-br from-amber-50 to-orange-50 border border-amber-200 p-6 flex flex-col justify-between md:h-64">
+        <div className="flex items-center gap-2">
+          <Sparkles className="h-4 w-4 text-amber-600" />
+          <p className="text-xs font-semibold text-amber-700">AI Letter — Initial Complaint</p>
+        </div>
+        <div className="flex-1 rounded-lg bg-white/90 border border-amber-100 p-3 mt-3 font-mono text-xs text-slate-600 leading-relaxed overflow-hidden">
+          <p className="font-semibold">Re: Formal Complaint — Billing Error</p>
+          <p className="mt-2">Dear British Gas Complaints Team,</p>
+          <p className="mt-1">I write to formally complain about an overcharge on my account (Ref: BG-12345) totalling £312.00, first raised on 10 March 2025 without resolution...</p>
+        </div>
+        <div className="mt-3 flex items-center gap-2 rounded-lg bg-amber-100 px-3 py-1.5">
+          <CheckCircle2 className="h-3.5 w-3.5 text-amber-700" />
+          <p className="text-xs text-amber-700">Pre-filled with your case history · CRA 2015 referenced</p>
+        </div>
+      </div>
+    );
+  }
+  return (
+    <div className="h-48 rounded-xl bg-gradient-to-br from-slate-800 to-primary border border-slate-700 p-6 flex flex-col justify-between md:h-64">
+      <div className="flex items-center gap-2">
+        <Download className="h-4 w-4 text-white/80" />
+        <p className="text-xs font-semibold text-white/80">Case File Export — British Gas</p>
+      </div>
+      <div className="space-y-2 flex-1 mt-3">
+        {[
+          { label: "Cover page & case summary", done: true },
+          { label: "Full interaction timeline (14 entries)", done: true },
+          { label: "Promises tracker — 2 broken", done: true },
+          { label: "Letters sent (3 letters)", done: true },
+          { label: "Evidence index (7 files)", done: true },
+        ].map(({ label, done }) => (
+          <div key={label} className="flex items-center gap-2">
+            <Calendar className={`h-3 w-3 shrink-0 ${done ? "text-teal-400" : "text-white/30"}`} />
+            <span className="text-xs text-white/80">{label}</span>
+          </div>
+        ))}
+      </div>
+      <div className="mt-3 rounded-lg bg-teal-500/20 border border-teal-400/30 px-3 py-1.5">
+        <p className="text-xs text-teal-300">PDF ready · Accepted by Energy Ombudsman</p>
+      </div>
+    </div>
+  );
+}
 
 const HOWTO_SCHEMA = {
   "@context": "https://schema.org",
@@ -159,11 +264,9 @@ export default function HowItWorksPage() {
                   </ul>
                 </div>
 
-                {/* Mockup placeholder */}
+                {/* Visual card for this step */}
                 <div className="flex-1">
-                  <div className="h-48 rounded-xl border-2 border-dashed bg-slate-50 flex items-center justify-center text-sm text-muted-foreground md:h-64">
-                    Step {i + 1} screenshot
-                  </div>
+                  <StepVisual index={i} />
                 </div>
               </div>
             );

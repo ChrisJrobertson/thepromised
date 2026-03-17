@@ -1,24 +1,111 @@
-// Simple in-memory rate limiter (replace with Upstash Redis if available)
-const rateMap = new Map<string, { count: number; resetAt: number }>();
+import { Ratelimit } from "@upstash/ratelimit";
+import { Redis } from "@upstash/redis";
 
-export function checkRateLimit(
-  userId: string,
-  limit: number,
-  windowMs: number
-): { allowed: boolean; retryAfter?: number } {
-  const now = Date.now();
-  const key = `${userId}:${windowMs}`;
-  const entry = rateMap.get(key);
+// Initialise Redis lazily so missing env vars only throw at call time,
+// not at module load time (avoids breaking the build in environments where
+// the keys haven't been configured yet).
+let _redis: Redis | null = null;
 
-  if (!entry || now > entry.resetAt) {
-    rateMap.set(key, { count: 1, resetAt: now + windowMs });
-    return { allowed: true };
+function getRedis(): Redis | null {
+  if (_redis) return _redis;
+  const url = process.env.UPSTASH_REDIS_REST_URL;
+  const token = process.env.UPSTASH_REDIS_REST_TOKEN;
+  if (!url || !token) return null;
+  _redis = new Redis({ url, token });
+  return _redis;
+}
+
+let _aiLimiter: Ratelimit | null = null;
+let _enquiryLimiter: Ratelimit | null = null;
+let _generalLimiter: Ratelimit | null = null;
+
+function getLimiter(type: "ai" | "enquiry" | "general"): Ratelimit | null {
+  const redis = getRedis();
+  if (!redis) return null;
+
+  if (type === "ai") {
+    if (!_aiLimiter) {
+      _aiLimiter = new Ratelimit({
+        redis,
+        limiter: Ratelimit.slidingWindow(20, "60 s"),
+        analytics: true,
+        prefix: "ratelimit:ai",
+      });
+    }
+    return _aiLimiter;
   }
 
-  if (entry.count >= limit) {
-    return { allowed: false, retryAfter: Math.ceil((entry.resetAt - now) / 1000) };
+  if (type === "enquiry") {
+    if (!_enquiryLimiter) {
+      _enquiryLimiter = new Ratelimit({
+        redis,
+        limiter: Ratelimit.slidingWindow(5, "1 h"),
+        analytics: true,
+        prefix: "ratelimit:enquiry",
+      });
+    }
+    return _enquiryLimiter;
   }
 
-  entry.count++;
-  return { allowed: true };
+  if (!_generalLimiter) {
+    _generalLimiter = new Ratelimit({
+      redis,
+      limiter: Ratelimit.slidingWindow(60, "60 s"),
+      analytics: true,
+      prefix: "ratelimit:general",
+    });
+  }
+  return _generalLimiter;
+}
+
+export type RateLimitResult = {
+  success: boolean;
+  limit: number;
+  reset: number;
+  remaining: number;
+  headers: Record<string, string>;
+};
+
+/**
+ * Checks the rate limit for the given identifier.
+ *
+ * Falls back to always-allowed when Upstash env vars are not configured
+ * (e.g. local development without Redis). In production, UPSTASH_REDIS_REST_URL
+ * and UPSTASH_REDIS_REST_TOKEN must be set.
+ */
+export async function checkRateLimit(
+  identifier: string,
+  type: "ai" | "enquiry" | "general" = "general"
+): Promise<RateLimitResult> {
+  const limiter = getLimiter(type);
+
+  if (!limiter) {
+    // Graceful fallback — allow all requests when Redis is not configured.
+    // This should not happen in production.
+    return {
+      success: true,
+      limit: 999,
+      reset: Date.now() + 60_000,
+      remaining: 999,
+      headers: {
+        "X-RateLimit-Limit": "999",
+        "X-RateLimit-Remaining": "999",
+        "X-RateLimit-Reset": String(Date.now() + 60_000),
+      },
+    };
+  }
+
+  const { success, limit, reset, remaining } = await limiter.limit(identifier);
+
+  return {
+    success,
+    limit,
+    reset,
+    remaining,
+    headers: {
+      "X-RateLimit-Limit": limit.toString(),
+      "X-RateLimit-Remaining": remaining.toString(),
+      "X-RateLimit-Reset": reset.toString(),
+    },
+  };
 }

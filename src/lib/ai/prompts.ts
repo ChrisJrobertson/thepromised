@@ -110,7 +110,7 @@ Respond with this exact JSON structure:
   "strengthRating": "weak|moderate|strong",
   "strengthExplanation": "1-2 sentence explanation of the strength rating",
   "letterRecommended": true|false,
-  "letterType": "initial_complaint|follow_up|escalation|final_response_request|ombudsman_referral|subject_access_request|formal_notice|null"
+  "letterType": "initial_complaint|follow_up|escalation|final_response_request|ombudsman_referral|subject_access_request|adr_referral|section_75_claim|letter_before_action|custom|null"
 }`;
 }
 

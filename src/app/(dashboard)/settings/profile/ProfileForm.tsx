@@ -18,7 +18,7 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
-import { updateProfile, changePassword } from "@/lib/actions/settings";
+import { updateProfile, changePassword, changeEmail } from "@/lib/actions/settings";
 import type { Profile } from "@/types/database";
 
 const profileSchema = z.object({
@@ -53,9 +53,15 @@ type ProfileFormProps = {
   profile: Profile | null;
 };
 
+const emailSchema = z.object({
+  new_email: z.string().email("Enter a valid email address"),
+});
+type EmailFormData = z.infer<typeof emailSchema>;
+
 export function ProfileForm({ email, profile }: ProfileFormProps) {
   const [profilePending, startProfileTransition] = useTransition();
   const [passwordPending, startPasswordTransition] = useTransition();
+  const [emailPending, startEmailTransition] = useTransition();
 
   const profileForm = useForm<ProfileFormData>({
     resolver: zodResolver(profileSchema),
@@ -67,6 +73,11 @@ export function ProfileForm({ email, profile }: ProfileFormProps) {
       city: profile?.city ?? "",
       postcode: profile?.postcode ?? "",
     },
+  });
+
+  const emailForm = useForm<EmailFormData>({
+    resolver: zodResolver(emailSchema),
+    defaultValues: { new_email: "" },
   });
 
   const passwordForm = useForm<PasswordFormData>({
@@ -93,6 +104,18 @@ export function ProfileForm({ email, profile }: ProfileFormProps) {
         toast.error(result.error);
       } else {
         toast.success("Profile updated");
+      }
+    });
+  }
+
+  function onEmailSubmit(data: EmailFormData) {
+    startEmailTransition(async () => {
+      const result = await changeEmail(data.new_email);
+      if (result.error) {
+        toast.error(result.error);
+      } else {
+        toast.success(result.message ?? "Confirmation email sent.");
+        emailForm.reset();
       }
     });
   }
@@ -227,6 +250,43 @@ export function ProfileForm({ email, profile }: ProfileFormProps) {
 
               <Button disabled={profilePending} type="submit">
                 {profilePending ? "Saving..." : "Save changes"}
+              </Button>
+            </form>
+          </Form>
+        </CardContent>
+      </Card>
+
+      {/* Change email address */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-base">Change email address</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <Form {...emailForm}>
+            <form className="space-y-4" onSubmit={emailForm.handleSubmit(onEmailSubmit)}>
+              <div className="space-y-1.5">
+                <label className="text-sm font-medium text-muted-foreground">Current email</label>
+                <Input disabled type="email" value={email} />
+              </div>
+              <FormField
+                control={emailForm.control}
+                name="new_email"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>New email address</FormLabel>
+                    <FormControl>
+                      <Input placeholder="newaddress@example.com" type="email" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <p className="text-xs text-muted-foreground">
+                A confirmation link will be sent to both your current and new email address.
+                Both must be confirmed before the change takes effect.
+              </p>
+              <Button disabled={emailPending} type="submit" variant="secondary">
+                {emailPending ? "Sending..." : "Send confirmation"}
               </Button>
             </form>
           </Form>

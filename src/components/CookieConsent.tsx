@@ -36,6 +36,11 @@ export function CookieConsent() {
     <div className="fixed bottom-20 left-4 right-4 z-50 rounded-lg bg-slate-900 p-4 text-sm text-white shadow-lg md:bottom-4 md:left-auto md:right-4 md:max-w-lg">
       <p className="mb-3">
         We use cookies to improve your experience and understand how TheyPromised is used.
+        You can change your preference at any time in{" "}
+        <Link className="underline" href="/privacy">
+          Privacy Settings
+        </Link>
+        .
       </p>
       <div className="flex flex-wrap items-center gap-2">
         <button
@@ -52,10 +57,29 @@ export function CookieConsent() {
         >
           Reject Non-Essential
         </button>
-        <Link className="text-xs underline" href="/privacy">
-          Learn More
+        <Link className="text-xs text-slate-400 underline" href="/privacy">
+          Privacy Policy
         </Link>
       </div>
     </div>
+  );
+}
+
+/** Renders a button that clears cookie consent, forcing the banner to reappear. */
+export function CookieConsentWithdrawButton() {
+  function withdraw() {
+    document.cookie = "tp_consent=; Path=/; Max-Age=0; SameSite=Lax";
+    // Reload so PostHog / banner state resets cleanly.
+    window.location.reload();
+  }
+
+  return (
+    <button
+      className="text-sm text-primary underline"
+      onClick={withdraw}
+      type="button"
+    >
+      Manage cookie preferences
+    </button>
   );
 }

@@ -78,6 +78,24 @@ export async function updateNotificationPreferences(
   return { success: true };
 }
 
+export async function changeEmail(newEmail: string) {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) return { error: "Unauthorised" };
+
+  const { error } = await supabase.auth.updateUser(
+    { email: newEmail },
+    { emailRedirectTo: `${process.env.NEXT_PUBLIC_APP_URL ?? ""}/auth/callback` }
+  );
+
+  if (error) return { error: error.message };
+
+  return { success: true, message: "Confirmation email sent. Check both inboxes to confirm the change." };
+}
+
 export async function changePassword(currentPassword: string, newPassword: string) {
   const supabase = await createClient();
   const {

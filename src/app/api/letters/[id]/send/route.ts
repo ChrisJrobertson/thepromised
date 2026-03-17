@@ -27,6 +27,20 @@ export async function POST(
   } = await supabase.auth.getUser();
   if (!user) return NextResponse.json({ error: "Unauthorised" }, { status: 401 });
 
+  // Feature gate: email sending requires Basic or Pro tier.
+  const { data: senderProfile } = await supabase
+    .from("profiles")
+    .select("subscription_tier")
+    .eq("id", user.id)
+    .maybeSingle();
+  const senderTier = (senderProfile as { subscription_tier?: string } | null)?.subscription_tier ?? "free";
+  if (senderTier === "free") {
+    return NextResponse.json(
+      { error: "Sending letters by email requires a Basic or Pro subscription. Upgrade to unlock this feature." },
+      { status: 403 }
+    );
+  }
+
   const { data: letter, error: letterError } = await supabase
     .from("letters")
     .select("id, case_id, user_id, letter_type, subject, body, status, sent_to_email, delivery_status")

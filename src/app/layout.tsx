@@ -16,6 +16,8 @@ const dmSans = DM_Sans({
   weight: ["700", "800"],
 });
 
+// Note: this was historically declared as "--font-geist-sans" but loads Inter.
+// The variable name is kept for backward-compatibility with any CSS referencing it.
 const geistSans = Inter({
   variable: "--font-geist-sans",
   subsets: ["latin"],
@@ -59,7 +61,7 @@ export const metadata: Metadata = {
       "The UK's complaint tracking tool. Log every interaction, get escalation guidance, and export professional case files for ombudsmen and courts.",
     images: [
       {
-        url: "/og-image.png",
+        url: "/api/og",
         width: 1200,
         height: 630,
         alt: "TheyPromised — Track Your Complaints",
@@ -70,7 +72,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "TheyPromised — They Promised. You Proved It.",
     description: "The UK's complaint tracking tool for consumers.",
-    images: ["/og-image.png"],
+    images: ["/api/og"],
   },
   robots: {
     index: true,
@@ -119,6 +121,23 @@ const softwareSchema = {
       priceSpecification: {
         "@type": "UnitPriceSpecification",
         price: "4.99",
+        priceCurrency: "GBP",
+        referenceQuantity: {
+          "@type": "QuantitativeValue",
+          value: "1",
+          unitCode: "MON",
+        },
+      },
+    },
+    {
+      "@type": "Offer",
+      price: "9.99",
+      priceCurrency: "GBP",
+      name: "Pro plan",
+      priceValidUntil: "2027-12-31",
+      priceSpecification: {
+        "@type": "UnitPriceSpecification",
+        price: "9.99",
         priceCurrency: "GBP",
         referenceQuantity: {
           "@type": "QuantitativeValue",

@@ -53,7 +53,7 @@ export async function POST(request: Request) {
       mode: "subscription",
       customer: customerId,
       line_items: [{ price: priceId, quantity: 1 }],
-      success_url: `${appUrl}/settings/billing?session_id={CHECKOUT_SESSION_ID}`,
+      success_url: `${appUrl}/dashboard?subscribed=true&session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${appUrl}/pricing`,
       metadata: { supabase_user_id: user.id },
       allow_promotion_codes: true,

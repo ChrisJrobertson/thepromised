@@ -23,6 +23,8 @@ import {
 import Link from "next/link";
 
 import { DashboardQuickActions } from "@/components/dashboard/DashboardQuickActions";
+import { SubscriptionSuccessToast } from "@/components/dashboard/SubscriptionSuccessToast";
+import { Suspense } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -209,6 +211,7 @@ export default async function DashboardPage() {
 
   return (
     <div className="space-y-6">
+      <Suspense fallback={null}><SubscriptionSuccessToast /></Suspense>
       <Card>
         <CardHeader>
           <CardTitle>
@@ -464,16 +467,16 @@ export default async function DashboardPage() {
             </Button>
           </Link>
           <DashboardQuickActions />
-          <Link href="/cases">
+          <Link href="/letters">
             <Button className="gap-2 border-blue-300 text-blue-700 hover:bg-blue-50" variant="outline">
               <FileText className="h-4 w-4" />
-              Generate Letter
+              View Letters
             </Button>
           </Link>
           <Link href="/cases">
             <Button className="gap-2" variant="outline">
               <Download className="h-4 w-4" />
-              Export Case File
+              View Cases
             </Button>
           </Link>
         </CardContent>

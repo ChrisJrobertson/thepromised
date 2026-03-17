@@ -116,13 +116,13 @@ export async function getBusinessEnquiries(limit = 20): Promise<BusinessEnquiry[
   return (data ?? []) as BusinessEnquiry[];
 }
 
-export async function getAdminUsers(limit = 200): Promise<AdminUserRow[]> {
+export async function getAdminUsers(limit = 100, offset = 0): Promise<AdminUserRow[]> {
   const supabase = createServiceRoleClient();
   const { data: users, error } = await supabase
     .from("profiles")
     .select("id, email, subscription_tier, created_at")
     .order("created_at", { ascending: false })
-    .limit(limit);
+    .range(offset, offset + limit - 1);
   if (error) throw error;
   const rows = (users ?? []) as SignupRow[];
 

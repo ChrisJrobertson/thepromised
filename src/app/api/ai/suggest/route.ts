@@ -40,18 +40,11 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Unauthorised" }, { status: 401 });
     }
 
-    const minuteCheck = checkRateLimit(user.id, 10, 60 * 1000);
-    if (!minuteCheck.allowed) {
+    const rateCheck = await checkRateLimit(user.id, "ai");
+    if (!rateCheck.success) {
       return NextResponse.json(
         { error: "Too many requests. Please wait a moment." },
-        { status: 429, headers: { "Retry-After": String(minuteCheck.retryAfter) } }
-      );
-    }
-    const hourCheck = checkRateLimit(user.id, 100, 60 * 60 * 1000);
-    if (!hourCheck.allowed) {
-      return NextResponse.json(
-        { error: "Hourly limit reached. Please try again later." },
-        { status: 429, headers: { "Retry-After": String(hourCheck.retryAfter) } }
+        { status: 429, headers: rateCheck.headers }
       );
     }
 

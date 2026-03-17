@@ -1,9 +1,25 @@
 import { BusinessEnquiryForm } from "@/components/marketing/BusinessEnquiryForm";
 
-export const metadata = {
-  title: "For Business — Complaint Intelligence",
+import type { Metadata } from "next";
+
+const APP_URL = process.env.NEXT_PUBLIC_APP_URL ?? "https://www.theypromised.app";
+
+export const metadata: Metadata = {
+  title: "For Business — Complaint Intelligence & Customer Insight | TheyPromised",
   description:
-    "Complaint scorecards, benchmarks, and monthly reports for UK organisations.",
+    "Understand how your customers experience complaints. Get complaint intelligence, resolution benchmarks, and actionable insight from real consumer data. Plans from £500/month.",
+  openGraph: {
+    title: "TheyPromised for Business — Complaint Intelligence",
+    description:
+      "Complaint intelligence and customer insight from real consumer data. Plans from £500/month.",
+    url: `${APP_URL}/business`,
+    images: [{ url: "/api/og", width: 1200, height: 630 }],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "TheyPromised for Business — Complaint Intelligence",
+    images: ["/api/og"],
+  },
 };
 
 export default function BusinessPage() {

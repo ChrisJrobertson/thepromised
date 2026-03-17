@@ -34,11 +34,11 @@ export async function POST(request: Request) {
       );
     }
 
-    const rate = checkRateLimit(`b2b-enquiry:${ip}`, 5, 60 * 60 * 1000);
-    if (!rate.allowed) {
+    const rate = await checkRateLimit(`b2b-enquiry:${ip}`, "enquiry");
+    if (!rate.success) {
       return NextResponse.json(
         { error: "Too many enquiries from this IP. Please try again later." },
-        { status: 429, headers: { "Retry-After": String(rate.retryAfter) } },
+        { status: 429, headers: rate.headers },
       );
     }
 

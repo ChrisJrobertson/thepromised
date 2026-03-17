@@ -16,6 +16,7 @@ import { EscalationGuide } from "@/components/cases/EscalationGuide";
 import { EvidenceGallery } from "@/components/cases/EvidenceGallery";
 import { ForwardReplyPanel } from "@/components/cases/ForwardReplyPanel";
 import { ResponseTimer } from "@/components/cases/ResponseTimer";
+import { MarkResolvedButton } from "@/components/cases/MarkResolvedButton";
 import { ShareCaseButton } from "@/components/cases/ShareCaseButton";
 import { Badge } from "@/components/ui/badge";
 import { buttonVariants } from "@/components/ui/button";
@@ -219,6 +220,9 @@ export default async function CasePage({
           </div>
 
           <div className="flex items-center gap-2">
+            {theCase.status !== "closed" && theCase.status !== "resolved" && (
+              <MarkResolvedButton caseId={id} caseTitle={theCase.title} />
+            )}
             <ShareCaseButton
               caseId={id}
               initialIsShared={(theCase as { is_shared?: boolean }).is_shared ?? false}

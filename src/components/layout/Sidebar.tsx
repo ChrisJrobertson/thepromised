@@ -5,6 +5,8 @@ import {
   FileText,
   Folder,
   Home,
+  LayoutTemplate,
+  Map,
   Package,
   PlusCircle,
   Settings,
@@ -31,8 +33,9 @@ const NAV_ITEMS = [
   { href: "/cases/new", label: "New Case (+)", icon: PlusCircle },
   { href: "/letters", label: "Letters", icon: FileText },
   { href: "/dashboard/packs", label: "Packs", icon: Package },
-  { href: "/templates", label: "Templates", icon: FileText },
+  { href: "/templates", label: "Templates", icon: LayoutTemplate },
   { href: "/calculator", label: "Calculator", icon: Calculator },
+  { href: "/journeys", label: "Guided Journeys", icon: Map },
   { href: "/escalation-guides", label: "Escalation Guides", icon: Compass },
   { href: "/reminders", label: "Reminders", icon: Bell },
   { href: "/settings", label: "Settings", icon: Settings },
@@ -50,7 +53,11 @@ export function Sidebar({ pathname, userName, userEmail, tier, isAdmin = false }
       <nav className="flex-1 space-y-1 p-3">
         {NAV_ITEMS.map((item) => {
           const Icon = item.icon;
-          const isActive = pathname === item.href || pathname.startsWith(`${item.href}/`);
+          // Use exact match for Dashboard to avoid marking it active on sub-routes like /dashboard/packs.
+          const isActive =
+            item.href === "/dashboard"
+              ? pathname === "/dashboard"
+              : pathname === item.href || pathname.startsWith(`${item.href}/`);
 
           return (
             <Link

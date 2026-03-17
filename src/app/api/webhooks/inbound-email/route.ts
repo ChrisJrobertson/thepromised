@@ -1,4 +1,9 @@
+// Inbound email webhook — receives email replies forwarded by Resend's MX routing.
+// Registered as an inbound domain route in Resend.
+// Requires RESEND_WEBHOOK_SECRET set in the environment.
+
 import { NextResponse } from "next/server";
+import { Webhook } from "svix";
 
 import { createServiceRoleClient } from "@/lib/supabase/admin";
 
@@ -15,6 +20,33 @@ function extractAlias(to: string) {
 }
 
 export async function POST(request: Request) {
+  // Svix signature verification — protect against unauthenticated POSTs.
+  const secret = process.env.RESEND_WEBHOOK_SECRET;
+  if (secret) {
+    const rawBody = await request.text();
+    const wh = new Webhook(secret);
+    try {
+      wh.verify(rawBody, {
+        "svix-id": request.headers.get("svix-id") ?? "",
+        "svix-timestamp": request.headers.get("svix-timestamp") ?? "",
+        "svix-signature": request.headers.get("svix-signature") ?? "",
+      });
+    } catch {
+      return new Response("Invalid webhook signature", { status: 401 });
+    }
+    // Re-parse as FormData after text extraction
+    const newRequest = new Request(request.url, {
+      method: "POST",
+      headers: request.headers,
+      body: rawBody,
+    });
+    return handleInboundEmail(newRequest);
+  }
+
+  return handleInboundEmail(request);
+}
+
+async function handleInboundEmail(request: Request) {
   const formData = await request.formData();
   const to = String(formData.get("to") ?? "");
   const from = String(formData.get("from") ?? "");

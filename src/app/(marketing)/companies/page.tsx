@@ -1,9 +1,26 @@
 import { CompanyScorecardIndex } from "@/components/marketing/CompanyScorecardIndex";
 import { getPublicScorecardIndex } from "@/lib/analytics/scorecards";
 
-export const metadata = {
-  title: "UK Company Complaint Scorecards",
-  description: "See how companies handle complaints, based on real consumer data.",
+import type { Metadata } from "next";
+
+const APP_URL = process.env.NEXT_PUBLIC_APP_URL ?? "https://www.theypromised.app";
+
+export const metadata: Metadata = {
+  title: "UK Company Complaint Scorecards — See How Companies Handle Complaints | TheyPromised",
+  description:
+    "Browse complaint scorecards for UK companies. See how organisations like British Gas, BT, and HSBC handle customer complaints, keep promises, and resolve disputes.",
+  openGraph: {
+    title: "UK Company Complaint Scorecards | TheyPromised",
+    description:
+      "See how UK companies handle customer complaints. Real data from real consumers.",
+    url: `${APP_URL}/companies`,
+    images: [{ url: "/api/og", width: 1200, height: 630 }],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "UK Company Complaint Scorecards | TheyPromised",
+    images: ["/api/og"],
+  },
 };
 
 export default async function CompanyScorecardsPage() {
