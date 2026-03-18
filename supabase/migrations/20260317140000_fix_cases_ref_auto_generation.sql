@@ -10,6 +10,26 @@
 --   4. Fixes column defaults to match TheyPromised values
 
 -- ============================================================
+-- 0. Ensure the ref column exists
+--    The column originated in the legacy PI schema so it already
+--    exists on the production DB. On a fresh Supabase instance the
+--    CREATE TABLE in the initial migration does include ref, but this
+--    guard makes the migration safe to run in any order.
+-- ============================================================
+
+DO $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM information_schema.columns
+    WHERE table_schema = 'public'
+      AND table_name   = 'cases'
+      AND column_name  = 'ref'
+  ) THEN
+    ALTER TABLE public.cases ADD COLUMN ref TEXT;
+  END IF;
+END $$;
+
+-- ============================================================
 -- 1. Sequence + function + trigger for ref auto-generation
 -- ============================================================
 

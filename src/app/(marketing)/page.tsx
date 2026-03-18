@@ -5,21 +5,21 @@ import HomePageClient from "./HomePageClient";
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL ?? "https://www.theypromised.app";
 
 export const metadata: Metadata = {
-  title: "TheyPromised — Hold Companies to Account | UK Consumer Complaint Tracker",
+  title: "TheyPromised | Hold Companies to Account",
   description:
-    "Track complaints, log broken promises, and generate AI-powered letters to hold companies accountable. Free to start. Built for UK consumers.",
+    "Just launched — the UK tool that tracks promises, logs calls, and guides you to the ombudsman or court. For consumers who refuse to be ignored.",
   openGraph: {
-    title: "TheyPromised — Hold Companies to Account",
+    title: "TheyPromised | Hold Companies to Account",
     description:
-      "Track complaints, log broken promises, and generate AI-powered letters. Built for UK consumers.",
+      "Just launched — the UK tool that tracks promises, logs calls, and guides you to the ombudsman or court. For consumers who refuse to be ignored.",
     url: APP_URL,
     images: [{ url: "/api/og", width: 1200, height: 630, alt: "TheyPromised" }],
   },
   twitter: {
     card: "summary_large_image",
-    title: "TheyPromised — Hold Companies to Account",
+    title: "TheyPromised | Hold Companies to Account",
     description:
-      "Track complaints, log broken promises, and generate AI-powered letters. Built for UK consumers.",
+      "Just launched — the UK tool that tracks promises, logs calls, and guides you to the ombudsman or court. For consumers who refuse to be ignored.",
     images: ["/api/og"],
   },
 };
