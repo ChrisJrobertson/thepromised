@@ -12,6 +12,8 @@ export default function DashboardError({
 }) {
   useEffect(() => {
     Sentry.captureException(error);
+    // Log to console so it appears in Vercel function logs
+    console.error("[DashboardError]", error.message, error.digest, error.stack);
   }, [error]);
 
   return (
@@ -20,6 +22,10 @@ export default function DashboardError({
       <p className="mt-2 max-w-sm text-center text-zinc-600">
         We hit an unexpected error loading this page. Your data is safe — this
         is a display issue only.
+      </p>
+      {/* Temporary debug — remove after diagnosis */}
+      <p className="mt-3 max-w-sm rounded bg-red-50 p-2 text-center font-mono text-xs text-red-700 break-all">
+        {error.message || "(no message)"}{error.digest ? ` [${error.digest}]` : ""}
       </p>
       <button
         className="mt-6 rounded-lg bg-[#1a2744] px-6 py-2 text-sm font-medium text-white hover:bg-[#1a2744]/90"
