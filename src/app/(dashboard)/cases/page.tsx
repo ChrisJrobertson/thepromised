@@ -10,6 +10,7 @@ import type { CaseWithOrganisation } from "@/types/cases";
 
 import { CasesClient } from "./CasesClient";
 
+export const dynamic = "force-dynamic";
 export const metadata = { title: "My Cases | TheyPromised" };
 
 type SearchParams = Promise<{

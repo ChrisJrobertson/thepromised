@@ -12,6 +12,7 @@ export default function DashboardError({
 }) {
   useEffect(() => {
     Sentry.captureException(error);
+    console.error("[DashboardError]", error.message, error.digest, error.stack?.slice(0, 500));
   }, [error]);
 
   return (
