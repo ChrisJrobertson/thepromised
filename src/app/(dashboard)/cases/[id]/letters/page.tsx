@@ -1,3 +1,4 @@
+export const dynamic = "force-dynamic";
 import { format } from "date-fns";
 import { enGB } from "date-fns/locale";
 import { FileText, Plus } from "lucide-react";

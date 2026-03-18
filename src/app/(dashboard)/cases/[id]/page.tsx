@@ -1,3 +1,4 @@
+export const dynamic = "force-dynamic";
 import { differenceInDays } from "date-fns";
 import {
   AlertCircle,
