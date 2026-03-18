@@ -51,6 +51,66 @@ export const LETTER_PROMPT_CONTEXTS: Record<string, string> = {
     "This is a referral to the Financial Ombudsman Service about a rejected Section 75 claim. The consumer purchased a faulty product, the retailer refused a remedy, and the credit card provider rejected the Section 75 claim. Summarise the full chronology: product purchase, fault discovery, retailer complaints, Section 75 claim, and rejection. Reference section 75 of the Consumer Credit Act 1974 and the Consumer Rights Act 2015. State the amount being claimed and the outcome sought. Tone: structured for an FOS adjudicator.",
   faulty_product_lba:
     "This is a formal Letter Before Action (Pre-Action Protocol for debt claims). It must comply with the Practice Direction on Pre-Action Conduct. State clearly: the consumer's name and address, the retailer's name and address, the amount claimed and how it is calculated, the legal basis (breach of statutory rights under the Consumer Rights Act 2015), a summary of the complaint history and the retailer's failure to provide a remedy, and a 14-day deadline to settle before court proceedings are issued. Note that if the matter proceeds to court, the consumer will also claim court fees and interest. Tone: formal and legalistic — this is a legal document, not a complaint letter.",
+
+  // Landlord & Tenant — repair request
+  landlord_repair_request:
+    "This is a formal repair request letter to a landlord or letting agent. Cite Section 11 of the Landlord and Tenant Act 1985 (the landlord's obligation to keep the structure and exterior, and installations for water, gas, electricity, sanitation, and heating in repair). If the property is social housing, reference Awaab's Law requirements for timely repairs. If the Renters' Rights Act 2026 applies, reference its strengthened repair obligations. Describe the specific repair needed from the case data, when it was first reported, and the impact on the tenant. Request the repair be completed within 14 days. Note that failure to carry out repairs may lead to a complaint to Environmental Health, the Housing Ombudsman (social housing), or the First-tier Tribunal. Tone: firm but professional.",
+
+  // Landlord & Tenant — deposit demand
+  landlord_deposit_demand:
+    "This is a formal demand for the return of a tenancy deposit. Reference the deposit amount, the date it was paid, and the tenancy end date from the case data. Cite the relevant deposit protection regulations — the landlord was required to protect the deposit in a government-approved scheme (TDS, DPS, or MyDeposits) within 30 days and provide prescribed information. If the deposit was not protected, note that under Section 214 of the Housing Act 2004, the tenant may be entitled to compensation of 1x–3x the deposit amount. If the landlord has made deductions, challenge these with reference to the inventory/check-out report and evidence. Give 14 days to return the deposit in full or provide a detailed written breakdown of any proposed deductions with evidence. Note that the tenant will apply for ADR through the deposit scheme or apply to the First-tier Tribunal if not resolved. Tone: assertive and legally specific.",
+
+  // Landlord & Tenant — rent increase challenge
+  landlord_rent_increase:
+    "This is a formal challenge to a rent increase. Reference the Renters' Rights Act 2026, which replaces Section 21 no-fault evictions and requires landlords to follow the Section 13 procedure for rent increases. The rent increase must: be proposed via a Section 13 notice, give the correct notice period, and be fair and market-appropriate. If the increase is excessive, the tenant can refer it to the First-tier Tribunal (Property Chamber) for determination. State the current rent, the proposed increase, the date of the Section 13 notice, and why the tenant considers the increase unreasonable (reference comparable rents in the area if available). Request that the landlord withdraw or reduce the increase within 14 days, failing which the tenant will refer to the Tribunal. Tone: formal and measured.",
+
+  // Landlord & Tenant — eviction challenge
+  landlord_eviction_challenge:
+    "This is a response to an eviction attempt. If the landlord is attempting to use Section 21 (no-fault eviction), note that Section 21 has been abolished under the Renters' Rights Act 2026 for new tenancies. The landlord must now use Section 8 grounds and prove a valid ground for possession. If the eviction appears retaliatory (e.g. after the tenant complained about repairs), reference the retaliatory eviction protections under the Deregulation Act 2015 and the Renters' Rights Act 2026. Challenge the validity of the notice: correct form, correct notice period, valid ground cited. State that the tenant does not accept the notice is valid and will defend any possession proceedings. Advise seeking immediate help from Shelter or Citizens Advice. Tone: firm and legally precise — this is a serious legal matter.",
+
+  // Landlord & Tenant — deposit ADR
+  landlord_deposit_adr:
+    "This is a referral to the deposit protection scheme's ADR service for a deposit dispute. Summarise: the tenancy dates, deposit amount, when and where it was protected, the landlord's deductions (if any) and why they are disputed, and the tenant's position with supporting evidence (inventory, photos, cleaning receipts). Reference the tenancy agreement terms on deposit deductions. State clearly what amount the tenant is seeking and why. If the deposit was not protected, note this separately as it may affect the ADR process and the tenant may need to pursue the penalty claim separately through the court. Tone: factual and structured for an adjudicator.",
+
+  // Parking PCN — operator appeal
+  parking_pcn_operator_appeal:
+    "This is a formal appeal to a private parking company challenging a Parking Charge Notice (PCN). Reference the specific PCN number, date, location, and vehicle registration from the case data. State the grounds for appeal clearly — common grounds include: inadequate or obscured signage (the BPA/IPC Code of Practice requires clear, prominent signage), grace period not observed, mitigating circumstances (medical emergency, broken payment machine, returning to vehicle), wrong vehicle identified, charge is disproportionate. Cite the Protection of Freedoms Act 2012 Schedule 4 regarding keeper liability — the parking company must follow strict procedures. Reference the applicable code of practice (BPA or IPC). Request the charge be cancelled. Note that the motorist will appeal to POPLA/IAS if the operator does not cancel. Tone: clear and factual — not aggressive, but firm on the legal points.",
+
+  // Parking PCN — POPLA appeal
+  parking_pcn_popla_appeal:
+    "This is an appeal to POPLA (Parking on Private Land Appeals) or IAS (Independent Appeals Service) following rejection by the parking operator. Summarise the case chronology: PCN date, operator appeal date, rejection date. State the grounds for appeal with evidence: signage photographs, ticket/receipt, mitigating circumstances, any procedural failures by the operator. Reference the BPA/IPC Code of Practice requirements that were not met. If challenging keeper liability under the Protection of Freedoms Act 2012, explain how the operator has failed to comply with Schedule 4 requirements (e.g. failed to serve the notice to keeper within 14 days, failed to include required information). POPLA/IAS decisions are binding on the operator. Tone: structured and evidence-based for an independent adjudicator.",
+
+  // Parking PCN — IAS appeal
+  parking_pcn_ias_appeal:
+    "This is an appeal to the IAS (Independent Appeals Service) for an IPC member parking company. Follow the IAS appeal format: state the PCN details, grounds for appeal, and evidence. The IAS requires specific grounds: signage deficiency, mitigating circumstances, procedural irregularity, keeper liability issues under Protection of Freedoms Act 2012 Schedule 4, or that the charge is disproportionate. Include photographic evidence of signage and the location. Reference the IPC Code of Practice. Tone: concise and evidence-focused.",
+
+  // Parking PCN — court defence
+  parking_pcn_court_defence:
+    "This is a Letter Before Action / defence preparation for a private parking charge being pursued through the County Court. State clearly that the motorist disputes the claim and intends to defend. Reference: the Protection of Freedoms Act 2012 Schedule 4 (keeper liability requirements — the operator must prove it has followed every procedural step), inadequate signage contrary to the BPA/IPC Code of Practice, the landmark case ParkingEye v Beavis [2015] UKSC 67 (charges must be a genuine pre-estimate of loss and not a penalty), and any other grounds from the case data. State that the motorist will file a defence and will seek costs if the claim is struck out or the company discontinues. Tone: formal and legalistic — this is pre-action correspondence for court proceedings.",
+
+  // Retail & Online Shopping — initial complaint
+  retail_product_initial:
+    "This is a formal complaint to a retailer about a faulty product, non-delivery, item not as described, or other consumer rights issue. Cite the Consumer Rights Act 2015: goods must be of satisfactory quality (s.9), fit for purpose (s.10), and as described (s.11). State the product name, purchase date, price, and the specific issue from the case data. Request the retailer's response within 14 days. Note the consumer's specific remedy sought (refund, repair, or replacement). Tone: professional and rights-aware.",
+
+  // Retail & Online Shopping — 30-day reject
+  retail_product_reject:
+    "This is a formal rejection of faulty goods under section 22 of the Consumer Rights Act 2015. The product was purchased less than 30 days ago. State the product name, purchase date, price, and order/receipt number from the case data. Describe the fault clearly. State that the consumer is exercising their short-term right to reject the goods and requests a full refund within 14 days. Emphasise that within 30 days, the consumer has an absolute right to reject — the retailer cannot insist on a repair or replacement first. Note that this right overrides any store return policy. Tone: clear, assertive, and citing the specific statutory provisions.",
+
+  // Retail & Online Shopping — repair/replacement request
+  retail_product_repair:
+    "This is a formal complaint about a faulty product requesting a repair or replacement under the Consumer Rights Act 2015 (sections 23-24). The product is more than 30 days old. State the product name, purchase date, price, and fault description. Note that within the first 6 months, the burden of proof is on the retailer to show the goods were not faulty at delivery (section 19(14)). Request a repair or replacement within a reasonable time (14–28 days is reasonable). If the retailer does not provide an adequate remedy, the consumer will exercise their final right to reject under section 24. Tone: professional, citing specific CRA sections.",
+
+  // Retail & Online Shopping — Section 75
+  retail_product_section75:
+    "This is a claim under section 75 of the Consumer Credit Act 1974 for a faulty product or service purchased by credit card. The consumer purchased a product/service costing between £100 and £30,000 using a credit card. The retailer has failed to resolve the issue despite formal complaints. Under section 75, the credit card provider is jointly and severally liable for the retailer's breach of contract. State the product details, purchase date, amount, card used, retailer name, fault description, and complaint history from the case data. Request a refund of the purchase price within 8 weeks. If rejected, the consumer will refer to the Financial Ombudsman Service. Tone: formal, addressed to a financial institution.",
+
+  // Retail & Online Shopping — FOS referral for rejected S.75
+  retail_product_fos:
+    "This is a referral to the Financial Ombudsman Service about a rejected Section 75 claim. The consumer purchased a faulty product, the retailer refused a remedy, and the credit card provider rejected the Section 75 claim. Summarise the full chronology: product purchase, fault discovery, retailer complaints, Section 75 claim, and rejection reason. Reference section 75 of the Consumer Credit Act 1974 and the Consumer Rights Act 2015. State the amount being claimed and the outcome sought. Tone: structured for an FOS adjudicator.",
+
+  // Retail & Online Shopping — Letter Before Action
+  retail_product_lba:
+    "This is a formal Letter Before Action for a retail dispute. It must comply with the Pre-Action Protocol for Debt Claims. State: the consumer's name and address, the retailer's name and address, the amount claimed and how it is calculated, the legal basis (breach of statutory rights under the Consumer Rights Act 2015), a summary of the complaint history and the retailer's failure to provide a remedy, and a 14-day deadline to settle before court proceedings are issued at the County Court. Note that the consumer will also claim court fees and interest. Tone: formal and legalistic.",
 };
 
 export function getLetterPromptContext(key: string): string | undefined {

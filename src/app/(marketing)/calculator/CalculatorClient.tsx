@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useMemo, useState } from "react";
 
-type Tab = "flight" | "energy" | "broadband" | "faulty";
+type Tab = "flight" | "energy" | "broadband" | "faulty" | "deposit" | "parking" | "retail";
 
 export function CalculatorClient() {
   const [tab, setTab] = useState<Tab>("flight");
@@ -43,6 +43,47 @@ export function CalculatorClient() {
     return Math.floor((now.getTime() - purchase.getTime()) / (1000 * 60 * 60 * 24));
   }, [purchaseDate]);
 
+  // Deposit calculator
+  const [depositAmount, setDepositAmount] = useState(1200);
+  const [depositDate, setDepositDate] = useState("2025-01-01");
+  const [depositReturnDate, setDepositReturnDate] = useState(new Date().toISOString().slice(0, 10));
+  const depositCalc = useMemo(() => {
+    const start = new Date(depositDate);
+    const end = new Date(depositReturnDate);
+    const days = Math.max(0, Math.floor((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24)));
+    const interestRate = 0.04; // approximate Bank of England base rate
+    const interest = depositAmount * interestRate * (days / 365);
+    const protectionDeadlineMissed = days > 30;
+    const minPenalty = depositAmount;
+    const maxPenalty = depositAmount * 3;
+    return { days, interest, protectionDeadlineMissed, minPenalty, maxPenalty };
+  }, [depositAmount, depositDate, depositReturnDate]);
+
+  // Parking fine calculator
+  const [parkingCharge, setParkingCharge] = useState(100);
+  const [paidWithin14Days, setPaidWithin14Days] = useState(false);
+  const [appealSubmitted, setAppealSubmitted] = useState(false);
+  const parkingCalc = useMemo(() => {
+    const discountedAmount = paidWithin14Days ? parkingCharge * 0.6 : parkingCharge;
+    // Rough appeal success estimates based on common grounds
+    const appealSuccessRate = appealSubmitted ? 50 : 0;
+    return { discountedAmount, appealSuccessRate };
+  }, [parkingCharge, paidWithin14Days, appealSubmitted]);
+
+  // Retail refund calculator
+  const [retailPurchasePrice, setRetailPurchasePrice] = useState(250);
+  const [retailPurchaseDate, setRetailPurchaseDate] = useState(new Date().toISOString().slice(0, 10));
+  const [retailPaidByCredit, setRetailPaidByCredit] = useState(false);
+  const retailCalc = useMemo(() => {
+    const now = new Date();
+    const purchase = new Date(retailPurchaseDate);
+    const daysSince = Math.floor((now.getTime() - purchase.getTime()) / (1000 * 60 * 60 * 24));
+    const within30Days = daysSince <= 30;
+    const within6Months = daysSince <= 183;
+    const section75Eligible = retailPaidByCredit && retailPurchasePrice >= 100 && retailPurchasePrice <= 30000;
+    return { daysSince, within30Days, within6Months, section75Eligible };
+  }, [retailPurchasePrice, retailPurchaseDate, retailPaidByCredit]);
+
   return (
     <main className="py-12 md:py-16">
       <div className="mx-auto max-w-4xl space-y-6 px-4">
@@ -59,6 +100,9 @@ export function CalculatorClient() {
             { key: "energy", label: "Energy Overcharge" },
             { key: "broadband", label: "Broadband Speed" },
             { key: "faulty", label: "Faulty Product" },
+            { key: "deposit", label: "Tenant Deposit" },
+            { key: "parking", label: "Parking Fine" },
+            { key: "retail", label: "Retail Refund" },
           ].map((t) => (
             <button
               className={`rounded-full border px-3 py-1.5 text-sm ${tab === t.key ? "bg-primary text-white" : "bg-white"}`}
@@ -156,6 +200,107 @@ export function CalculatorClient() {
             </div>
             <Link className="inline-block rounded bg-primary px-4 py-2 text-sm text-white" href="/register">
               Start your refund claim → Start Free
+            </Link>
+          </section>
+        )}
+
+        {tab === "deposit" && (
+          <section className="space-y-3 rounded-lg border bg-white p-5">
+            <h2 className="text-lg font-semibold">Tenant Deposit Calculator</h2>
+            <div className="grid gap-3 md:grid-cols-2">
+              <label className="text-sm">Deposit amount (£)
+                <input className="mt-1 w-full rounded border px-3 py-2" onChange={(e) => setDepositAmount(Number(e.target.value))} type="number" value={depositAmount} />
+              </label>
+              <label className="text-sm">Date deposit paid
+                <input className="mt-1 w-full rounded border px-3 py-2" onChange={(e) => setDepositDate(e.target.value)} type="date" value={depositDate} />
+              </label>
+              <label className="text-sm">Date returned / claimed
+                <input className="mt-1 w-full rounded border px-3 py-2" onChange={(e) => setDepositReturnDate(e.target.value)} type="date" value={depositReturnDate} />
+              </label>
+            </div>
+            <div className="space-y-2 text-sm">
+              <p className="text-lg font-bold">Interest owed: £{depositCalc.interest.toFixed(2)}</p>
+              <p>Deposit held for {depositCalc.days} days</p>
+              {depositCalc.protectionDeadlineMissed && (
+                <div className="rounded border border-amber-200 bg-amber-50 p-3">
+                  <p className="font-semibold text-amber-800">30-day protection deadline may have been missed</p>
+                  <p className="text-amber-700">If your landlord failed to protect the deposit within 30 days, you may be entitled to a penalty of 1x–3x the deposit amount (£{depositCalc.minPenalty.toFixed(2)} – £{depositCalc.maxPenalty.toFixed(2)}).</p>
+                </div>
+              )}
+            </div>
+            <Link className="inline-block rounded bg-primary px-4 py-2 text-sm text-white" href="/register">
+              Claim your deposit back → Start Free
+            </Link>
+          </section>
+        )}
+
+        {tab === "parking" && (
+          <section className="space-y-3 rounded-lg border bg-white p-5">
+            <h2 className="text-lg font-semibold">Parking Fine Reduction Estimator</h2>
+            <div className="grid gap-3 md:grid-cols-2">
+              <label className="text-sm">Original charge (£)
+                <input className="mt-1 w-full rounded border px-3 py-2" onChange={(e) => setParkingCharge(Number(e.target.value))} type="number" value={parkingCharge} />
+              </label>
+              <label className="flex items-center gap-2 text-sm">
+                <input checked={paidWithin14Days} onChange={(e) => setPaidWithin14Days(e.target.checked)} type="checkbox" />
+                Paid within 14 days (early discount)
+              </label>
+              <label className="flex items-center gap-2 text-sm">
+                <input checked={appealSubmitted} onChange={(e) => setAppealSubmitted(e.target.checked)} type="checkbox" />
+                Planning to appeal
+              </label>
+            </div>
+            <div className="space-y-2 text-sm">
+              {paidWithin14Days ? (
+                <p className="text-lg font-bold">Reduced amount: £{parkingCalc.discountedAmount.toFixed(2)} (40% discount)</p>
+              ) : (
+                <p className="text-lg font-bold">Current charge: £{parkingCharge.toFixed(2)}</p>
+              )}
+              {appealSubmitted && (
+                <div className="rounded border bg-slate-50 p-3">
+                  <p>Estimated appeal success rate: ~{parkingCalc.appealSuccessRate}% (based on common grounds like unclear signage, grace periods, and keeper liability challenges).</p>
+                  <p className="mt-1 text-xs text-slate-500">Note: actual success depends on your specific circumstances and evidence.</p>
+                </div>
+              )}
+            </div>
+            <Link className="inline-block rounded bg-primary px-4 py-2 text-sm text-white" href="/register">
+              Appeal your parking charge → Start Free
+            </Link>
+          </section>
+        )}
+
+        {tab === "retail" && (
+          <section className="space-y-3 rounded-lg border bg-white p-5">
+            <h2 className="text-lg font-semibold">Retail Refund Estimator</h2>
+            <div className="grid gap-3 md:grid-cols-2">
+              <label className="text-sm">Purchase price (£)
+                <input className="mt-1 w-full rounded border px-3 py-2" onChange={(e) => setRetailPurchasePrice(Number(e.target.value))} type="number" value={retailPurchasePrice} />
+              </label>
+              <label className="text-sm">Purchase date
+                <input className="mt-1 w-full rounded border px-3 py-2" onChange={(e) => setRetailPurchaseDate(e.target.value)} type="date" value={retailPurchaseDate} />
+              </label>
+              <label className="flex items-center gap-2 text-sm">
+                <input checked={retailPaidByCredit} onChange={(e) => setRetailPaidByCredit(e.target.checked)} type="checkbox" />
+                Paid by credit card
+              </label>
+            </div>
+            <div className="space-y-2 rounded border bg-slate-50 p-3 text-sm">
+              {retailCalc.within30Days ? (
+                <p><strong>Within 30 days:</strong> You have the short-term right to reject the goods for a full refund under CRA 2015 s.22.</p>
+              ) : retailCalc.within6Months ? (
+                <p><strong>30 days – 6 months:</strong> The retailer must offer a repair or replacement. If the first repair fails, you can demand a refund. The burden of proof is on the retailer.</p>
+              ) : (
+                <p><strong>After 6 months:</strong> You can still claim, but you may need to prove the fault was present at purchase (e.g. an independent report).</p>
+              )}
+              {retailCalc.section75Eligible && (
+                <p className="mt-1 font-semibold text-teal-700">Section 75 eligible: Your credit card provider is jointly liable for purchases between £100 and £30,000.</p>
+              )}
+              {retailPaidByCredit && !retailCalc.section75Eligible && retailPurchasePrice < 100 && (
+                <p className="mt-1 text-amber-700">Section 75 requires a purchase of at least £100. You may be able to use chargeback instead.</p>
+              )}
+            </div>
+            <Link className="inline-block rounded bg-primary px-4 py-2 text-sm text-white" href="/register">
+              Start your retail claim → Start Free
             </Link>
           </section>
         )}
