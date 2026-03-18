@@ -125,7 +125,7 @@ CASE DETAILS:
 - Days open: ${caseContext.daysOpen}
 - First contact date: ${caseContext.firstContactDate ?? "Unknown"}
 - Desired outcome: ${caseContext.desiredOutcome ?? "Not specified"}
-- Amount in dispute: ${caseContext.amountInDispute ? `£${caseContext.amountInDispute.toFixed(2)}` : "Not specified"}
+- Amount in dispute: ${caseContext.amountInDispute ? `£${Number(caseContext.amountInDispute).toFixed(2)}` : "Not specified"}
 - Reference number: ${caseContext.referenceNumber ?? "None"}
 
 INTERACTIONS (${caseContext.interactions.length} total, showing last ${Math.min(10, caseContext.interactions.length)}):
@@ -230,7 +230,7 @@ CASE INFORMATION:
 - What happened: ${context.caseDescription ?? "Not provided"}
 - First contact with organisation: ${context.firstContactDate ?? "Unknown"}
 - Desired outcome: ${context.desiredOutcome ?? "Resolution of the complaint"}
-- Amount in dispute: ${context.amountInDispute ? `£${context.amountInDispute.toFixed(2)}` : "Not applicable"}
+- Amount in dispute: ${context.amountInDispute ? `£${Number(context.amountInDispute).toFixed(2)}` : "Not applicable"}
 - My reference: ${context.referenceNumber ?? "None"}
 
 INTERACTION HISTORY:

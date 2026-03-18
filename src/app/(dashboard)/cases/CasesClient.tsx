@@ -201,7 +201,7 @@ export function CasesClient({
                       )}
                       {c.amount_in_dispute && (
                         <span className="font-medium text-foreground">
-                          £{c.amount_in_dispute.toFixed(2)}
+                          £{Number(c.amount_in_dispute).toFixed(2)}
                         </span>
                       )}
                     </div>

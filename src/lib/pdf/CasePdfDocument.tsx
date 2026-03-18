@@ -520,7 +520,7 @@ export function CasePdfDocument({ data }: { data: CasePdfData }) {
           lastInteractionDate ? ["LAST INTERACTION", lastInteractionDate] : null,
           ["TOTAL INTERACTIONS", totalInteractions.toString()],
           ["DAYS OPEN", daysOpen.toString()],
-          amountInDispute ? ["AMOUNT IN DISPUTE", `£${amountInDispute.toFixed(2)}`] : null,
+          amountInDispute ? ["AMOUNT IN DISPUTE", `£${Number(amountInDispute).toFixed(2)}`] : null,
         ]
           .filter(Boolean)
           .map((row, i) => (
@@ -566,7 +566,7 @@ export function CasePdfDocument({ data }: { data: CasePdfData }) {
             <View style={styles.summaryCard}>
               <Text style={styles.summaryCardLabel}>AMOUNT IN DISPUTE</Text>
               <Text style={styles.summaryCardValue}>
-                {amountInDispute ? `£${amountInDispute.toFixed(2)}` : "Not specified"}
+                {amountInDispute ? `£${Number(amountInDispute).toFixed(2)}` : "Not specified"}
               </Text>
             </View>
           </View>

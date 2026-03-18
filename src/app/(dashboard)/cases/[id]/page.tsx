@@ -332,7 +332,7 @@ export default async function CasePage({
           <div className="rounded-lg border p-3 text-center">
             <p className="text-2xl font-bold">
               {theCase.amount_in_dispute
-                ? `£${theCase.amount_in_dispute.toFixed(0)}`
+                ? `£${Number(theCase.amount_in_dispute).toFixed(0)}`
                 : "—"}
             </p>
             <p className="text-xs text-muted-foreground">In dispute</p>
@@ -486,7 +486,7 @@ export default async function CasePage({
               {theCase.amount_in_dispute && (
                 <div className="flex justify-between gap-2">
                   <span className="text-muted-foreground">In dispute</span>
-                  <span className="font-medium">£{theCase.amount_in_dispute.toFixed(2)}</span>
+                  <span className="font-medium">£{Number(theCase.amount_in_dispute).toFixed(2)}</span>
                 </div>
               )}
               {theCase.desired_outcome && (
