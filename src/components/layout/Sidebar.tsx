@@ -53,11 +53,12 @@ export function Sidebar({ pathname, userName, userEmail, tier, isAdmin = false }
       <nav className="flex-1 space-y-1 p-3">
         {NAV_ITEMS.map((item) => {
           const Icon = item.icon;
-          // Use exact match for Dashboard to avoid marking it active on sub-routes like /dashboard/packs.
-          const isActive =
-            item.href === "/dashboard"
-              ? pathname === "/dashboard"
-              : pathname === item.href || pathname.startsWith(`${item.href}/`);
+          // Exact-match routes: sub-paths must not inherit the parent's active state.
+          // e.g. /cases/new must not highlight /cases; /dashboard/packs must not highlight /dashboard.
+          const exactMatchRoutes = new Set(["/dashboard", "/cases"]);
+          const isActive = exactMatchRoutes.has(item.href)
+            ? pathname === item.href
+            : pathname === item.href || pathname.startsWith(`${item.href}/`);
 
           return (
             <Link
