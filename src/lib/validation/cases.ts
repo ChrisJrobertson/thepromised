@@ -15,6 +15,14 @@ export const ORGANISATION_CATEGORIES = [
   "transport",
   "education",
   "employment",
+  // New verticals
+  "landlord_tenant",
+  "parking",
+  "council_tax",
+  "motor_vehicle",
+  "nhs_healthcare",
+  "home_improvements",
+  "subscriptions",
   "other",
 ] as const;
 
@@ -36,6 +44,14 @@ export const ORGANISATION_CATEGORY_LABELS: Record<
   transport: "Transport",
   education: "Education",
   employment: "Employment",
+  // New verticals
+  landlord_tenant: "Landlord & Tenant",
+  parking: "Parking Tickets",
+  council_tax: "Council Tax",
+  motor_vehicle: "Car Purchase & Motor",
+  nhs_healthcare: "NHS & Healthcare",
+  home_improvements: "Home Improvements",
+  subscriptions: "Subscriptions",
   other: "Other",
 };
 

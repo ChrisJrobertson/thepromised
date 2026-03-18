@@ -158,6 +158,7 @@ export async function POST(request: Request) {
       letterTypeName: template?.name ?? letterType,
       legalReferences: template?.legalReferences ?? [],
       suggestedTone: template?.suggestedTone ?? "Professional",
+      caseCategory: typedCase.category,
       organisationName: orgName,
       complaintEmail,
       complaintPhone,

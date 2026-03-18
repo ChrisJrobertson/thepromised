@@ -20,6 +20,14 @@ const CATEGORY_TITLES: Record<string, string> = {
   transport: "Transport Operator",
   education: "Education Provider",
   employment: "Employment Complaint",
+  // New verticals
+  landlord_tenant: "Landlord or Letting Agent",
+  parking: "Parking Ticket Issuer",
+  council_tax: "Council Tax Authority",
+  motor_vehicle: "Car Dealer or Motor Finance Provider",
+  nhs_healthcare: "NHS or Healthcare Provider",
+  home_improvements: "Builder or Tradesperson",
+  subscriptions: "Subscription Service Provider",
   other: "Organisation",
 };
 
@@ -38,6 +46,14 @@ const CATEGORY_DESCRIPTIONS: Record<string, string> = {
   transport: "Rail, airline, and transport provider complaints",
   education: "School, college, and university complaints",
   employment: "Employment disputes — unfair dismissal, discrimination, grievances",
+  // New verticals
+  landlord_tenant: "Landlord and tenant disputes — deposits, repairs, disrepair, and housing rights",
+  parking: "Parking ticket appeals — private PCNs and council Penalty Charge Notices",
+  council_tax: "Council tax disputes — banding challenges, liability, exemptions, and hardship",
+  motor_vehicle: "Car purchase and motor finance complaints — Consumer Rights Act, faulty vehicles, Section 75",
+  nhs_healthcare: "NHS and healthcare complaints — GPs, hospitals, clinical negligence, and the PHSO",
+  home_improvements: "Builder and tradesperson complaints — substandard work, non-completion, and safety",
+  subscriptions: "Subscription trap and cancellation complaints — Consumer Contracts Regulations and DMCC Act 2024",
   other: "General complaint escalation guide",
 };
 
