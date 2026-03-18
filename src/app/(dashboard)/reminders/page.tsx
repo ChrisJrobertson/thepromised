@@ -1,3 +1,4 @@
+export const dynamic = "force-dynamic";
 import { isPast, isToday, addDays } from "date-fns";
 import { redirect } from "next/navigation";
 

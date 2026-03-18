@@ -42,14 +42,18 @@ import type {
 import { CaseActions } from "./CaseActions";
 
 export async function generateMetadata({ params }: { params: Promise<{ id: string }> }) {
-  const { id } = await params;
-  const supabase = await createClient();
-  const { data } = await supabase
-    .from("cases")
-    .select("title")
-    .eq("id", id)
-    .maybeSingle();
-  return { title: data?.title ? `${data.title} — TheyPromised` : "Case — TheyPromised" };
+  try {
+    const { id } = await params;
+    const supabase = await createClient();
+    const { data } = await supabase
+      .from("cases")
+      .select("title")
+      .eq("id", id)
+      .maybeSingle();
+    return { title: data?.title ? `${data.title} — TheyPromised` : "Case — TheyPromised" };
+  } catch {
+    return { title: "Case — TheyPromised" };
+  }
 }
 
 const STATUS_COLOURS: Record<string, string> = {
@@ -81,6 +85,18 @@ export default async function CasePage({
   params: Promise<{ id: string }>;
   searchParams: Promise<{ created?: string; tab?: string }>;
 }) {
+  try {
+    return await renderCasePage(params, searchParams);
+  } catch (err) {
+    console.error("[CasePage] RENDER ERROR:", err instanceof Error ? err.message : String(err), err instanceof Error ? err.stack?.slice(0, 600) : "");
+    throw err;
+  }
+}
+
+async function renderCasePage(
+  params: Promise<{ id: string }>,
+  searchParams: Promise<{ created?: string; tab?: string }>
+) {
   const { id } = await params;
   const sp = await searchParams;
 

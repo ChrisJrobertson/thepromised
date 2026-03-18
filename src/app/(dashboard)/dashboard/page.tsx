@@ -1,3 +1,4 @@
+export const dynamic = "force-dynamic";
 // NOTE: Run POST /api/seed with SEED_SECRET to populate organisations and escalation rules
 // NOTE: Run npx tsx src/lib/stripe/setup.ts to create Stripe products
 import type { Metadata } from "next";

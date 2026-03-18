@@ -1,3 +1,4 @@
+export const dynamic = "force-dynamic";
 import { PagePlaceholder } from "@/components/layout/PagePlaceholder";
 
 export default function SettingsPage() {
