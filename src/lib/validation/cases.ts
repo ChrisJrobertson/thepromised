@@ -15,6 +15,9 @@ export const ORGANISATION_CATEGORIES = [
   "transport",
   "education",
   "employment",
+  "landlord_tenant",
+  "parking_pcn",
+  "retail_shopping",
   "other",
 ] as const;
 
@@ -36,6 +39,9 @@ export const ORGANISATION_CATEGORY_LABELS: Record<
   transport: "Transport",
   education: "Education",
   employment: "Employment",
+  landlord_tenant: "Landlord & Tenant",
+  parking_pcn: "Parking Tickets & PCN",
+  retail_shopping: "Retail & Online Shopping",
   other: "Other",
 };
 

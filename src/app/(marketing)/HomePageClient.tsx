@@ -6,6 +6,7 @@ import { motion } from "framer-motion";
 import {
   ArrowRight,
   Building2,
+  Car,
   ClipboardCheck,
   ClipboardList,
   Compass,
@@ -19,6 +20,7 @@ import {
   Phone,
   Send,
   Shield,
+  ShoppingBag,
   Sparkles,
   Star,
   Users,
@@ -44,6 +46,9 @@ const CATEGORY_ICONS = [
   { icon: FileText, label: "Government" },
   { icon: Home, label: "Housing" },
   { icon: Shield, label: "Insurance" },
+  { icon: Building2, label: "Landlord & Tenant" },
+  { icon: Car, label: "Parking" },
+  { icon: ShoppingBag, label: "Retail" },
 ];
 
 const PROBLEMS = [

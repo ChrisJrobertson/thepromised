@@ -636,6 +636,436 @@ export const JOURNEY_TEMPLATES: JourneyTemplate[] = [
       },
     ],
   },
+  // ── Landlord Deposit Dispute ────────────────────────────────────────────
+  {
+    id: "landlord-deposit-dispute",
+    category: "landlord_deposit",
+    title: "Landlord Deposit Dispute",
+    description:
+      "Your landlord hasn't returned your deposit within the legal timeframe, or has made unfair deductions. You want your money back.",
+    sector: "housing",
+    is_active: true,
+    steps: [
+      {
+        id: "document-issue",
+        title: "Document the issue",
+        description:
+          "Gather your evidence: check-in/check-out inventory, tenancy agreement, photos of the property condition, and any correspondence with your landlord.",
+        type: "action_log_interaction",
+        action_config: { interaction_channel: "other" },
+        tips: [
+          "Take dated photos of the property condition when you move out.",
+          "Get a copy of the check-in and check-out inventory reports.",
+          "Check which deposit scheme holds your deposit (TDS, DPS, or MyDeposits).",
+          "Confirm your landlord protected the deposit within 30 days of receiving it.",
+        ],
+        next_step_id: "draft-deposit-demand",
+      },
+      {
+        id: "draft-deposit-demand",
+        title: "Write to your landlord requesting deposit return",
+        description:
+          "Send a formal letter demanding the return of your deposit within 14 days. If the deposit wasn't protected, you may be entitled to 1x–3x the deposit as compensation.",
+        type: "action_draft_letter",
+        action_config: {
+          letter_type: "initial_complaint",
+          prompt_context: "landlord_deposit_demand",
+        },
+        legal_basis:
+          "Housing Act 2004 ss.213–215 requires deposits to be protected in a government-approved scheme within 30 days. Failure to protect entitles the tenant to 1x–3x the deposit amount.",
+        tips: [
+          "Give 14 days to respond.",
+          "State clearly whether the deposit was protected or not.",
+          "If unprotected, mention the 1x–3x penalty claim.",
+        ],
+        next_step_id: "wait-landlord-response",
+      },
+      {
+        id: "wait-landlord-response",
+        title: "Wait for your landlord to respond",
+        description:
+          "Give the landlord 14 days to respond to your deposit demand letter.",
+        type: "wait",
+        action_config: { wait_days: 14 },
+        next_step_id: "landlord-response-check",
+      },
+      {
+        id: "landlord-response-check",
+        title: "Did your landlord return the deposit?",
+        description: "Check whether your landlord has returned the deposit in full.",
+        type: "decision",
+        action_config: {
+          decision_yes_label: "Yes — deposit returned in full",
+          decision_no_label: "No — refused or unfair deductions",
+          decision_yes_next: "resolved",
+          decision_no_next: "contact-deposit-scheme",
+        },
+        next_step_id: "contact-deposit-scheme",
+      },
+      {
+        id: "contact-deposit-scheme",
+        title: "Contact the deposit protection scheme",
+        description:
+          "Raise a dispute through the deposit protection scheme (TDS, DPS, or MyDeposits). Their free ADR service can resolve the dispute without court.",
+        type: "action_draft_letter",
+        action_config: {
+          letter_type: "adr_referral",
+          prompt_context: "landlord_deposit_adr",
+        },
+        legal_basis:
+          "All three government-approved schemes offer free Alternative Dispute Resolution (ADR). Both parties must agree to be bound by the adjudicator's decision.",
+        tips: [
+          "You can raise a dispute directly through the scheme's website.",
+          "Submit your evidence pack: inventory, photos, tenancy agreement.",
+          "The adjudicator's decision is binding on both parties.",
+        ],
+        next_step_id: "adr-response-check",
+      },
+      {
+        id: "adr-response-check",
+        title: "Was the ADR outcome satisfactory?",
+        description: "Did the deposit scheme's ADR resolve the dispute fairly?",
+        type: "decision",
+        action_config: {
+          decision_yes_label: "Yes — fair outcome",
+          decision_no_label: "No — landlord refused ADR or unfair outcome",
+          decision_yes_next: "resolved",
+          decision_no_next: "draft-tribunal",
+        },
+        next_step_id: "draft-tribunal",
+      },
+      {
+        id: "draft-tribunal",
+        title: "Apply to the First-tier Tribunal",
+        description:
+          "If ADR fails or the landlord won't engage, apply to the First-tier Tribunal (Property Chamber). This is free and handles deposit disputes, including the 1x–3x penalty for unprotected deposits.",
+        type: "action_draft_letter",
+        action_config: {
+          letter_type: "court_claim",
+          prompt_context: "landlord_deposit_demand",
+        },
+        legal_basis:
+          "First-tier Tribunal (Property Chamber) has jurisdiction over deposit protection disputes under Housing Act 2004 ss.213–215. Claims for non-protection penalties must be made within 6 years.",
+        tips: [
+          "Export your case PDF — it's your evidence bundle for the tribunal.",
+          "The tribunal is informal and you don't need a solicitor.",
+          "The tribunal can award 1x–3x the deposit if it wasn't protected.",
+        ],
+        next_step_id: "resolved",
+      },
+      {
+        id: "resolved",
+        title: "Record the outcome",
+        description: "Log the resolution — deposit returned, ADR award, or tribunal decision.",
+        type: "complete",
+      },
+    ],
+  },
+
+  // ── Parking PCN Appeal ──────────────────────────────────────────────────
+  {
+    id: "parking-pcn-appeal",
+    category: "parking_pcn_appeal",
+    title: "Parking PCN Appeal",
+    description:
+      "You received a private parking charge notice (PCN) that you believe is unfair — unclear signage, mitigating circumstances, or keeper liability issues.",
+    sector: "parking",
+    is_active: true,
+    steps: [
+      {
+        id: "gather-evidence",
+        title: "Gather your evidence",
+        description:
+          "Photograph the signage, your ticket, the parking location, and any mitigating factors. Check if the operator is a BPA or IPC member.",
+        type: "action_log_interaction",
+        action_config: { interaction_channel: "other" },
+        tips: [
+          "Take photos of ALL signage at the car park — including any that's faded, obscured, or missing.",
+          "Note whether the operator is a BPA member (appeals go to POPLA) or IPC member (appeals go to IAS).",
+          "Check the PCN was issued within 14 days (required by PoFA 2012 for keeper liability).",
+          "Don't ignore the PCN — appeal within 28 days.",
+        ],
+        next_step_id: "draft-operator-appeal",
+      },
+      {
+        id: "draft-operator-appeal",
+        title: "Appeal to the parking operator",
+        description:
+          "Submit a formal appeal to the operator within 28 days of the PCN. Most operators must follow the BPA or IPC Code of Practice.",
+        type: "action_draft_letter",
+        action_config: {
+          letter_type: "initial_complaint",
+          prompt_context: "parking_pcn_operator_appeal",
+        },
+        legal_basis:
+          "Protection of Freedoms Act 2012 (PoFA) Schedule 4 governs private parking charges. The parking operator must comply with their trade association's Code of Practice (BPA or IPC).",
+        tips: [
+          "Appeal within 28 days to preserve your right to POPLA/IAS.",
+          "Common grounds: inadequate signage, no grace period, mitigating circumstances.",
+          "Many operators accept appeals to avoid POPLA/IAS costs.",
+        ],
+        next_step_id: "wait-operator-response",
+      },
+      {
+        id: "wait-operator-response",
+        title: "Wait for the operator's response",
+        description:
+          "The operator should respond within 28 days. If they reject your appeal, they must issue a POPLA/IAS code so you can appeal independently.",
+        type: "wait",
+        action_config: { wait_days: 28 },
+        next_step_id: "operator-response-check",
+      },
+      {
+        id: "operator-response-check",
+        title: "Did the operator cancel the charge?",
+        description: "What did the parking operator say?",
+        type: "decision",
+        action_config: {
+          decision_yes_label: "Yes — charge cancelled",
+          decision_no_label: "No — appeal rejected",
+          decision_yes_next: "resolved",
+          decision_no_next: "draft-independent-appeal",
+        },
+        next_step_id: "draft-independent-appeal",
+      },
+      {
+        id: "draft-independent-appeal",
+        title: "Appeal to POPLA or IAS",
+        description:
+          "Submit an independent appeal to POPLA (BPA members) or IAS (IPC members). Their decision is binding on the operator but not on you.",
+        type: "action_draft_letter",
+        action_config: {
+          letter_type: "adr_referral",
+          prompt_context: "parking_pcn_popla_appeal",
+        },
+        legal_basis:
+          "POPLA (Parking on Private Land Appeals) and IAS (Independent Appeals Service) are the two independent appeal services. Their decisions bind the operator but not the motorist.",
+        tips: [
+          "You have 28 days from the operator's rejection to appeal to POPLA/IAS.",
+          "Upload all evidence: photos, PCN, correspondence.",
+          "If POPLA/IAS upholds your appeal, the charge is cancelled.",
+        ],
+        next_step_id: "independent-response-check",
+      },
+      {
+        id: "independent-response-check",
+        title: "Was the independent appeal successful?",
+        description: "Did POPLA or IAS uphold your appeal?",
+        type: "decision",
+        action_config: {
+          decision_yes_label: "Yes — charge cancelled",
+          decision_no_label: "No — appeal rejected",
+          decision_yes_next: "resolved",
+          decision_no_next: "draft-court-defence",
+        },
+        next_step_id: "draft-court-defence",
+      },
+      {
+        id: "draft-court-defence",
+        title: "Prepare your court defence",
+        description:
+          "If the operator pursues the charge through the County Court, prepare your defence. Many operators don't follow through — but if they do, you need to respond within 14 days of the claim.",
+        type: "action_draft_letter",
+        action_config: {
+          letter_type: "court_defence",
+          prompt_context: "parking_pcn_court_defence",
+        },
+        legal_basis:
+          "Private parking charges are contractual, not criminal. The operator must prove: adequate signage, a genuine pre-estimate of loss, and compliance with PoFA 2012. Beavis v ParkingEye [2015] UKSC 67 sets the key precedent.",
+        tips: [
+          "Many operators don't follow through with court action.",
+          "If they do, you have 14 days to file a defence.",
+          "Export your case PDF as your evidence bundle.",
+          "Small Claims Court — no solicitor needed.",
+        ],
+        next_step_id: "resolved",
+      },
+      {
+        id: "resolved",
+        title: "Record the outcome",
+        description: "Log the resolution — charge cancelled, appeal outcome, or court result.",
+        type: "complete",
+      },
+    ],
+  },
+
+  // ── Faulty Product Return (Retail) ──────────────────────────────────────
+  {
+    id: "faulty-product-return",
+    category: "retail_product",
+    title: "Faulty Product Return — Retail & Online Shopping",
+    description:
+      "You bought a product online or in-store that was faulty, not as described, or never delivered. The retailer won't give you a proper resolution.",
+    sector: "retail_shopping",
+    is_active: true,
+    steps: [
+      {
+        id: "document-fault",
+        title: "Document the fault",
+        description:
+          "Gather your evidence: order confirmation, receipt, photos of the fault, and any correspondence with the retailer so far.",
+        type: "action_log_interaction",
+        action_config: { interaction_channel: "other" },
+        tips: [
+          "Take clear photos of the fault from multiple angles.",
+          "Save your order confirmation email and delivery notification.",
+          "Note the purchase date — your rights depend on how long ago you bought it.",
+          "Check whether you paid by credit card (Section 75 may apply).",
+        ],
+        next_step_id: "within-30-days-check",
+      },
+      {
+        id: "within-30-days-check",
+        title: "Is the product less than 30 days old?",
+        description:
+          "Your rights depend on when you discovered the fault relative to the purchase date.",
+        type: "decision",
+        action_config: {
+          decision_yes_label: "Yes — less than 30 days since purchase",
+          decision_no_label: "No — more than 30 days since purchase",
+          decision_yes_next: "draft-reject-letter",
+          decision_no_next: "draft-repair-letter",
+        },
+        next_step_id: "draft-reject-letter",
+      },
+      {
+        id: "draft-reject-letter",
+        title: "Exercise your short-term right to reject",
+        description:
+          "Within 30 days, you have an absolute right to a full refund. The retailer cannot insist on a repair.",
+        type: "action_draft_letter",
+        action_config: {
+          letter_type: "initial_complaint",
+          prompt_context: "retail_product_reject",
+        },
+        legal_basis:
+          "Consumer Rights Act 2015, section 22 — the short-term right to reject goods. Full refund, no deduction for use.",
+        tips: [
+          "State clearly you are rejecting the goods under CRA 2015 s.22.",
+          "The retailer must refund you within 14 days.",
+          "They cannot insist on a repair during the 30-day window.",
+        ],
+        next_step_id: "retailer-response-check",
+      },
+      {
+        id: "draft-repair-letter",
+        title: "Request a repair or replacement",
+        description:
+          "After 30 days, the retailer can offer one repair attempt. If the repair fails, you get a price reduction or final right to reject.",
+        type: "action_draft_letter",
+        action_config: {
+          letter_type: "initial_complaint",
+          prompt_context: "retail_product_repair",
+        },
+        legal_basis:
+          "Consumer Rights Act 2015, sections 23–24. Within the first 6 months, the burden of proof is on the retailer to show the goods were not faulty at delivery.",
+        tips: [
+          "Give the retailer a reasonable timeframe for repair (14–28 days).",
+          "If the first repair fails, you can demand a refund.",
+          "Within 6 months, the fault is presumed to have existed at delivery.",
+        ],
+        next_step_id: "retailer-response-check",
+      },
+      {
+        id: "retailer-response-check",
+        title: "Did the retailer resolve it?",
+        description: "Did you get a satisfactory refund, repair, or replacement?",
+        type: "decision",
+        action_config: {
+          decision_yes_label: "Yes — fully resolved",
+          decision_no_label: "No — refused or unsatisfactory",
+          decision_yes_next: "resolved",
+          decision_no_next: "paid-by-credit-card",
+        },
+        next_step_id: "paid-by-credit-card",
+      },
+      {
+        id: "paid-by-credit-card",
+        title: "Did you pay by credit card?",
+        description:
+          "If you paid by credit card and the purchase was between £100 and £30,000, your card provider is jointly liable under Section 75.",
+        type: "decision",
+        action_config: {
+          decision_yes_label: "Yes — paid by credit card (not debit)",
+          decision_no_label: "No — debit card, cash, or other method",
+          decision_yes_next: "draft-section75",
+          decision_no_next: "draft-lba",
+        },
+        next_step_id: "draft-section75",
+      },
+      {
+        id: "draft-section75",
+        title: "Make a Section 75 claim",
+        description:
+          "Your credit card provider is jointly liable with the retailer. This is often faster and more reliable than pursuing the retailer directly.",
+        type: "action_draft_letter",
+        action_config: {
+          letter_type: "section_75_claim",
+          prompt_context: "retail_product_section75",
+        },
+        legal_basis:
+          "Consumer Credit Act 1974, section 75. The credit card provider has equal liability with the retailer for purchases between £100 and £30,000.",
+        tips: [
+          "This applies to credit cards only, not debit cards.",
+          "The purchase must be over £100.",
+          "If the card provider rejects your claim, refer to the FOS.",
+        ],
+        next_step_id: "s75-check",
+      },
+      {
+        id: "s75-check",
+        title: "Did the card provider uphold your claim?",
+        description: "What did your credit card provider say?",
+        type: "decision",
+        action_config: {
+          decision_yes_label: "Yes — refund processed",
+          decision_no_label: "No — claim rejected",
+          decision_yes_next: "resolved",
+          decision_no_next: "draft-fos",
+        },
+        next_step_id: "draft-fos",
+      },
+      {
+        id: "draft-fos",
+        title: "Refer to the Financial Ombudsman",
+        description:
+          "If your Section 75 claim was rejected, the Financial Ombudsman Service can investigate for free.",
+        type: "action_draft_letter",
+        action_config: {
+          letter_type: "ombudsman_referral",
+          prompt_context: "retail_product_fos",
+        },
+        legal_basis:
+          "The FOS has compulsory jurisdiction over credit card providers. They can award up to £415,000.",
+        next_step_id: "resolved",
+      },
+      {
+        id: "draft-lba",
+        title: "Send a Letter Before Action",
+        description:
+          "A formal pre-action letter gives the retailer one final chance to settle before you issue a County Court claim.",
+        type: "action_draft_letter",
+        action_config: {
+          letter_type: "letter_before_action",
+          prompt_context: "retail_product_lba",
+        },
+        legal_basis:
+          "Pre-Action Protocol for Debt Claims requires a letter before issuing court proceedings. Small Claims Court handles claims up to £10,000 without needing a solicitor.",
+        tips: [
+          "Give 14 days to respond.",
+          "Export your case PDF as your evidence bundle.",
+          "MCOL (Money Claim Online) filing fee is £35–£70 depending on amount.",
+        ],
+        next_step_id: "resolved",
+      },
+      {
+        id: "resolved",
+        title: "Record the outcome",
+        description: "Log the resolution — refund, repair, Section 75 payout, or court outcome.",
+        type: "complete",
+      },
+    ],
+  },
 ];
 
 export function getJourneyTemplate(id: string): JourneyTemplate | undefined {
@@ -652,4 +1082,7 @@ export const JOURNEY_SECTORS = [
   { id: "travel", label: "Travel & Airlines", icon: "✈️" },
   { id: "finance", label: "Banking & Finance", icon: "🏦" },
   { id: "retail", label: "Retail & Products", icon: "🛍️" },
+  { id: "housing", label: "Landlord & Tenant", icon: "🏠" },
+  { id: "parking", label: "Parking", icon: "🚗" },
+  { id: "retail_shopping", label: "Retail & Online Shopping", icon: "🛒" },
 ];

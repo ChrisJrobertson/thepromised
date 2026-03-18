@@ -1085,6 +1085,250 @@ export const ESCALATION_RULES_SEED: EscalationRuleInsert[] = [
     template_available: true,
     tips: "Court fees are recoverable if you win. Many cases settle before the hearing.",
   },
+
+  // ─── LANDLORD & TENANT ───────────────────────────────────────────────────────
+  {
+    category: "landlord_tenant",
+    stage: "initial",
+    stage_order: 1,
+    title: "Contact your landlord or letting agent",
+    description:
+      "Write to your landlord or letting agent setting out your complaint — whether it relates to deposit protection, repairs, rent increases, or tenancy issues. Keep a copy of everything.",
+    action_required:
+      "Send an email or letter to your landlord/agent describing the issue, what you want done, and a reasonable deadline (usually 14 days).",
+    wait_period_days: 0,
+    deadline_type: "from_complaint",
+    regulatory_body: null,
+    regulatory_url: null,
+    template_available: true,
+    tips:
+      "Always put complaints in writing. If you phone, follow up with an email confirming what was discussed. Keep photos and dated records of any issues.",
+  },
+  {
+    category: "landlord_tenant",
+    stage: "formal_complaint",
+    stage_order: 2,
+    title: "Send a formal complaint citing the relevant legislation",
+    description:
+      "If the landlord has not responded or resolved the issue within 14 days, send a formal complaint letter citing the relevant legislation (Landlord and Tenant Act 1985, Renters' Rights Act 2026, deposit protection rules). Set a further 14-day deadline.",
+    action_required:
+      "Send a formal complaint letter referencing the specific legal obligations being breached. Request a written response within 14 days.",
+    wait_period_days: 14,
+    deadline_type: "from_complaint",
+    regulatory_body: null,
+    regulatory_url: null,
+    template_available: true,
+    tips:
+      "Reference the specific legislation: Section 11 Landlord and Tenant Act 1985 for repairs, deposit protection regulations for deposits, Renters' Rights Act 2026 for rent increases.",
+  },
+  {
+    category: "landlord_tenant",
+    stage: "final_response",
+    stage_order: 3,
+    title: "Contact the deposit scheme or request a deadlock letter",
+    description:
+      "For deposit disputes: contact the relevant deposit protection scheme (TDS, DPS, or MyDeposits) and apply for free ADR. For repairs: contact your council's Environmental Health team. For rent increases: apply to the First-tier Tribunal (Property Chamber).",
+    action_required:
+      "Submit your dispute to the relevant body. For deposits, apply through your deposit scheme's ADR process. For repairs, contact Environmental Health. For rent, apply to the Property Tribunal.",
+    wait_period_days: 14,
+    deadline_type: "from_complaint",
+    regulatory_body: "Deposit Protection Schemes (TDS / DPS / MyDeposits)",
+    regulatory_url: "https://www.gov.uk/tenancy-deposit-protection",
+    template_available: true,
+    tips:
+      "Deposit ADR through the scheme is free. If the landlord failed to protect your deposit within 30 days, you may be entitled to 1x–3x the deposit amount as a penalty.",
+  },
+  {
+    category: "landlord_tenant",
+    stage: "ombudsman",
+    stage_order: 4,
+    title: "Housing Ombudsman or First-tier Tribunal (Property Chamber)",
+    description:
+      "For social housing: refer to the Housing Ombudsman Service. For private landlords: apply to the First-tier Tribunal (Property Chamber) for deposit, rent, or service charge disputes. For letting agent complaints: refer to The Property Ombudsman (TPO) or Property Redress Scheme.",
+    action_required:
+      "Submit your case to the appropriate body with all supporting evidence.",
+    wait_period_days: 0,
+    deadline_type: null,
+    regulatory_body: "Housing Ombudsman / First-tier Tribunal (Property Chamber)",
+    regulatory_url: "https://www.housing-ombudsman.org.uk/",
+    template_available: true,
+    tips:
+      "The First-tier Tribunal can award compensation for unprotected deposits (1x–3x the deposit). The Housing Ombudsman handles social housing complaints and can order remedies.",
+  },
+  {
+    category: "landlord_tenant",
+    stage: "court",
+    stage_order: 5,
+    title: "County Court for damages or enforcement",
+    description:
+      "If the ombudsman or tribunal route is not available or has been exhausted, you can pursue a claim through the County Court for damages, injunctions, or enforcement of tribunal orders.",
+    action_required:
+      "Send a Letter Before Action giving 14 days to respond, then file a claim at HMCTS Money Claim Online.",
+    wait_period_days: 14,
+    deadline_type: "from_response",
+    regulatory_body: "His Majesty's Courts and Tribunals Service",
+    regulatory_url: "https://www.gov.uk/make-court-claim-for-money",
+    template_available: true,
+    tips:
+      "Small claims court handles claims up to £10,000 without needing a solicitor. Rent Repayment Orders can require landlords to repay up to 12 months' rent for certain offences.",
+  },
+
+  // ─── PARKING TICKETS & PRIVATE PCN ───────────────────────────────────────────
+  {
+    category: "parking_pcn",
+    stage: "initial",
+    stage_order: 1,
+    title: "Challenge the parking charge informally",
+    description:
+      "Within 28 days of receiving a private Parking Charge Notice (PCN), you can make an informal challenge to the parking company. Many charges are reduced or cancelled at this stage.",
+    action_required:
+      "Write to the parking company within 28 days challenging the charge. State your grounds clearly (unclear signage, mitigating circumstances, wrong vehicle, etc.).",
+    wait_period_days: 0,
+    deadline_type: "from_complaint",
+    regulatory_body: null,
+    regulatory_url: null,
+    template_available: true,
+    tips:
+      "Do NOT ignore a private parking charge — it will not just go away. However, a PCN from a private company is NOT a fine (it is an invoice). You have the right to appeal.",
+  },
+  {
+    category: "parking_pcn",
+    stage: "formal_complaint",
+    stage_order: 2,
+    title: "Formal appeal to the parking operator",
+    description:
+      "If the informal challenge is rejected, submit a formal appeal to the parking company. Reference the BPA or IPC Code of Practice and the Protection of Freedoms Act 2012 (keeper liability provisions).",
+    action_required:
+      "Submit a formal written appeal citing the relevant code of practice. Include photographic evidence of signage, your ticket, and any mitigating circumstances.",
+    wait_period_days: 28,
+    deadline_type: "from_complaint",
+    regulatory_body: null,
+    regulatory_url: null,
+    template_available: true,
+    tips:
+      "Most private parking companies are members of either the BPA (British Parking Association) or the IPC (International Parking Community). Check the PCN to see which. This determines your appeal route.",
+  },
+  {
+    category: "parking_pcn",
+    stage: "final_response",
+    stage_order: 3,
+    title: "Appeal to POPLA (BPA members) or IAS (IPC members)",
+    description:
+      "If the parking company rejects your appeal, you can escalate to the independent appeals service: POPLA for BPA members or IAS for IPC members. This is free and their decision is binding on the operator.",
+    action_required:
+      "Submit your appeal to POPLA (popla.co.uk) or IAS (theias.org) within 28 days of the operator's rejection. Include all evidence.",
+    wait_period_days: 28,
+    deadline_type: "from_response",
+    regulatory_body: "POPLA / IAS (Independent Appeals Service)",
+    regulatory_url: "https://www.popla.co.uk/",
+    template_available: true,
+    tips:
+      "POPLA/IAS decisions are binding on the parking company — if they rule in your favour, the charge must be cancelled. If they rule against you, you can still choose to pay or let the company pursue through court.",
+  },
+  {
+    category: "parking_pcn",
+    stage: "court",
+    stage_order: 5,
+    title: "Defend in County Court if the company pursues",
+    description:
+      "If you lose at POPLA/IAS or choose not to appeal, the parking company may pursue the debt through the County Court. You can defend the claim and many cases are won by motorists.",
+    action_required:
+      "If you receive a County Court claim, file a defence within 14 days. Reference the Protection of Freedoms Act 2012 Schedule 4 (keeper liability), inadequate signage, and disproportionate charges.",
+    wait_period_days: 14,
+    deadline_type: "from_response",
+    regulatory_body: "His Majesty's Courts and Tribunals Service",
+    regulatory_url: "https://www.gov.uk/make-court-claim-for-money",
+    template_available: true,
+    tips:
+      "Many parking companies do not actually pursue court action. If they do, a well-evidenced defence often succeeds. The landmark case ParkingEye v Beavis [2015] set the precedent for what constitutes a reasonable charge.",
+  },
+
+  // ─── RETAIL & ONLINE SHOPPING ────────────────────────────────────────────────
+  {
+    category: "retail_shopping",
+    stage: "initial",
+    stage_order: 1,
+    title: "Contact the retailer or seller",
+    description:
+      "Contact the retailer directly about your complaint. Under the Consumer Rights Act 2015, goods must be of satisfactory quality, fit for purpose, and as described. You have a 30-day short-term right to reject faulty goods for a full refund.",
+    action_required:
+      "Email or write to the retailer's customer service team. State the issue, what you want (refund, repair, or replacement), and cite your rights under the Consumer Rights Act 2015.",
+    wait_period_days: 0,
+    deadline_type: "from_complaint",
+    regulatory_body: null,
+    regulatory_url: null,
+    template_available: true,
+    tips:
+      "Always complain to the retailer, not the manufacturer — it is the retailer who is legally responsible. Keep your receipt, order confirmation, and any photos of the fault.",
+  },
+  {
+    category: "retail_shopping",
+    stage: "formal_complaint",
+    stage_order: 2,
+    title: "Formal complaint under Consumer Rights Act 2015",
+    description:
+      "If the retailer has not resolved your complaint within 14 days, send a formal complaint citing specific sections of the Consumer Rights Act 2015. Within 30 days: short-term right to reject (s.22). After 30 days: right to repair/replacement (s.23). After failed repair: final right to reject (s.24).",
+    action_required:
+      "Send a formal complaint letter or email citing the specific CRA 2015 sections applicable to your situation. Set a 14-day deadline for resolution.",
+    wait_period_days: 14,
+    deadline_type: "from_complaint",
+    regulatory_body: null,
+    regulatory_url: null,
+    template_available: true,
+    tips:
+      "Within the first 6 months, the burden of proof is on the retailer to show the goods were not faulty at delivery. After 6 months, the burden shifts to you.",
+  },
+  {
+    category: "retail_shopping",
+    stage: "final_response",
+    stage_order: 3,
+    title: "Section 75 claim or ADR",
+    description:
+      "If you paid by credit card (£100–£30,000), make a Section 75 claim to your card provider — they are jointly liable. Otherwise, check if the retailer belongs to an ADR scheme (e.g. Retail ADR). If not, proceed to Letter Before Action.",
+    action_required:
+      "For Section 75: write to your credit card provider with purchase details and evidence of the retailer's breach. For ADR: submit through the relevant scheme.",
+    wait_period_days: 0,
+    deadline_type: null,
+    regulatory_body: "Retail ADR / Financial Ombudsman Service",
+    regulatory_url: "https://www.retailadr.org.uk/",
+    template_available: true,
+    tips:
+      "Section 75 claims are very powerful — your credit card company is equally liable as the retailer. They must investigate within 8 weeks. If rejected, escalate the S.75 claim to the Financial Ombudsman.",
+  },
+  {
+    category: "retail_shopping",
+    stage: "ombudsman",
+    stage_order: 4,
+    title: "ADR scheme or Financial Ombudsman",
+    description:
+      "If your Section 75 claim is rejected, refer to the Financial Ombudsman Service. If you did not pay by credit card, check if the retailer participates in Retail ADR or another ADR scheme.",
+    action_required:
+      "Submit your complaint to the Financial Ombudsman (for rejected S.75 claims) or the relevant ADR scheme with full evidence.",
+    wait_period_days: 0,
+    deadline_type: null,
+    regulatory_body: "Financial Ombudsman Service / Retail ADR",
+    regulatory_url: "https://www.financial-ombudsman.org.uk/",
+    template_available: true,
+    tips:
+      "The FOS is free and handles Section 75 disputes. They can award up to £415,000. You have 6 months from the card provider's final response to refer to the FOS.",
+  },
+  {
+    category: "retail_shopping",
+    stage: "court",
+    stage_order: 5,
+    title: "Small Claims Court",
+    description:
+      "For claims up to £10,000 in England and Wales, file a small claims court claim. Send a Letter Before Action first giving 14 days to respond.",
+    action_required:
+      "Send a Letter Before Action, then file at HMCTS Money Claim Online if unresolved.",
+    wait_period_days: 14,
+    deadline_type: "from_response",
+    regulatory_body: "His Majesty's Courts and Tribunals Service",
+    regulatory_url: "https://www.gov.uk/make-court-claim-for-money",
+    template_available: true,
+    tips:
+      "Small claims court does not require a solicitor. Court fees range from £35–£455 depending on the claim amount. You can recover these if you win.",
+  },
 ];
 
 /**

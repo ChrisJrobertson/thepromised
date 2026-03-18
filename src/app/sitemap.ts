@@ -20,6 +20,9 @@ const ESCALATION_CATEGORIES = [
   "transport",
   "education",
   "employment",
+  "landlord_tenant",
+  "parking_pcn",
+  "retail_shopping",
   "other",
 ];
 
