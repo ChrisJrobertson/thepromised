@@ -4,10 +4,22 @@ import * as Sentry from "@sentry/nextjs";
 import { trackServerEvent } from "@/lib/analytics/posthog-server";
 import { createClient } from "@/lib/supabase/server";
 
+/** Return a safe relative path, rejecting any attempt to redirect externally. */
+function getSafeRedirectPath(next: string | null): string {
+  if (!next) return "/dashboard";
+  // Must be a relative path starting with /
+  if (!next.startsWith("/")) return "/dashboard";
+  // Protocol-relative URLs (//evil.com) must be rejected
+  if (next.startsWith("//")) return "/dashboard";
+  // Backslash can be used to bypass checks in some environments
+  if (next.includes("\\")) return "/dashboard";
+  return next;
+}
+
 export async function GET(request: NextRequest) {
   const url = new URL(request.url);
   const code = url.searchParams.get("code");
-  const next = url.searchParams.get("next") ?? "/dashboard";
+  const redirectPath = getSafeRedirectPath(url.searchParams.get("next"));
 
   if (!code) {
     return NextResponse.redirect(new URL("/login", request.url));
@@ -57,5 +69,5 @@ export async function GET(request: NextRequest) {
     }
   }
 
-  return NextResponse.redirect(new URL(next, request.url));
+  return NextResponse.redirect(new URL(redirectPath, request.url));
 }

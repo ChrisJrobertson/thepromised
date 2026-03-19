@@ -54,7 +54,7 @@ export const metadata: Metadata = {
       "The UK's complaint tracking tool. Log every interaction, get escalation guidance, and export professional case files for ombudsmen and courts.",
     images: [
       {
-        url: "/og-image.png",
+        url: `${APP_URL}/og-image.png`,
         width: 1200,
         height: 630,
         alt: "TheyPromised — Track Your Complaints",
@@ -65,7 +65,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "TheyPromised — They Promised. You Proved It.",
     description: "The UK's complaint tracking tool for consumers.",
-    images: ["/og-image.png"],
+    images: [`${APP_URL}/og-image.png`],
   },
   robots: {
     index: true,

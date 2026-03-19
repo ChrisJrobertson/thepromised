@@ -1,3 +1,4 @@
+export const dynamic = "force-dynamic";
 import Link from "next/link";
 
 import { COMPLAINT_PACKS_BY_ID } from "@/lib/packs/config";

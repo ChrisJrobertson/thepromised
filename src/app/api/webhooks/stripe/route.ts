@@ -8,6 +8,23 @@ import { getTierFromSubscription } from "@/lib/stripe/webhooks";
 import { trackServerEvent } from "@/lib/analytics/posthog-server";
 import { createServiceRoleClient } from "@/lib/supabase/admin";
 
+// Map Stripe subscription status values to the DB's subscription_status enum.
+// Stripe uses US spelling ("canceled") and has statuses not in our DB CHECK constraint.
+function mapStripeStatus(stripeStatus: string): "active" | "cancelled" | "past_due" | "trialing" | "pack_temporary" {
+  const map: Record<string, "active" | "cancelled" | "past_due" | "trialing" | "pack_temporary"> = {
+    active:              "active",
+    canceled:            "cancelled",       // US → UK spelling
+    cancelled:           "cancelled",
+    past_due:            "past_due",
+    trialing:            "trialing",
+    incomplete:          "active",          // in-progress payment — treat as active
+    incomplete_expired:  "cancelled",
+    unpaid:              "past_due",
+    paused:              "active",
+  };
+  return map[stripeStatus] ?? "active";
+}
+
 export const runtime = "nodejs";
 
 export async function POST(request: Request) {
@@ -211,11 +228,7 @@ export async function POST(request: Request) {
         const subscription = event.data.object as Stripe.Subscription;
         const tier = getTierFromSubscription(subscription);
 
-        const status = subscription.status as
-          | "active"
-          | "cancelled"
-          | "past_due"
-          | "trialing";
+        const status = mapStripeStatus(subscription.status);
 
         const { error: subscriptionUpdateError } = await supabase
           .from("profiles")

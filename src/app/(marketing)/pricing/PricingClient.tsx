@@ -15,10 +15,18 @@ import { toast } from "sonner";
 
 import { Badge } from "@/components/ui/badge";
 import { COMPLAINT_PACKS } from "@/lib/packs/config";
-import { PLAN_PRICES, getPriceId, type BillingPeriod } from "@/lib/stripe/config";
+import { PLAN_PRICES, type BillingPeriod } from "@/lib/stripe/config";
+
+type PriceIds = {
+  basicMonthly: string | null;
+  basicAnnual: string | null;
+  proMonthly: string | null;
+  proAnnual: string | null;
+};
 
 type PricingClientProps = {
   isLoggedIn: boolean;
+  priceIds: PriceIds;
 };
 
 const FREE_FEATURES = [
@@ -119,11 +127,16 @@ function FeatureCheck({ value }: { value: string | boolean }) {
   return <span className="text-sm text-center block">{value}</span>;
 }
 
-export function PricingClient({ isLoggedIn }: PricingClientProps) {
+export function PricingClient({ isLoggedIn, priceIds }: PricingClientProps) {
   const router = useRouter();
   const [billingPeriod, setBillingPeriod] = useState<BillingPeriod>("monthly");
   const [loadingPlan, setLoadingPlan] = useState<string | null>(null);
   const [openFaq, setOpenFaq] = useState<number | null>(null);
+
+  function getResolvedPriceId(tier: "basic" | "pro", period: BillingPeriod): string | null {
+    if (tier === "basic") return period === "monthly" ? priceIds.basicMonthly : priceIds.basicAnnual;
+    return period === "monthly" ? priceIds.proMonthly : priceIds.proAnnual;
+  }
 
   async function handleCheckout(tier: "basic" | "pro") {
     if (!isLoggedIn) {
@@ -131,8 +144,9 @@ export function PricingClient({ isLoggedIn }: PricingClientProps) {
       return;
     }
 
-    const priceId = getPriceId(tier, billingPeriod);
+    const priceId = getResolvedPriceId(tier, billingPeriod);
     if (!priceId) {
+      console.error("[Pricing] Price ID missing", { tier, billingPeriod, priceIds });
       toast.error("Pricing not configured. Please contact support.");
       return;
     }

@@ -14,7 +14,7 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { cn } from "@/lib/utils";
@@ -32,9 +32,25 @@ const NAV_ITEMS = [
   { href: "/settings", label: "Settings", icon: Settings },
 ];
 
+// Routes where sub-paths should NOT inherit the parent's active state.
+// e.g. /cases/new should not highlight the /cases nav item.
+const EXACT_MATCH_ROUTES = new Set(["/dashboard", "/cases"]);
+
+function isActiveRoute(href: string, pathname: string): boolean {
+  if (pathname === href) return true;
+  if (EXACT_MATCH_ROUTES.has(href)) return false;
+  return pathname.startsWith(`${href}/`);
+}
+
 export function MobileNav() {
   const pathname = usePathname();
   const [isOpen, setIsOpen] = useState(false);
+
+  // Close the sheet whenever the route changes — covers programmatic navigation
+  // and cases where the onClick handler may not fire reliably on mobile.
+  useEffect(() => {
+    setIsOpen(false);
+  }, [pathname]);
 
   return (
     <Sheet onOpenChange={setIsOpen} open={isOpen}>
@@ -49,7 +65,7 @@ export function MobileNav() {
         <nav className="mt-6 space-y-1">
           {NAV_ITEMS.map((item) => {
             const Icon = item.icon;
-            const isActive = pathname === item.href || pathname.startsWith(`${item.href}/`);
+            const isActive = isActiveRoute(item.href, pathname);
             return (
               <Link
                 className={cn(

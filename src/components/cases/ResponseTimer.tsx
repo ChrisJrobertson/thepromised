@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 
 import { Button, buttonVariants } from "@/components/ui/button";
@@ -24,8 +24,13 @@ export function ResponseTimer({
   escalationGuideHref,
 }: ResponseTimerProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
+  // Mount guard: prevents hydration mismatch from new Date() differing
+  // between server render and client hydration (React 19 throws on mismatch)
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => { setMounted(true); }, []);
+
   const deadline = new Date(responseDeadline);
-  const now = new Date();
+  const now = mounted ? new Date() : deadline; // safe fallback on server
 
   const totalDays = 14;
   const elapsedDays = Math.max(0, totalDays - Math.ceil((deadline.getTime() - now.getTime()) / (1000 * 60 * 60 * 24)));
@@ -52,6 +57,8 @@ export function ResponseTimer({
     toast.success("Response marked as received");
     window.location.reload();
   }
+
+  if (!mounted) return <div className="h-20 animate-pulse rounded-lg border bg-slate-50" />;
 
   if (responseReceived) {
     return (

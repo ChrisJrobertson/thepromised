@@ -1,4 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
+import { STRIPE_PRICE_IDS } from "@/lib/stripe/config";
 
 import { PricingClient } from "./PricingClient";
 
@@ -70,13 +71,21 @@ export default async function PricingPage() {
     data: { user },
   } = await supabase.auth.getUser();
 
+  // Read price IDs server-side (env vars without NEXT_PUBLIC_ are unavailable in the browser)
+  const priceIds = {
+    basicMonthly: STRIPE_PRICE_IDS.basic.monthly ?? null,
+    basicAnnual: STRIPE_PRICE_IDS.basic.annual ?? null,
+    proMonthly: STRIPE_PRICE_IDS.pro.monthly ?? null,
+    proAnnual: STRIPE_PRICE_IDS.pro.annual ?? null,
+  };
+
   return (
     <>
       <script
         dangerouslySetInnerHTML={{ __html: JSON.stringify(FAQ_SCHEMA) }}
         type="application/ld+json"
       />
-      <PricingClient isLoggedIn={!!user} />
+      <PricingClient isLoggedIn={!!user} priceIds={priceIds} />
     </>
   );
 }

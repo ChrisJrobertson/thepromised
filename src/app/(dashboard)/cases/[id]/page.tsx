@@ -1,3 +1,4 @@
+export const dynamic = "force-dynamic";
 import { differenceInDays } from "date-fns";
 import {
   AlertCircle,
@@ -20,7 +21,7 @@ import { MarkResolvedButton } from "@/components/cases/MarkResolvedButton";
 import { ResponseTimer } from "@/components/cases/ResponseTimer";
 import { ShareCaseButton } from "@/components/cases/ShareCaseButton";
 import { Badge } from "@/components/ui/badge";
-import { buttonVariants } from "@/components/ui/button";
+import { buttonVariants } from "@/lib/button-variants";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { formatUkDate } from "@/lib/date";
@@ -41,14 +42,18 @@ import type {
 import { CaseActions } from "./CaseActions";
 
 export async function generateMetadata({ params }: { params: Promise<{ id: string }> }) {
-  const { id } = await params;
-  const supabase = await createClient();
-  const { data } = await supabase
-    .from("cases")
-    .select("title")
-    .eq("id", id)
-    .maybeSingle();
-  return { title: data?.title ? `${data.title} — TheyPromised` : "Case — TheyPromised" };
+  try {
+    const { id } = await params;
+    const supabase = await createClient();
+    const { data } = await supabase
+      .from("cases")
+      .select("title")
+      .eq("id", id)
+      .maybeSingle();
+    return { title: data?.title ? `${data.title} — TheyPromised` : "Case — TheyPromised" };
+  } catch {
+    return { title: "Case — TheyPromised" };
+  }
 }
 
 const STATUS_COLOURS: Record<string, string> = {
@@ -80,6 +85,13 @@ export default async function CasePage({
   params: Promise<{ id: string }>;
   searchParams: Promise<{ created?: string; tab?: string }>;
 }) {
+  return renderCasePage(params, searchParams);
+}
+
+async function renderCasePage(
+  params: Promise<{ id: string }>,
+  searchParams: Promise<{ created?: string; tab?: string }>
+) {
   const { id } = await params;
   const sp = await searchParams;
 
@@ -332,7 +344,7 @@ export default async function CasePage({
           <div className="rounded-lg border p-3 text-center">
             <p className="text-2xl font-bold">
               {theCase.amount_in_dispute
-                ? `£${theCase.amount_in_dispute.toFixed(0)}`
+                ? `£${Number(theCase.amount_in_dispute).toFixed(0)}`
                 : "—"}
             </p>
             <p className="text-xs text-muted-foreground">In dispute</p>
@@ -486,7 +498,7 @@ export default async function CasePage({
               {theCase.amount_in_dispute && (
                 <div className="flex justify-between gap-2">
                   <span className="text-muted-foreground">In dispute</span>
-                  <span className="font-medium">£{theCase.amount_in_dispute.toFixed(2)}</span>
+                  <span className="font-medium">£{Number(theCase.amount_in_dispute).toFixed(2)}</span>
                 </div>
               )}
               {theCase.desired_outcome && (

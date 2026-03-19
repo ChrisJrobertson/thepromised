@@ -1,3 +1,4 @@
+export const dynamic = "force-dynamic";
 // NOTE: Run POST /api/seed with SEED_SECRET to populate organisations and escalation rules
 // NOTE: Run npx tsx src/lib/stripe/setup.ts to create Stripe products
 import type { Metadata } from "next";
@@ -93,10 +94,10 @@ export default async function DashboardPage() {
       .or("promise_fulfilled.is.null,promise_fulfilled.eq.false")
       .not("promise_deadline", "is", null)
       .lt("promise_deadline", now),
-    // Resolved/closed cases with compensation
+    // Resolved/closed cases with outcome_amount_pence (stored in pence)
     supabase
       .from("cases")
-      .select("id, compensation_received")
+      .select("id, outcome_amount_pence")
       .eq("user_id", userId)
       .or("status.eq.resolved,status.eq.RESOLVED,status.eq.closed,status.eq.CLOSED"),
     // Cases approaching or past the 8-week escalation window
@@ -140,11 +141,18 @@ export default async function DashboardPage() {
       >(),
   ]);
 
+  // Filter out seed/placeholder data from Recent Activity
+  const filteredInteractions = (recentInteractions ?? []).filter(
+    (i) => !(i.summary ?? "").toLowerCase().includes("launch scorecard data")
+  );
+
   const resolvedCount = resolvedData?.length ?? 0;
-  const compensationTotal = (resolvedData ?? []).reduce(
-    (sum, c) => sum + (c.compensation_received ?? 0),
+  // outcome_amount_pence is stored in pence; divide by 100 for display in pounds
+  const compensationTotalPence = (resolvedData ?? []).reduce(
+    (sum, c) => sum + (c.outcome_amount_pence ?? 0),
     0
   );
+  const compensationTotal = compensationTotalPence / 100;
 
   const today = new Date();
 
@@ -384,7 +392,7 @@ export default async function DashboardPage() {
             <p className="text-3xl font-bold text-green-600">{resolvedCount}</p>
             {compensationTotal > 0 && (
               <p className="mt-0.5 text-xs text-green-600">
-                £{compensationTotal.toLocaleString("en-GB")} recovered
+                £{compensationTotal.toLocaleString("en-GB", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} recovered
               </p>
             )}
           </CardContent>
@@ -422,9 +430,9 @@ export default async function DashboardPage() {
             <CardTitle>Recent Activity</CardTitle>
           </CardHeader>
           <CardContent>
-            {recentInteractions?.length ? (
+            {filteredInteractions.length ? (
               <ul className="space-y-3">
-                {recentInteractions.map((interaction) => {
+                {filteredInteractions.map((interaction) => {
                   const channelInfo =
                     CHANNEL_ICONS[(interaction as { channel?: string }).channel ?? ""] ??
                     CHANNEL_ICONS.other;

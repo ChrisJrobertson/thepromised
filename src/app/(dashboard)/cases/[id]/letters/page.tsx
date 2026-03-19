@@ -1,3 +1,4 @@
+export const dynamic = "force-dynamic";
 import { format } from "date-fns";
 import { enGB } from "date-fns/locale";
 import { FileText, Plus } from "lucide-react";
@@ -5,7 +6,7 @@ import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 
 import { Badge } from "@/components/ui/badge";
-import { buttonVariants } from "@/components/ui/button";
+import { buttonVariants } from "@/lib/button-variants";
 import { Card, CardContent } from "@/components/ui/card";
 import { createClient } from "@/lib/supabase/server";
 import type { Letter } from "@/types/database";

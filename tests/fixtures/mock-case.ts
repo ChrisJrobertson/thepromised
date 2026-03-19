@@ -18,6 +18,7 @@ export const MOCK_ORGANISATION: Organisation = {
 
 export const MOCK_CASE: Case = {
   id: "case-001",
+  ref: "TP-00001",
   user_id: "user-001",
   organisation_id: "org-001",
   custom_organisation_name: null,

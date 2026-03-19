@@ -10,13 +10,6 @@ import { useCallback, useState } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import type { CaseWithOrganisation } from "@/types/cases";
 
 type CaseRow = CaseWithOrganisation & { pendingPromises: number };
@@ -117,21 +110,17 @@ export function CasesClient({
             placeholder="Search cases..."
             value={search}
           />
-          <Select
-            onValueChange={(v) => v && updateParams({ sort: v })}
+          <select
+            className="h-9 rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm focus:outline-none focus:ring-1 focus:ring-ring w-44"
+            onChange={(e) => e.target.value && updateParams({ sort: e.target.value })}
             value={initialSort}
           >
-            <SelectTrigger className="w-44">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              {sortOptions.map((opt) => (
-                <SelectItem key={opt.value} value={opt.value}>
-                  {opt.label}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+            {sortOptions.map((opt) => (
+              <option key={opt.value} value={opt.value}>
+                {opt.label}
+              </option>
+            ))}
+          </select>
         </div>
       </div>
 
@@ -201,7 +190,7 @@ export function CasesClient({
                       )}
                       {c.amount_in_dispute && (
                         <span className="font-medium text-foreground">
-                          £{c.amount_in_dispute.toFixed(2)}
+                          £{Number(c.amount_in_dispute).toFixed(2)}
                         </span>
                       )}
                     </div>

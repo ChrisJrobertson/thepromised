@@ -20,7 +20,6 @@ import {
   Send,
   Shield,
   Sparkles,
-  Star,
   Users,
   Wifi,
   Zap,
@@ -108,29 +107,6 @@ const HOW_STEPS = [
   },
 ];
 
-const TESTIMONIALS = [
-  {
-    quote:
-      "After 4 months of getting nowhere with my energy supplier, I used the export to go to the ombudsman. They settled within 3 weeks.",
-    name: "Sarah T.",
-    type: "Energy billing dispute",
-    stars: 5,
-  },
-  {
-    quote:
-      "I'd forgotten half the conversations. TheyPromised made me realise how strong my case actually was — dates, names, promises broken.",
-    name: "Marcus L.",
-    type: "Broadband provider complaint",
-    stars: 5,
-  },
-  {
-    quote:
-      "The escalation guide was genuinely more useful than anything I found on Citizens Advice. Step-by-step, no jargon.",
-    name: "Priya K.",
-    type: "Landlord dispute",
-    stars: 5,
-  },
-];
 
 export default function HomePageClient() {
   return (
@@ -188,8 +164,15 @@ export default function HomePageClient() {
               className="text-sm text-slate-300"
               variants={fadeUp}
             >
-              Join thousands of UK consumers who stopped being ignored.
+              Just launched — built for UK consumers who are tired of being ignored.
             </motion.p>
+            <motion.div variants={fadeUp}>
+              <div className="mx-auto max-w-sm rounded-lg border border-amber-300/40 bg-amber-50/10 px-6 py-4 text-center">
+                <p className="text-sm font-medium text-amber-200">
+                  Early users get priority support from the founder + 30 days free Pro access.
+                </p>
+              </div>
+            </motion.div>
           </motion.div>
         </div>
       </section>
@@ -376,21 +359,17 @@ export default function HomePageClient() {
         </div>
       </section>
 
-      {/* ── SOCIAL PROOF PLACEHOLDER ─────────────────────────────────────────── */}
+      {/* ── FOUNDER MESSAGE ──────────────────────────────────────────────────── */}
       <section className="bg-slate-50 py-16">
         <div className="mx-auto max-w-4xl px-4 text-center">
-          <h2 className="text-2xl font-bold">Trusted by UK consumers fighting back</h2>
-          <blockquote className="mx-auto mt-4 max-w-3xl rounded-lg border-l-4 border-teal-500 bg-white p-5 text-left text-sm text-slate-700">
-            &ldquo;I&apos;d been going back and forth with British Gas for 6 weeks.
-            TheyPromised showed them a timeline of 5 broken promises. They
-            refunded me £347 within 3 days.&rdquo;
-          </blockquote>
-          <Link
-            className="mt-4 inline-flex text-sm font-medium text-primary underline underline-offset-4"
-            href="/about"
-          >
-            More stories →
-          </Link>
+          <p className="text-lg font-medium text-zinc-700">
+            &ldquo;I built TheyPromised because consumers deserve the same
+            case-management tools that corporations use against them.&rdquo;
+          </p>
+          <p className="mt-4 text-sm text-zinc-500">
+            Real success stories and scorecards will appear here as soon as the first
+            users win their cases. Be one of them.
+          </p>
         </div>
       </section>
 
@@ -470,9 +449,9 @@ export default function HomePageClient() {
         </div>
       </section>
 
-      {/* ── TESTIMONIALS ─────────────────────────────────────────────────────── */}
+      {/* ── EARLY ADOPTER SECTION ────────────────────────────────────────────── */}
       <section className="py-20 md:py-28">
-        <div className="mx-auto max-w-5xl px-4">
+        <div className="mx-auto max-w-3xl px-4 text-center">
           <motion.div
             animate="visible"
             initial="hidden"
@@ -481,36 +460,28 @@ export default function HomePageClient() {
             whileInView="visible"
           >
             <motion.h2
-              className="mb-12 text-center text-3xl font-bold tracking-tight md:text-4xl"
+              className="mb-6 text-3xl font-bold tracking-tight md:text-4xl"
               variants={fadeUp}
             >
-              UK consumers winning their cases
+              Launching now
             </motion.h2>
-            <div className="grid gap-6 md:grid-cols-3">
-              {TESTIMONIALS.map((t) => (
-                <motion.div
-                  className="rounded-xl border bg-white p-6 shadow-sm"
-                  key={t.name}
-                  variants={fadeUp}
-                >
-                  <div className="mb-3 flex gap-0.5">
-                    {Array.from({ length: t.stars }).map((_, i) => (
-                      <Star
-                        className="h-4 w-4 fill-amber-400 text-amber-400"
-                        key={i}
-                      />
-                    ))}
-                  </div>
-                  <p className="mb-4 text-sm leading-relaxed text-slate-700">
-                    &ldquo;{t.quote}&rdquo;
-                  </p>
-                  <div>
-                    <p className="text-sm font-semibold">{t.name}</p>
-                    <p className="text-xs text-muted-foreground">{t.type}</p>
-                  </div>
-                </motion.div>
-              ))}
-            </div>
+            <motion.p
+              className="mb-8 text-muted-foreground"
+              variants={fadeUp}
+            >
+              First users already building real cases. Verified stories and company
+              scorecards will appear here as users win. Be among the first to hold a
+              company to account.
+            </motion.p>
+            <motion.div variants={fadeUp}>
+              <Link
+                className="inline-flex items-center gap-2 rounded-xl bg-primary px-8 py-4 text-base font-semibold text-white shadow-lg transition-all hover:opacity-90"
+                href="/register"
+              >
+                Start Your Case Free
+                <ArrowRight className="h-4 w-4" />
+              </Link>
+            </motion.div>
           </motion.div>
         </div>
       </section>
