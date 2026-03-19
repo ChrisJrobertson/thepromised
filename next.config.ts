@@ -12,6 +12,15 @@ if (!supabaseUrl || !supabaseAnonKey) {
 }
 
 const nextConfig: NextConfig = {
+  async redirects() {
+    return [
+      // Auth alias redirects — covers external links, bookmarks, and email templates
+      { source: "/sign-in", destination: "/login", permanent: true },
+      { source: "/signin", destination: "/login", permanent: true },
+      { source: "/sign-up", destination: "/register", permanent: true },
+      { source: "/signup", destination: "/register", permanent: true },
+    ];
+  },
   async rewrites() {
     return [
       // PostHog proxy — browser sends to our domain so ad blockers don't block

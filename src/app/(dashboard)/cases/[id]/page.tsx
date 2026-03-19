@@ -85,19 +85,7 @@ export default async function CasePage({
   params: Promise<{ id: string }>;
   searchParams: Promise<{ created?: string; tab?: string }>;
 }) {
-  try {
-    return await renderCasePage(params, searchParams);
-  } catch (err) {
-    const msg = err instanceof Error ? err.message : String(err);
-    const stack = err instanceof Error ? (err.stack ?? "").slice(0, 800) : "";
-    console.error("[CasePage] RENDER ERROR:", msg, stack);
-    // Show error inline so we can diagnose without needing server logs
-    return (
-      <div style={{ padding: "16px", background: "#fee2e2", borderRadius: "8px", fontFamily: "monospace", fontSize: "11px", color: "#991b1b", wordBreak: "break-all", whiteSpace: "pre-wrap" }}>
-        <strong>DEBUG — Case Page Error:</strong>{"\n"}{msg}{"\n\n"}{stack}
-      </div>
-    );
-  }
+  return renderCasePage(params, searchParams);
 }
 
 async function renderCasePage(

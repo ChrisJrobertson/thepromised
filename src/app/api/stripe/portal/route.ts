@@ -34,12 +34,26 @@ export async function POST() {
     const appUrl =
       process.env.NEXT_PUBLIC_APP_URL ?? "https://www.theypromised.app";
 
-    const session = await stripe.billingPortal.sessions.create({
-      customer: profile.stripe_customer_id,
-      return_url: `${appUrl}/settings/billing`,
-    });
-
-    return NextResponse.json({ url: session.url });
+    try {
+      const session = await stripe.billingPortal.sessions.create({
+        customer: profile.stripe_customer_id,
+        return_url: `${appUrl}/settings/billing`,
+      });
+      return NextResponse.json({ url: session.url });
+    } catch (stripeError: unknown) {
+      const err = stripeError as { code?: string; message?: string };
+      if (err.code === "resource_missing") {
+        console.error("[Portal] Stripe customer not found:", profile.stripe_customer_id);
+        return NextResponse.json(
+          {
+            error:
+              "Billing account not found in Stripe. This can happen after switching from test to live mode. Please re-subscribe to create a new billing account.",
+          },
+          { status: 400 }
+        );
+      }
+      throw stripeError;
+    }
   } catch (error) {
     console.error("[Portal error]", error);
     return NextResponse.json(

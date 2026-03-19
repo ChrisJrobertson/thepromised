@@ -141,6 +141,11 @@ export default async function DashboardPage() {
       >(),
   ]);
 
+  // Filter out seed/placeholder data from Recent Activity
+  const filteredInteractions = (recentInteractions ?? []).filter(
+    (i) => !(i.summary ?? "").toLowerCase().includes("launch scorecard data")
+  );
+
   const resolvedCount = resolvedData?.length ?? 0;
   // outcome_amount_pence is stored in pence; divide by 100 for display in pounds
   const compensationTotalPence = (resolvedData ?? []).reduce(
@@ -425,9 +430,9 @@ export default async function DashboardPage() {
             <CardTitle>Recent Activity</CardTitle>
           </CardHeader>
           <CardContent>
-            {recentInteractions?.length ? (
+            {filteredInteractions.length ? (
               <ul className="space-y-3">
-                {recentInteractions.map((interaction) => {
+                {filteredInteractions.map((interaction) => {
                   const channelInfo =
                     CHANNEL_ICONS[(interaction as { channel?: string }).channel ?? ""] ??
                     CHANNEL_ICONS.other;
