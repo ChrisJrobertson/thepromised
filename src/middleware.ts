@@ -25,7 +25,9 @@ export async function middleware(request: NextRequest) {
   if (isProtectedRoute(pathname) && !user) {
     const url = request.nextUrl.clone();
     url.pathname = "/login";
-    url.searchParams.set("next", pathname);
+    // Preserve query string (e.g. /cases/new?template=energy-wrong-tariff)
+    const nextPath = pathname + request.nextUrl.search;
+    url.searchParams.set("next", nextPath);
     return NextResponse.redirect(url);
   }
 

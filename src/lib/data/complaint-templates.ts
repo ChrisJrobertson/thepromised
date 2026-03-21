@@ -216,3 +216,17 @@ export function getComplaintTemplateBySlug(slug: string) {
 export function getComplaintTemplateById(id: string) {
   return complaintTemplates.find((template) => template.id === id);
 }
+
+/** Resolve `?template=` from URL: accepts template id or URL slug (e.g. wrong-energy-tariff). */
+export function resolveComplaintTemplateParam(param: string) {
+  const trimmed = param.trim();
+  if (!trimmed) return undefined;
+  return (
+    getComplaintTemplateById(trimmed) ??
+    getComplaintTemplateBySlug(trimmed) ??
+    complaintTemplates.find(
+      (t) => t.slug.toLowerCase() === trimmed.toLowerCase() || t.id.toLowerCase() === trimmed.toLowerCase()
+    )
+  );
+}
+

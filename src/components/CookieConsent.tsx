@@ -28,6 +28,7 @@ export function CookieConsent() {
     if (choice === "accepted") {
       initPostHog();
     }
+    window.dispatchEvent(new Event("tp-consent-changed"));
   }
 
   if (consent) return null;

@@ -5,6 +5,7 @@ import { buttonVariants } from "@/components/ui/button";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { UpgradePrompt } from "@/components/ui/UpgradePrompt";
 import { canCreateCase } from "@/lib/stripe/feature-gates";
+import { sanitizeCaseListSearch } from "@/lib/search/sanitize";
 import { createClient } from "@/lib/supabase/server";
 import type { CaseWithOrganisation } from "@/types/cases";
 
@@ -58,7 +59,7 @@ export default async function CasesPage({
   const profile = profileData as import("@/types/database").Profile;
 
   const activeStatus = (params.status as (typeof STATUS_TABS)[number]["value"]) ?? "all";
-  const search = params.search ?? "";
+  const search = sanitizeCaseListSearch(params.search ?? "");
   const sort = (params.sort as (typeof SORT_OPTIONS)[number]["value"]) ?? "recent";
 
   let query = supabase
@@ -78,9 +79,10 @@ export default async function CasesPage({
     query = query.eq("status", activeStatus);
   }
 
-  if (search) {
+  // Only top-level columns — nested `organisations.name` in `.or()` breaks PostgREST on some queries.
+  if (search.length > 0) {
     query = query.or(
-      `title.ilike.%${search}%,organisations.name.ilike.%${search}%`
+      `title.ilike.%${search}%,custom_organisation_name.ilike.%${search}%`
     );
   }
 

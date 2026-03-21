@@ -83,8 +83,11 @@ export function CalculatorClient() {
               </label>
             </div>
             <p className="text-lg font-bold">Estimated compensation: £{flightComp}</p>
-            <Link className="inline-block rounded bg-primary px-4 py-2 text-sm text-white" href="/register">
-              Track this claim with TheyPromised → Start Free
+            <Link
+              className="inline-block rounded bg-primary px-4 py-2 text-sm text-white"
+              href="/cases/new?template=flight-delay"
+            >
+              Track this claim with TheyPromised → Start a case
             </Link>
           </section>
         )}
@@ -107,8 +110,11 @@ export function CalculatorClient() {
               </label>
             </div>
             <p className="text-lg font-bold">Estimated overcharge: £{Math.max(0, energyOvercharge).toFixed(2)}</p>
-            <Link className="inline-block rounded bg-primary px-4 py-2 text-sm text-white" href="/register">
-              Build your case file → Start Free
+            <Link
+              className="inline-block rounded bg-primary px-4 py-2 text-sm text-white"
+              href="/cases/new?template=energy-wrong-tariff"
+            >
+              Build your case file → Start a case
             </Link>
           </section>
         )}
@@ -131,8 +137,11 @@ export function CalculatorClient() {
               </label>
             </div>
             <p className="text-lg font-bold">Estimated refund: £{Math.max(0, broadbandRefund).toFixed(2)}</p>
-            <Link className="inline-block rounded bg-primary px-4 py-2 text-sm text-white" href="/register">
-              Document your speed tests → Start Free
+            <Link
+              className="inline-block rounded bg-primary px-4 py-2 text-sm text-white"
+              href="/cases/new?template=broadband-speed"
+            >
+              Document your speed tests → Start a case
             </Link>
           </section>
         )}
@@ -154,8 +163,11 @@ export function CalculatorClient() {
                 <p>After 6 months: you can still claim, but may need to show the fault existed at purchase.</p>
               )}
             </div>
-            <Link className="inline-block rounded bg-primary px-4 py-2 text-sm text-white" href="/register">
-              Start your refund claim → Start Free
+            <Link
+              className="inline-block rounded bg-primary px-4 py-2 text-sm text-white"
+              href="/cases/new?template=faulty-product"
+            >
+              Start your refund claim → Start a case
             </Link>
           </section>
         )}

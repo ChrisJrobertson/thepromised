@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Loader2 } from "lucide-react";
 
@@ -34,6 +34,7 @@ import { AuthShell } from "@/components/layout/AuthShell";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { sanitizeAuthRedirectNext } from "@/lib/navigation/auth-redirect";
 import { createClient } from "@/lib/supabase/client";
 import { getAuthCallbackUrl } from "@/lib/supabase/auth";
 import { loginSchema } from "@/lib/validation/auth";
@@ -42,7 +43,8 @@ type FormValues = z.infer<typeof loginSchema>;
 
 export default function LoginClient() {
   const router = useRouter();
-  const nextPath = "/dashboard";
+  const searchParams = useSearchParams();
+  const nextPath = sanitizeAuthRedirectNext(searchParams.get("next"));
   const [isMagicLoading, setIsMagicLoading] = useState(false);
   const [isGoogleLoading, setIsGoogleLoading] = useState(false);
 

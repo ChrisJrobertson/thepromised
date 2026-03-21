@@ -39,6 +39,98 @@ export async function POST(request: Request) {
 
   const supabase = createServiceRoleClient();
 
+  async function updateProfileFromSubscriptionEvent(
+    subscription: Stripe.Subscription
+  ) {
+    const tier = getTierFromSubscription(subscription);
+    const status = subscription.status as
+      | "active"
+      | "cancelled"
+      | "past_due"
+      | "trialing";
+    const customerId =
+      typeof subscription.customer === "string"
+        ? subscription.customer
+        : subscription.customer?.id;
+    const userId =
+      subscription.metadata?.supabase_user_id ?? subscription.metadata?.userId;
+
+    const updatePayload = {
+      subscription_tier: tier,
+      subscription_status: status,
+      subscription_id: subscription.id,
+      stripe_customer_id: customerId ?? null,
+    };
+
+    const { data: updatedBySubscription, error: updateBySubscriptionError } =
+      await supabase
+        .from("profiles")
+        .update(updatePayload)
+        .eq("subscription_id", subscription.id)
+        .select("id");
+
+    if (updateBySubscriptionError) {
+      throw updateBySubscriptionError;
+    }
+
+    if (updatedBySubscription.length > 0) {
+      return {
+        profileId: updatedBySubscription[0].id,
+        status,
+        tier,
+      };
+    }
+
+    if (customerId) {
+      const { data: updatedByCustomer, error: updateByCustomerError } =
+        await supabase
+          .from("profiles")
+          .update(updatePayload)
+          .eq("stripe_customer_id", customerId)
+          .select("id");
+
+      if (updateByCustomerError) {
+        throw updateByCustomerError;
+      }
+
+      if (updatedByCustomer.length > 0) {
+        return {
+          profileId: updatedByCustomer[0].id,
+          status,
+          tier,
+        };
+      }
+    }
+
+    if (userId) {
+      const { data: updatedByUser, error: updateByUserError } = await supabase
+        .from("profiles")
+        .update(updatePayload)
+        .eq("id", userId)
+        .select("id");
+
+      if (updateByUserError) {
+        throw updateByUserError;
+      }
+
+      if (updatedByUser.length > 0) {
+        return {
+          profileId: updatedByUser[0].id,
+          status,
+          tier,
+        };
+      }
+    }
+
+    console.warn("[Stripe webhook] No profile matched subscription update", {
+      customerId,
+      subscriptionId: subscription.id,
+      userId,
+    });
+
+    return { profileId: null, status, tier };
+  }
+
   try {
     switch (event.type) {
       // ── New subscription / checkout completed ──────────────────────────────
@@ -54,6 +146,13 @@ export async function POST(request: Request) {
               : null;
 
           if (!userId || !packId) break;
+
+          if (typeof session.customer === "string") {
+            await supabase
+              .from("profiles")
+              .update({ stripe_customer_id: session.customer })
+              .eq("id", userId);
+          }
 
           const { data: existingBySession } = await supabase
             .from("complaint_packs")
@@ -143,7 +242,8 @@ export async function POST(request: Request) {
           break;
         }
 
-        const userId = session.metadata?.supabase_user_id;
+        const userId =
+          session.metadata?.supabase_user_id ?? session.metadata?.userId;
         if (!userId) break;
 
         const stripe = getStripeClient();
@@ -207,43 +307,15 @@ export async function POST(request: Request) {
       }
 
       // ── Subscription updated ───────────────────────────────────────────────
+      case "customer.subscription.created":
       case "customer.subscription.updated": {
         const subscription = event.data.object as Stripe.Subscription;
-        const tier = getTierFromSubscription(subscription);
 
-        const status = subscription.status as
-          | "active"
-          | "cancelled"
-          | "past_due"
-          | "trialing";
+        const { profileId, status, tier } =
+          await updateProfileFromSubscriptionEvent(subscription);
 
-        const { error: subscriptionUpdateError } = await supabase
-          .from("profiles")
-          .update({
-            subscription_tier: tier,
-            subscription_status: status,
-          })
-          .eq("subscription_id", subscription.id);
-
-        if (subscriptionUpdateError) {
-          console.error(
-            "Failed to update profile after subscription update:",
-            subscriptionUpdateError
-          );
-          return NextResponse.json(
-            { error: "Database update failed" },
-            { status: 500 }
-          );
-        }
-
-        // Track plan changes (upgrades, downgrades, past_due status).
-        const { data: updatedProfileRow } = await supabase
-          .from("profiles")
-          .select("id")
-          .eq("subscription_id", subscription.id)
-          .maybeSingle();
-        if (updatedProfileRow?.id) {
-          trackServerEvent(updatedProfileRow.id, "subscription_updated", {
+        if (event.type === "customer.subscription.updated" && profileId) {
+          trackServerEvent(profileId, "subscription_updated", {
             tier,
             status,
             subscription_id: subscription.id,

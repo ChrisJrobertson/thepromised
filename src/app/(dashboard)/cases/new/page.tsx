@@ -1,7 +1,7 @@
 import { redirect } from "next/navigation";
 
 import { UpgradePrompt } from "@/components/ui/UpgradePrompt";
-import { getComplaintTemplateById } from "@/lib/data/complaint-templates";
+import { resolveComplaintTemplateParam } from "@/lib/data/complaint-templates";
 import { canCreateCase } from "@/lib/stripe/feature-gates";
 import { createClient } from "@/lib/supabase/server";
 
@@ -32,7 +32,7 @@ export default async function NewCasePage({
 
   const profile = profileData as import("@/types/database").Profile;
   const canCreate = canCreateCase(profile);
-  const template = sp.template ? getComplaintTemplateById(sp.template) : undefined;
+  const template = sp.template ? resolveComplaintTemplateParam(sp.template) : undefined;
 
   return (
     <div className="mx-auto max-w-2xl space-y-6 pb-16">

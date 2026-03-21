@@ -133,7 +133,9 @@ export function PricingClient({ isLoggedIn }: PricingClientProps) {
 
     const priceId = getPriceId(tier, billingPeriod);
     if (!priceId) {
-      toast.error("Pricing not configured. Please contact support.");
+      toast.error(
+        "Checkout isn’t available: add your live Stripe Price IDs (STRIPE_PRICE_ID_BASIC_*, STRIPE_PRICE_ID_PRO_*) in Vercel. Test-mode prices don’t work with live keys."
+      );
       return;
     }
 

@@ -10,6 +10,7 @@ import {
   Sparkles,
 } from "lucide-react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useTransition } from "react";
 import { toast } from "sonner";
 
@@ -68,6 +69,7 @@ export function BillingClient({
   nextBillingDate,
   hasStripeCustomer,
 }: BillingClientProps) {
+  const router = useRouter();
   const [isPortalPending, startPortalTransition] = useTransition();
 
   function handleManageSubscription() {
@@ -77,6 +79,14 @@ export function BillingClient({
         const data = await response.json();
 
         if (!response.ok || !data.url) {
+          if (data.action === "resubscribe") {
+            toast.error(
+              "Billing account needs reconnecting. Redirecting to pricing..."
+            );
+            window.setTimeout(() => router.push("/pricing"), 1500);
+            return;
+          }
+
           toast.error(data.error ?? "Failed to open billing portal.");
           return;
         }

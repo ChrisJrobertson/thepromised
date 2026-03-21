@@ -1,6 +1,6 @@
 "use client";
 
-import { formatDistanceToNow } from "date-fns";
+import { formatDistanceToNow, isValid, parseISO } from "date-fns";
 import { enGB } from "date-fns/locale";
 import { Clock, MessageSquare, TrendingUp } from "lucide-react";
 import Link from "next/link";
@@ -46,6 +46,12 @@ const PRIORITY_DOTS: Record<string, string> = {
   medium: "bg-amber-400",
   low: "bg-slate-400",
 };
+
+function formatLastInteractionRelative(iso: string): string | null {
+  const d = parseISO(iso);
+  if (!isValid(d)) return null;
+  return formatDistanceToNow(d, { addSuffix: true, locale: enGB });
+}
 
 const ESCALATION_LABELS: Record<string, string> = {
   initial: "Initial",
@@ -146,6 +152,9 @@ export function CasesClient({
             const orgName =
               c.organisations?.name ?? c.custom_organisation_name ?? "Unknown organisation";
             const orgCategory = c.organisations?.category ?? c.category;
+            const lastInteractionRelative = c.last_interaction_date
+              ? formatLastInteractionRelative(c.last_interaction_date)
+              : null;
 
             return (
               <Link href={`/cases/${c.id}`} key={c.id}>
@@ -185,15 +194,12 @@ export function CasesClient({
                         <MessageSquare className="h-3 w-3" />
                         {c.interaction_count} interaction{c.interaction_count !== 1 ? "s" : ""}
                       </span>
-                      {c.last_interaction_date && (
+                      {lastInteractionRelative ? (
                         <span className="flex items-center gap-1">
                           <Clock className="h-3 w-3" />
-                          {formatDistanceToNow(new Date(c.last_interaction_date), {
-                            addSuffix: true,
-                            locale: enGB,
-                          })}
+                          {lastInteractionRelative}
                         </span>
-                      )}
+                      ) : null}
                       {c.pendingPromises > 0 && (
                         <Badge className="border-amber-200 bg-amber-50 text-amber-700" variant="outline">
                           {c.pendingPromises} promise{c.pendingPromises !== 1 ? "s" : ""} pending

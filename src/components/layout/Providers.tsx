@@ -1,11 +1,10 @@
 "use client";
 
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { Analytics } from "@vercel/analytics/react";
-import { SpeedInsights } from "@vercel/speed-insights/next";
 import { ThemeProvider } from "next-themes";
 import { useState } from "react";
 
+import { ConsentGatedVercelAnalytics } from "@/components/analytics/ConsentGatedVercelAnalytics";
 import { CookieConsent } from "@/components/CookieConsent";
 import { PostHogProvider } from "@/components/PostHogProvider";
 import { Toaster } from "@/components/ui/sonner";
@@ -25,8 +24,7 @@ export function Providers({ children }: ProvidersProps) {
           <PostHogProvider>
             {children}
             <Toaster richColors position="top-right" />
-            <Analytics />
-            <SpeedInsights />
+            <ConsentGatedVercelAnalytics />
             <CookieConsent />
           </PostHogProvider>
         </TooltipProvider>

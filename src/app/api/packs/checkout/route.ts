@@ -1,8 +1,10 @@
 import { NextResponse } from "next/server";
+import Stripe from "stripe";
 import { z } from "zod";
 
 import { COMPLAINT_PACKS_BY_ID } from "@/lib/packs/config";
 import { getOrCreateStripeCustomer, getStripeClient } from "@/lib/stripe/client";
+import { createCheckoutSessionWithCustomerRecovery } from "@/lib/stripe/checkout";
 import { createClient } from "@/lib/supabase/server";
 
 const inputSchema = z.object({
@@ -54,9 +56,8 @@ export async function POST(request: Request) {
     const appUrl =
       process.env.NEXT_PUBLIC_APP_URL ?? "https://www.theypromised.app";
 
-    const session = await stripe.checkout.sessions.create({
+    const sessionParams: Stripe.Checkout.SessionCreateParams = {
       mode: "payment",
-      customer: customerId,
       line_items: [
         {
           price_data: {
@@ -72,15 +73,23 @@ export async function POST(request: Request) {
       ],
       success_url: `${appUrl}/packs/success?session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${appUrl}/packs`,
+      customer: customerId,
+      customer_email: user.email ?? undefined,
       metadata: {
         userId: user.id,
+        userEmail: user.email ?? "",
         packId: pack.id,
         caseId: body.caseId ?? "",
       },
       client_reference_id: user.id,
       allow_promotion_codes: true,
       billing_address_collection: "required",
-    });
+    };
+
+    const session = await createCheckoutSessionWithCustomerRecovery(
+      stripe,
+      sessionParams
+    );
 
     return NextResponse.json({ url: session.url });
   } catch (error) {
