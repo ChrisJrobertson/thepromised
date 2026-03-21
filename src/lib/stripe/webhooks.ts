@@ -2,15 +2,17 @@ import type Stripe from "stripe";
 
 import { STRIPE_PRICE_IDS, type SubscriptionTier } from "@/lib/stripe/config";
 
-const BASIC_PRICE_SET = new Set([
-  STRIPE_PRICE_IDS.basic.monthly,
-  STRIPE_PRICE_IDS.basic.annual,
-]);
+const BASIC_PRICE_SET = new Set(
+  [STRIPE_PRICE_IDS.basic.monthly, STRIPE_PRICE_IDS.basic.annual].filter(
+    (id): id is string => typeof id === "string" && id.length > 0
+  )
+);
 
-const PRO_PRICE_SET = new Set([
-  STRIPE_PRICE_IDS.pro.monthly,
-  STRIPE_PRICE_IDS.pro.annual,
-]);
+const PRO_PRICE_SET = new Set(
+  [STRIPE_PRICE_IDS.pro.monthly, STRIPE_PRICE_IDS.pro.annual].filter(
+    (id): id is string => typeof id === "string" && id.length > 0
+  )
+);
 
 export function getTierFromSubscription(
   subscription: Stripe.Subscription | null,

@@ -31,6 +31,36 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Unauthorised" }, { status: 401 });
     }
 
+    const { data: profileRow } = await supabase
+      .from("profiles")
+      .select("stripe_customer_id, subscription_id, subscription_status")
+      .eq("id", user.id)
+      .maybeSingle();
+
+    const billingProfile = profileRow as {
+      stripe_customer_id: string | null;
+      subscription_id: string | null;
+      subscription_status: string | null;
+    } | null;
+
+    const subStatus = billingProfile?.subscription_status;
+    const hasOngoingStripeSubscription =
+      Boolean(billingProfile?.stripe_customer_id) &&
+      Boolean(billingProfile?.subscription_id) &&
+      (subStatus === "active" ||
+        subStatus === "trialing" ||
+        subStatus === "past_due");
+
+    if (hasOngoingStripeSubscription) {
+      return NextResponse.json(
+        {
+          error:
+            "You have an active subscription. Use the billing portal in Settings to manage or change your plan.",
+        },
+        { status: 400 }
+      );
+    }
+
     const json = await request.json();
     const { priceId } = inputSchema.parse(json);
 

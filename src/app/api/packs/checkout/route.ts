@@ -5,6 +5,7 @@ import { z } from "zod";
 import { COMPLAINT_PACKS_BY_ID } from "@/lib/packs/config";
 import { getOrCreateStripeCustomer, getStripeClient } from "@/lib/stripe/client";
 import { createCheckoutSessionWithCustomerRecovery } from "@/lib/stripe/checkout";
+import { getPackStripePriceId } from "@/lib/stripe/config";
 import { createClient } from "@/lib/supabase/server";
 
 const inputSchema = z.object({
@@ -28,6 +29,17 @@ export async function POST(request: Request) {
 
     if (!pack) {
       return NextResponse.json({ error: "Invalid pack selected" }, { status: 400 });
+    }
+
+    const stripePriceId = getPackStripePriceId(pack.id);
+    if (!stripePriceId) {
+      return NextResponse.json(
+        {
+          error:
+            "Pack checkout isn’t configured: set STRIPE_PRICE_COMPLAINT_STARTER, STRIPE_PRICE_ESCALATION_PACK, and STRIPE_PRICE_FULL_CASE_PACK in the server environment.",
+        },
+        { status: 500 }
+      );
     }
 
     if (body.caseId) {
@@ -58,19 +70,7 @@ export async function POST(request: Request) {
 
     const sessionParams: Stripe.Checkout.SessionCreateParams = {
       mode: "payment",
-      line_items: [
-        {
-          price_data: {
-            currency: "gbp",
-            product_data: {
-              name: pack.name,
-              description: pack.description,
-            },
-            unit_amount: pack.price,
-          },
-          quantity: 1,
-        },
-      ],
+      line_items: [{ price: stripePriceId, quantity: 1 }],
       success_url: `${appUrl}/packs/success?session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${appUrl}/packs`,
       customer: customerId,
