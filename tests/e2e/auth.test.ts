@@ -13,13 +13,14 @@ test.describe("Auth flow", () => {
 
   test("login page renders correctly", async ({ page }) => {
     await page.goto("/login");
-    await expect(page.getByRole("heading", { name: /Sign in/i })).toBeVisible();
+    await expect(
+      page.getByRole("heading", { name: /Log in to your account/i })
+    ).toBeVisible();
   });
 
   test("shows validation errors on empty submit", async ({ page }) => {
     await page.goto("/register");
     await page.getByRole("button", { name: /Create account/i }).click();
-    // Expect at least one validation error to appear
     await expect(page.getByText(/required|must be/i).first()).toBeVisible();
   });
 

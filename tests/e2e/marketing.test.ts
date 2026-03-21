@@ -4,16 +4,17 @@ test.describe("Marketing pages", () => {
   test("landing page loads and has correct heading", async ({ page }) => {
     await page.goto("/");
     await expect(
-      page.getByRole("heading", { name: /They Promised/i })
+      page.getByRole("heading", { name: /They Promised\.\s*You Proved It\./i }).first()
     ).toBeVisible();
-    await expect(page.getByRole("link", { name: /Start Tracking Free/i })).toBeVisible();
+    await expect(page.getByRole("link", { name: /Start Your Case/i }).first()).toBeVisible();
   });
 
   test("pricing page loads with all 3 plans", async ({ page }) => {
     await page.goto("/pricing");
-    await expect(page.getByText("Free")).toBeVisible();
-    await expect(page.getByText("Basic")).toBeVisible();
-    await expect(page.getByText("Pro")).toBeVisible();
+    // Plan names live in card labels and the feature-comparison table `<th>`s (not `<h*>` headings).
+    await expect(page.getByRole("columnheader", { name: /^Free$/i })).toBeVisible();
+    await expect(page.getByRole("columnheader", { name: /^Basic$/i })).toBeVisible();
+    await expect(page.getByRole("columnheader", { name: /^Pro$/i })).toBeVisible();
   });
 
   test("how it works page loads", async ({ page }) => {
@@ -28,8 +29,8 @@ test.describe("Marketing pages", () => {
     await expect(
       page.getByRole("heading", { name: /UK Escalation Guides/i })
     ).toBeVisible();
-    await expect(page.getByText("Energy")).toBeVisible();
-    await expect(page.getByText("Financial Services")).toBeVisible();
+    await expect(page.getByText("Energy").first()).toBeVisible();
+    await expect(page.getByText("Financial Services").first()).toBeVisible();
   });
 
   test("energy escalation guide loads", async ({ page }) => {

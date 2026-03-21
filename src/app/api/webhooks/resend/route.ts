@@ -12,17 +12,20 @@ export async function POST(request: Request) {
 
   // Verify Svix signature to prevent spoofed delivery events.
   const secret = process.env.RESEND_WEBHOOK_SECRET;
-  if (secret) {
-    const wh = new Webhook(secret);
-    try {
-      wh.verify(body, {
-        "svix-id": request.headers.get("svix-id") ?? "",
-        "svix-timestamp": request.headers.get("svix-timestamp") ?? "",
-        "svix-signature": request.headers.get("svix-signature") ?? "",
-      });
-    } catch {
-      return new Response("Invalid webhook signature", { status: 401 });
-    }
+  if (!secret) {
+    console.error("[Resend webhook] RESEND_WEBHOOK_SECRET is not set — rejecting request.");
+    return new Response("Webhook secret not configured", { status: 500 });
+  }
+
+  const wh = new Webhook(secret);
+  try {
+    wh.verify(body, {
+      "svix-id": request.headers.get("svix-id") ?? "",
+      "svix-timestamp": request.headers.get("svix-timestamp") ?? "",
+      "svix-signature": request.headers.get("svix-signature") ?? "",
+    });
+  } catch {
+    return new Response("Invalid webhook signature", { status: 401 });
   }
 
   let payload: { type?: string; data?: { email_id?: string } } | null = null;

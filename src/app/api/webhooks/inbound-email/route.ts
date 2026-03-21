@@ -22,28 +22,29 @@ function extractAlias(to: string) {
 export async function POST(request: Request) {
   // Svix signature verification — protect against unauthenticated POSTs.
   const secret = process.env.RESEND_WEBHOOK_SECRET;
-  if (secret) {
-    const rawBody = await request.text();
-    const wh = new Webhook(secret);
-    try {
-      wh.verify(rawBody, {
-        "svix-id": request.headers.get("svix-id") ?? "",
-        "svix-timestamp": request.headers.get("svix-timestamp") ?? "",
-        "svix-signature": request.headers.get("svix-signature") ?? "",
-      });
-    } catch {
-      return new Response("Invalid webhook signature", { status: 401 });
-    }
-    // Re-parse as FormData after text extraction
-    const newRequest = new Request(request.url, {
-      method: "POST",
-      headers: request.headers,
-      body: rawBody,
-    });
-    return handleInboundEmail(newRequest);
+  if (!secret) {
+    console.error("[Inbound email webhook] RESEND_WEBHOOK_SECRET is not set — rejecting request.");
+    return new Response("Webhook secret not configured", { status: 500 });
   }
 
-  return handleInboundEmail(request);
+  const rawBody = await request.text();
+  const wh = new Webhook(secret);
+  try {
+    wh.verify(rawBody, {
+      "svix-id": request.headers.get("svix-id") ?? "",
+      "svix-timestamp": request.headers.get("svix-timestamp") ?? "",
+      "svix-signature": request.headers.get("svix-signature") ?? "",
+    });
+  } catch {
+    return new Response("Invalid webhook signature", { status: 401 });
+  }
+
+  const newRequest = new Request(request.url, {
+    method: "POST",
+    headers: request.headers,
+    body: rawBody,
+  });
+  return handleInboundEmail(newRequest);
 }
 
 async function handleInboundEmail(request: Request) {

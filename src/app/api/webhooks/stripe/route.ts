@@ -43,11 +43,11 @@ export async function POST(request: Request) {
     subscription: Stripe.Subscription
   ) {
     const tier = getTierFromSubscription(subscription);
-    const status = subscription.status as
-      | "active"
-      | "cancelled"
-      | "past_due"
-      | "trialing";
+    const rawStatus = subscription.status;
+    const status =
+      rawStatus === "canceled"
+        ? "cancelled"
+        : (rawStatus as "active" | "cancelled" | "past_due" | "trialing");
     const customerId =
       typeof subscription.customer === "string"
         ? subscription.customer

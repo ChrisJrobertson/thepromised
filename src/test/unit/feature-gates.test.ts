@@ -91,28 +91,43 @@ describe("canExportPDF", () => {
 });
 
 describe("canUseAI", () => {
-  it("blocks free users from all AI features", () => {
-    expect(canUseAI(makeProfile(), "suggestions")).toBe(false);
-    expect(canUseAI(makeProfile(), "letters")).toBe(false);
+  it("allows free users suggestions (3/month, enforced at API layer)", () => {
+    expect(canUseAI(makeProfile(), "suggestions")).toBe(true);
+  });
+
+  it("allows free users letters (1/month, enforced at API layer)", () => {
+    expect(canUseAI(makeProfile(), "letters")).toBe(true);
   });
 
   it("allows basic users up to their suggestion limit", () => {
-    const profile = makeProfile({ subscription_tier: "basic", ai_credits_used: 5 });
+    const profile = makeProfile({
+      subscription_tier: "basic",
+      ai_suggestions_used: 5,
+    });
     expect(canUseAI(profile, "suggestions")).toBe(true);
   });
 
   it("blocks basic users at suggestion limit", () => {
-    const profile = makeProfile({ subscription_tier: "basic", ai_credits_used: 10 });
+    const profile = makeProfile({
+      subscription_tier: "basic",
+      ai_suggestions_used: 10,
+    });
     expect(canUseAI(profile, "suggestions")).toBe(false);
   });
 
-  it("allows pro users up to their limit", () => {
-    const profile = makeProfile({ subscription_tier: "pro", ai_credits_used: 49 });
+  it("allows pro users up to their suggestion limit", () => {
+    const profile = makeProfile({
+      subscription_tier: "pro",
+      ai_suggestions_used: 49,
+    });
     expect(canUseAI(profile, "suggestions")).toBe(true);
   });
 
-  it("blocks pro users at their limit", () => {
-    const profile = makeProfile({ subscription_tier: "pro", ai_credits_used: 50 });
+  it("blocks pro users at their suggestion limit", () => {
+    const profile = makeProfile({
+      subscription_tier: "pro",
+      ai_suggestions_used: 50,
+    });
     expect(canUseAI(profile, "suggestions")).toBe(false);
   });
 });

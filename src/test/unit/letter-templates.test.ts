@@ -3,8 +3,8 @@ import { describe, expect, it } from "vitest";
 import { LETTER_TEMPLATES, getTemplate } from "@/lib/ai/letter-templates";
 
 describe("LETTER_TEMPLATES", () => {
-  it("has 8 templates", () => {
-    expect(LETTER_TEMPLATES.length).toBe(8);
+  it("has 11 templates", () => {
+    expect(LETTER_TEMPLATES.length).toBe(11);
   });
 
   it("all templates have required fields", () => {
@@ -37,6 +37,28 @@ describe("LETTER_TEMPLATES", () => {
   it("includes formal_notice (letter before action)", () => {
     const template = LETTER_TEMPLATES.find((t) => t.type === "formal_notice");
     expect(template).toBeDefined();
+  });
+
+  it("includes adr_referral with ADR Regulations reference", () => {
+    const template = LETTER_TEMPLATES.find((t) => t.type === "adr_referral");
+    expect(template).toBeDefined();
+    expect(
+      template?.legalReferences.some((ref) => ref.includes("Alternative Dispute Resolution"))
+    ).toBe(true);
+  });
+
+  it("includes section_75_claim with Consumer Credit Act reference", () => {
+    const template = LETTER_TEMPLATES.find((t) => t.type === "section_75_claim");
+    expect(template).toBeDefined();
+    expect(
+      template?.legalReferences.some((ref) => ref.includes("Consumer Credit Act 1974"))
+    ).toBe(true);
+  });
+
+  it("includes custom template", () => {
+    const template = LETTER_TEMPLATES.find((t) => t.type === "custom");
+    expect(template).toBeDefined();
+    expect(template?.name).toBe("Custom Letter");
   });
 });
 

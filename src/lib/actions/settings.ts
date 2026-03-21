@@ -88,7 +88,7 @@ export async function changeEmail(newEmail: string) {
 
   const { error } = await supabase.auth.updateUser(
     { email: newEmail },
-    { emailRedirectTo: `${process.env.NEXT_PUBLIC_APP_URL ?? ""}/auth/callback` }
+    { emailRedirectTo: `${process.env.NEXT_PUBLIC_APP_URL ?? ""}/callback` }
   );
 
   if (error) return { error: error.message };
