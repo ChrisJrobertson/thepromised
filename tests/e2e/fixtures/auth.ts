@@ -5,7 +5,7 @@ type AuthFixtures = {
 };
 
 export const test = base.extend<AuthFixtures>({
-  authedPage: async ({ page }, use) => {
+  authedPage: async ({ page }, provideAuthedPage) => {
     // Navigate to login
     await page.goto("/login");
 
@@ -23,7 +23,7 @@ export const test = base.extend<AuthFixtures>({
     // Wait for redirect to dashboard
     await page.waitForURL(/dashboard/, { timeout: 15_000 });
 
-    await use(page);
+    await provideAuthedPage(page);
   },
 });
 

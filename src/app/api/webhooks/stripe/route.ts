@@ -452,7 +452,8 @@ export async function POST(request: Request) {
                 }
               : {}),
           })
-          .eq("stripe_customer_id", customerId);
+          .eq("stripe_customer_id", customerId)
+          .neq("subscription_status", "pack_temporary");
 
         if (invoicePaidUpdateError) {
           console.error(
