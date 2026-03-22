@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { DM_Sans, Geist_Mono, Inter } from "next/font/google";
 
 import { Providers } from "@/components/layout/Providers";
+import { getAppUrl, getMetadataBaseUrl } from "@/lib/utils/app-url";
 
 import "./globals.css";
 
@@ -14,17 +15,20 @@ const dmSans = DM_Sans({
   variable: "--font-dm-sans",
   subsets: ["latin"],
   weight: ["700", "800"],
+  // Display font — avoid unused preload warnings (loads when CSS uses it)
+  preload: false,
 });
 
 const geistMono = Geist_Mono({
   variable: "--font-geist-mono",
   subsets: ["latin"],
+  preload: false,
 });
 
-const APP_URL = process.env.NEXT_PUBLIC_APP_URL ?? "https://www.theypromised.app";
+const APP_URL = getAppUrl();
 
 export const metadata: Metadata = {
-  metadataBase: new URL(APP_URL),
+  metadataBase: getMetadataBaseUrl(),
   title: {
     default: "TheyPromised — They Promised. You Proved It.",
     template: "%s | TheyPromised — Track Your Complaints",

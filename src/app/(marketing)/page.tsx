@@ -1,8 +1,10 @@
 import type { Metadata } from "next";
 
+import { getAppUrl } from "@/lib/utils/app-url";
+
 import HomePageClient from "./HomePageClient";
 
-const APP_URL = process.env.NEXT_PUBLIC_APP_URL ?? "https://www.theypromised.app";
+const APP_URL = getAppUrl();
 
 export const metadata: Metadata = {
   title: "TheyPromised — Hold Companies to Account | UK Consumer Complaint Tracker",
