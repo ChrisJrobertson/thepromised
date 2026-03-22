@@ -18,17 +18,22 @@ export function getAiLimit(tier: import("./constants").AiTier, feature: import("
 }
 
 /**
- * Provider routing:
- * - Letter drafting         → Claude Sonnet (quality critical)
- * - Case analysis           → Claude Sonnet (needs reasoning)
- * - Quick summaries         → Hugging Face BART (cheap, high volume)
- * - Channel classification  → Hugging Face zero-shot (cheap)
- * - Entity extraction       → Hugging Face NER (cheap)
- * - Sentiment/mood          → Hugging Face sentiment (cheap)
+ * Canonical Claude model IDs — Anthropic Messages API.
+ *
+ * Sonnet 4 (claude-sonnet-4-20250514) — letter drafting, case analysis.
+ *   Best quality/cost ratio for structured legal-tone writing.
+ *
+ * Haiku 4.5 (claude-haiku-4-5-20251001) — summarisation, extraction, classification.
+ *   Near-frontier quality at $1/$5 per MTok (input/output).
+ *
+ * If upgrading later, get valid IDs from: https://platform.claude.com/docs/en/about-claude/models/overview
+ * Or query the Models API: GET https://api.anthropic.com/v1/models
+ *
+ * Last updated: 17 March 2026
  */
 export const CLAUDE_MODELS = {
-  letterDrafting: "claude-sonnet-4-5-20250514",
-  caseAnalysis: "claude-sonnet-4-5-20250514",
+  letterDrafting: "claude-sonnet-4-20250514",
+  caseAnalysis: "claude-sonnet-4-20250514",
   summarisation: "claude-haiku-4-5-20251001",
   entityExtraction: "claude-haiku-4-5-20251001",
   classification: "claude-haiku-4-5-20251001",
