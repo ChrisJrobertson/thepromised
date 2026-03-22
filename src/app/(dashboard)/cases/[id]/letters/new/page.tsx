@@ -15,7 +15,7 @@ export default async function NewLetterPage({
   searchParams,
 }: {
   params: Promise<{ id: string }>;
-  searchParams: Promise<{ type?: string; stage?: string }>;
+  searchParams: Promise<{ type?: string; letterType?: string; promptContext?: string; stage?: string }>;
 }) {
   const { id } = await params;
   const sp = await searchParams;
@@ -71,7 +71,8 @@ export default async function NewLetterPage({
     );
   }
 
-  const preselectedType = sp.type ?? null;
+  const preselectedType = sp.type ?? sp.letterType ?? null;
+  const journeyPromptContext = sp.promptContext?.trim() || null;
 
   return (
     <div className="mx-auto max-w-3xl space-y-6 pb-16">
@@ -85,6 +86,7 @@ export default async function NewLetterPage({
 
       <LetterWizard
         caseId={id}
+        journeyPromptContext={journeyPromptContext}
         preselectedType={preselectedType}
         templates={LETTER_TEMPLATES}
       />

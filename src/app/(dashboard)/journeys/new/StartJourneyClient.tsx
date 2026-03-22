@@ -22,7 +22,7 @@ import type { Case } from "@/types/database";
 type StartJourneyClientProps = {
   templates: JourneyTemplate[];
   cases: Case[];
-  sectors: { id: string; label: string; icon: string }[];
+  sectors: { id: string; label: string; icon: string; description?: string }[];
 };
 
 export function StartJourneyClient({ templates, cases, sectors }: StartJourneyClientProps) {
@@ -91,6 +91,7 @@ export function StartJourneyClient({ templates, cases, sectors }: StartJourneyCl
                   setSelectedSector(sector.id);
                   setSelectedTemplate("");
                 }}
+                title={sector.description}
                 type="button"
               >
                 {sector.icon} {sector.label}

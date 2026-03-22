@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 
 import { CLAUDE_MODELS, anthropic } from "@/lib/ai/client";
+import { traceAICall } from "@/lib/ai/trace";
 import { AI_LIMITS } from "@/lib/ai/constants";
 import { getJourneyLetterPrompt } from "@/lib/ai/journey-prompts";
 import { LETTER_SYSTEM, buildLetterPrompt } from "@/lib/ai/prompts";
@@ -25,6 +26,7 @@ const inputSchema = z.object({
 });
 
 export async function POST(request: Request) {
+  let llmTracer: ReturnType<typeof traceAICall> | undefined;
   try {
     const supabase = await createClient();
     const {
@@ -193,7 +195,24 @@ export async function POST(request: Request) {
       additionalInstructions: mergedInstructions,
     });
 
-    // Call Claude
+    // Call Claude — with Opik tracing
+    llmTracer = traceAICall({
+      name: "draft-letter",
+      model: CLAUDE_MODELS.letterDrafting,
+      input: {
+        systemPrompt: LETTER_SYSTEM,
+        messages: [{ role: "user", content: prompt }],
+      },
+      metadata: {
+        caseId,
+        letterType,
+        organisationName: orgName,
+        userId: user.id,
+        tier,
+      },
+      tags: ["letter-drafting", letterType],
+    });
+
     const message = await anthropic.messages.create({
       model: CLAUDE_MODELS.letterDrafting,
       max_tokens: 2048,
@@ -203,6 +222,13 @@ export async function POST(request: Request) {
 
     const letterBody =
       message.content[0]?.type === "text" ? message.content[0].text.trim() : "";
+
+    llmTracer.success({
+      content: letterBody,
+      inputTokens: message.usage.input_tokens,
+      outputTokens: message.usage.output_tokens,
+      stopReason: message.stop_reason,
+    });
 
     if (!letterBody) {
       return NextResponse.json(
@@ -269,6 +295,9 @@ export async function POST(request: Request) {
         { status: 400 }
       );
     }
+    llmTracer?.error(
+      error instanceof Error ? error : new Error(String(error))
+    );
     console.error("[Draft letter error]", error);
     return NextResponse.json(
       { error: "Letter drafting failed. Please try again." },

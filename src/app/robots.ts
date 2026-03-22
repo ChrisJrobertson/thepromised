@@ -1,6 +1,8 @@
 import type { MetadataRoute } from "next";
 
-const baseUrl = process.env.NEXT_PUBLIC_APP_URL ?? "https://www.theypromised.app";
+import { getAppUrl } from "@/lib/utils/app-url";
+
+const baseUrl = getAppUrl();
 
 export default function robots(): MetadataRoute.Robots {
   return {
@@ -18,7 +20,10 @@ export default function robots(): MetadataRoute.Robots {
           "/register",
           "/login",
           "/companies",
+          "/guides",
           "/guides/",
+          "/complaints",
+          "/complaints/",
           "/templates",
           "/templates/",
           "/calculator",

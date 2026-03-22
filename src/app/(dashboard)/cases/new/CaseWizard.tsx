@@ -84,7 +84,13 @@ type InitialTemplate = {
   suggestedPriority: "low" | "medium" | "high" | "urgent";
 };
 
-export function CaseWizard({ initialTemplate }: { initialTemplate?: InitialTemplate }) {
+export function CaseWizard({
+  initialTemplate,
+  seoPreferredCompanyNames = [],
+}: {
+  initialTemplate?: InitialTemplate;
+  seoPreferredCompanyNames?: string[];
+}) {
   const [step, setStep] = useState(0);
   const [selectedOrg, setSelectedOrg] = useState<SelectedOrg | null>(null);
   const [isPending, startTransition] = useTransition();
@@ -259,7 +265,10 @@ export function CaseWizard({ initialTemplate }: { initialTemplate?: InitialTempl
         <OrganisationStepForm
           initialCategory={initialTemplate?.category}
           onNext={handleOrgNext}
-          preferredCompanyNames={initialTemplate?.commonWith}
+          preferredCompanyNames={[
+            ...(seoPreferredCompanyNames ?? []),
+            ...(initialTemplate?.commonWith ?? []),
+          ]}
         />
       )}
 

@@ -18,6 +18,8 @@ import type { LetterTemplate } from "@/lib/ai/letter-templates";
 type LetterWizardProps = {
   caseId: string;
   preselectedType: string | null;
+  /** From guided journey — passed to draft-letter API as promptContext. */
+  journeyPromptContext?: string | null;
   templates: LetterTemplate[];
 };
 
@@ -26,6 +28,7 @@ type Step = "select" | "instructions" | "generating" | "edit" | "actions";
 export function LetterWizard({
   caseId,
   preselectedType,
+  journeyPromptContext = null,
   templates,
 }: LetterWizardProps) {
   const router = useRouter();
@@ -66,6 +69,7 @@ export function LetterWizard({
           caseId,
           letterType: selectedType,
           additionalInstructions: additionalInstructions || undefined,
+          promptContext: journeyPromptContext || undefined,
         }),
       });
 

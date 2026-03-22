@@ -1,6 +1,6 @@
 import Link from "next/link";
 
-export default function MarketingLayout({
+export default function PublicMarketingLayout({
   children,
 }: {
   children: React.ReactNode;
@@ -27,7 +27,10 @@ export default function MarketingLayout({
             <Link className="text-sm" href="/login">
               Log In
             </Link>
-            <Link className="rounded-md bg-teal-600 px-3 py-2 text-sm text-white hover:bg-teal-700" href="/register">
+            <Link
+              className="rounded-md bg-teal-600 px-3 py-2 text-sm text-white hover:bg-teal-700"
+              href="/register"
+            >
               Start Free
             </Link>
           </div>
@@ -40,24 +43,72 @@ export default function MarketingLayout({
             <div>
               <p className="mb-3 font-semibold text-slate-800">Product</p>
               <ul className="space-y-1.5 text-slate-600">
-                <li><Link className="hover:text-primary" href="/register">Start Free</Link></li>
-                <li><Link className="hover:text-primary" href="/pricing">Pricing</Link></li>
-                <li><Link className="hover:text-primary" href="/guides">Guides</Link></li>
-                <li><Link className="hover:text-primary" href="/templates">Templates</Link></li>
-                <li><Link className="hover:text-primary" href="/calculator">Calculator</Link></li>
-                <li><Link className="hover:text-primary" href="/escalation-guides">Escalation Guides</Link></li>
-                <li><Link className="hover:text-primary" href="/packs">Complaint Packs</Link></li>
+                <li>
+                  <Link className="hover:text-primary" href="/register">
+                    Start Free
+                  </Link>
+                </li>
+                <li>
+                  <Link className="hover:text-primary" href="/pricing">
+                    Pricing
+                  </Link>
+                </li>
+                <li>
+                  <Link className="hover:text-primary" href="/guides">
+                    Guides
+                  </Link>
+                </li>
+                <li>
+                  <Link className="hover:text-primary" href="/templates">
+                    Templates
+                  </Link>
+                </li>
+                <li>
+                  <Link className="hover:text-primary" href="/calculator">
+                    Calculator
+                  </Link>
+                </li>
+                <li>
+                  <Link className="hover:text-primary" href="/escalation-guides">
+                    Escalation Guides
+                  </Link>
+                </li>
+                <li>
+                  <Link className="hover:text-primary" href="/packs">
+                    Complaint Packs
+                  </Link>
+                </li>
               </ul>
             </div>
 
             <div>
               <p className="mb-3 font-semibold text-slate-800">Company</p>
               <ul className="space-y-1.5 text-slate-600">
-                <li><Link className="hover:text-primary" href="/about">About</Link></li>
-                <li><Link className="hover:text-primary" href="/business">For Business</Link></li>
-                <li><Link className="hover:text-primary" href="/companies">Company Scorecards</Link></li>
-                <li><Link className="hover:text-primary" href="/privacy">Privacy Policy</Link></li>
-                <li><Link className="hover:text-primary" href="/terms">Terms of Service</Link></li>
+                <li>
+                  <Link className="hover:text-primary" href="/about">
+                    About
+                  </Link>
+                </li>
+                <li>
+                  <Link className="hover:text-primary" href="/business">
+                    For Business
+                  </Link>
+                </li>
+                <li>
+                  <Link className="hover:text-primary" href="/companies">
+                    Company Scorecards
+                  </Link>
+                </li>
+                <li>
+                  <Link className="hover:text-primary" href="/privacy">
+                    Privacy Policy
+                  </Link>
+                </li>
+                <li>
+                  <Link className="hover:text-primary" href="/terms">
+                    Terms of Service
+                  </Link>
+                </li>
               </ul>
             </div>
 
@@ -69,7 +120,11 @@ export default function MarketingLayout({
                     support@theypromised.app
                   </a>
                 </li>
-                <li><Link className="hover:text-primary" href="/how-it-works">User Guide</Link></li>
+                <li>
+                  <Link className="hover:text-primary" href="/how-it-works">
+                    User Guide
+                  </Link>
+                </li>
               </ul>
             </div>
           </div>

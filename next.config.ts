@@ -12,6 +12,7 @@ if (!supabaseUrl || !supabaseAnonKey) {
 }
 
 const nextConfig: NextConfig = {
+  serverExternalPackages: ["opik"],
   async rewrites() {
     return [
       // PostHog proxy — browser sends to our domain so ad blockers don't block

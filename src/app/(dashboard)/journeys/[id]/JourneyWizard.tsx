@@ -58,9 +58,15 @@ export function JourneyWizard({ journey, template, cases }: Props) {
   const totalSteps = template.steps.length;
   const progressPercent = Math.round((currentIndex / totalSteps) * 100);
 
+  function resolveNextIndex(): number {
+    if (!currentStep?.next_step_id) return currentIndex + 1;
+    const idx = template.steps.findIndex((s) => s.id === currentStep.next_step_id);
+    return idx !== -1 ? idx : currentIndex + 1;
+  }
+
   function handleAdvance(nextIndexOverride?: number) {
     if (!currentStep) return;
-    const nextIndex = nextIndexOverride ?? currentIndex + 1;
+    const nextIndex = nextIndexOverride ?? resolveNextIndex();
     const isLastStep = nextIndex >= totalSteps;
 
     startTransition(async () => {
@@ -82,8 +88,15 @@ export function JourneyWizard({ journey, template, cases }: Props) {
 
   function handleDecision(nextId: string) {
     const idx = template.steps.findIndex((s) => s.id === nextId);
-    if (idx !== -1) handleAdvance(idx);
-    else handleAdvance();
+    if (idx === -1) {
+      handleAdvance();
+      return;
+    }
+    if (idx === currentIndex) {
+      toast.message("Stay on this step until your situation changes, then choose again.");
+      return;
+    }
+    handleAdvance(idx);
   }
 
   function handleLinkCase(caseId: string | null) {
@@ -234,6 +247,48 @@ export function JourneyWizard({ journey, template, cases }: Props) {
         <CardContent className="space-y-5">
           <p className="text-sm text-slate-600">{currentStep.description}</p>
 
+          {currentStep.action_config?.wait_message &&
+            (currentStep.type === "action_draft_letter" || currentStep.type === "wait") && (
+              <div className="rounded-lg border border-slate-200 bg-slate-50 p-3 text-xs text-slate-600">
+                <p className="font-medium text-slate-700">What to expect</p>
+                <p className="mt-1">{currentStep.action_config.wait_message}</p>
+              </div>
+            )}
+
+          {currentStep.type === "checklist" &&
+            currentStep.action_config?.checklist_items &&
+            currentStep.action_config.checklist_items.length > 0 && (
+              <div className="rounded-lg border border-slate-200 bg-white p-3">
+                <p className="text-xs font-semibold text-slate-700 mb-2">Checklist</p>
+                <ul className="space-y-2">
+                  {currentStep.action_config.checklist_items.map((item, i) => (
+                    <li className="flex gap-2 text-xs text-slate-600" key={i}>
+                      <span className="mt-0.5 text-teal-600">☐</span>
+                      <span>{item}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+
+          {currentStep.action_config?.checklist_tip &&
+            (currentStep.type === "checklist" ||
+              currentStep.type === "info" ||
+              currentStep.type === "action_draft_letter") && (
+              <div className="rounded-lg bg-amber-50 border border-amber-200 p-3">
+                <div className="flex items-start gap-2">
+                  <Lightbulb className="h-4 w-4 shrink-0 mt-0.5 text-amber-600" />
+                  <p className="text-xs text-amber-800">{currentStep.action_config.checklist_tip}</p>
+                </div>
+              </div>
+            )}
+
+          {currentStep.action_config?.letter_before_action && (
+            <div className="rounded-lg border border-blue-200 bg-blue-50/80 p-3 text-xs text-blue-800">
+              You should already have sent a Letter Before Action. Keep a copy for the court bundle.
+            </div>
+          )}
+
           {/* Legal basis */}
           {currentStep.legal_basis && (
             <div className="rounded-lg bg-blue-50 border border-blue-200 p-3">
@@ -295,15 +350,52 @@ export function JourneyWizard({ journey, template, cases }: Props) {
             </div>
           )}
 
+          {/* Multi-option branch */}
+          {currentStep.type === "branch" &&
+            currentStep.action_config?.branch_options &&
+            currentStep.action_config.branch_options.length > 0 && (
+              <div className="space-y-2">
+                {currentStep.action_config.branch_question && (
+                  <p className="text-xs font-medium text-slate-700">
+                    {currentStep.action_config.branch_question}
+                  </p>
+                )}
+                <div className="grid gap-2">
+                  {currentStep.action_config.branch_options.map((opt) => (
+                    <Button
+                      className="h-auto min-h-11 w-full justify-start whitespace-normal px-3 py-2 text-left text-sm"
+                      disabled={isPending}
+                      key={opt.next_step_id + opt.label}
+                      onClick={() => handleDecision(opt.next_step_id)}
+                      type="button"
+                      variant="outline"
+                    >
+                      {opt.label}
+                    </Button>
+                  ))}
+                </div>
+              </div>
+            )}
+
           {/* Action step buttons */}
-          {currentStep.type !== "decision" && (
+          {currentStep.type !== "decision" && currentStep.type !== "branch" && (
             <div className="flex flex-wrap gap-3">
+              {currentStep.type === "complete" &&
+                currentStep.action_config?.suggest_outcome_link &&
+                linkedCaseId && (
+                  <Link href={`/cases/${linkedCaseId}`}>
+                    <Button className="gap-2" type="button" variant="secondary">
+                      <FileText className="h-4 w-4" />
+                      Record outcome on your case
+                    </Button>
+                  </Link>
+                )}
               {/* Letter drafting action */}
               {currentStep.type === "action_draft_letter" && currentStep.action_config?.letter_type && (
                 <Link
                   href={
                     linkedCaseId
-                      ? `/cases/${linkedCaseId}/letters/new?letterType=${currentStep.action_config.letter_type}&promptContext=${currentStep.action_config.prompt_context ?? ""}`
+                      ? `/cases/${linkedCaseId}/letters/new?type=${encodeURIComponent(currentStep.action_config.letter_type)}&promptContext=${encodeURIComponent(currentStep.action_config.prompt_context ?? "")}`
                       : "/cases"
                   }
                   target={linkedCaseId ? undefined : "_blank"}
@@ -337,7 +429,13 @@ export function JourneyWizard({ journey, template, cases }: Props) {
                 disabled={isPending}
                 onClick={() => handleAdvance()}
                 type="button"
-                variant={currentStep.type === "wait" || currentStep.type === "info" ? "default" : "outline"}
+                variant={
+                  currentStep.type === "wait" ||
+                  currentStep.type === "info" ||
+                  currentStep.type === "checklist"
+                    ? "default"
+                    : "outline"
+                }
               >
                 {isPending ? (
                   <>
@@ -417,6 +515,18 @@ function StepTypeIcon({ type }: { type: string }) {
     return (
       <div className={`${base} bg-green-100`}>
         <CheckCircle2 className="h-4 w-4 text-green-600" />
+      </div>
+    );
+  if (type === "checklist")
+    return (
+      <div className={`${base} bg-violet-100`}>
+        <CheckCircle2 className="h-4 w-4 text-violet-600" />
+      </div>
+    );
+  if (type === "branch")
+    return (
+      <div className={`${base} bg-amber-100`}>
+        <Scale className="h-4 w-4 text-amber-700" />
       </div>
     );
   return (

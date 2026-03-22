@@ -1,39 +1,11 @@
 import { ArrowRight, Clock, ExternalLink, Phone, Mail, MapPin } from "lucide-react";
 import Link from "next/link";
-import { notFound } from "next/navigation";
-import type { Metadata } from "next";
 
-import { createClient } from "@/lib/supabase/server";
-import { ORG_GUIDES, getOrgGuide } from "@/lib/guides/organisations";
+import { createAnonReadClient } from "@/lib/supabase/server";
+import type { OrgGuide } from "@/lib/guides/organisations";
 
-type Params = Promise<{ slug: string }>;
-
-export async function generateStaticParams() {
-  return ORG_GUIDES.map((guide) => ({ slug: guide.slug }));
-}
-
-export async function generateMetadata({ params }: { params: Params }): Promise<Metadata> {
-  const { slug } = await params;
-  const guide = getOrgGuide(slug);
-  if (!guide) return {};
-
-  return {
-    title: `How to Complain About ${guide.name} — Step-by-Step Guide | TheyPromised`,
-    description: `Complete guide to making a complaint against ${guide.name}. Step-by-step escalation path, ombudsman details, time limits, and tips. Track your complaint free with TheyPromised.`,
-    openGraph: {
-      title: `How to Complain About ${guide.name}`,
-      description: `Step-by-step complaint guide for ${guide.name} customers.`,
-    },
-  };
-}
-
-export default async function OrgGuidePage({ params }: { params: Params }) {
-  const { slug } = await params;
-  const guide = getOrgGuide(slug);
-
-  if (!guide) notFound();
-
-  const supabase = await createClient();
+export async function LegacyOrgGuideView({ guide }: { guide: OrgGuide }) {
+  const supabase = createAnonReadClient();
   const { data: rules } = await supabase
     .from("escalation_rules")
     .select("*")
@@ -42,7 +14,6 @@ export default async function OrgGuidePage({ params }: { params: Params }) {
 
   return (
     <main>
-      {/* Hero */}
       <section className="border-b bg-gradient-to-b from-primary/5 to-white py-12 md:py-16">
         <div className="mx-auto max-w-3xl px-4">
           <Link
@@ -66,7 +37,6 @@ export default async function OrgGuidePage({ params }: { params: Params }) {
 
       <section className="py-12">
         <div className="mx-auto max-w-3xl space-y-10 px-4">
-          {/* Common complaints */}
           <div>
             <h2 className="mb-4 text-xl font-bold">Common {guide.name} complaints</h2>
             <ul className="space-y-2">
@@ -79,7 +49,6 @@ export default async function OrgGuidePage({ params }: { params: Params }) {
             </ul>
           </div>
 
-          {/* Company contact details */}
           <div className="rounded-xl border bg-slate-50 p-5">
             <h2 className="mb-4 text-lg font-bold">How to contact {guide.name}</h2>
             <div className="space-y-3">
@@ -140,7 +109,6 @@ export default async function OrgGuidePage({ params }: { params: Params }) {
             </div>
           </div>
 
-          {/* Escalation path */}
           <div>
             <h2 className="mb-4 text-xl font-bold">Step-by-step escalation guide</h2>
             {!rules || rules.length === 0 ? (
@@ -228,7 +196,6 @@ export default async function OrgGuidePage({ params }: { params: Params }) {
             )}
           </div>
 
-          {/* Time limits */}
           <div className="rounded-xl border border-amber-200 bg-amber-50 p-5">
             <h2 className="mb-2 flex items-center gap-2 text-lg font-bold text-amber-800">
               <Clock className="h-5 w-5" />
@@ -237,7 +204,6 @@ export default async function OrgGuidePage({ params }: { params: Params }) {
             <p className="text-sm text-amber-900">{guide.escalationDeadline}</p>
           </div>
 
-          {/* Ombudsman details */}
           <div className="rounded-xl border bg-blue-50 p-5">
             <h2 className="mb-2 text-lg font-bold text-blue-900">
               Which ombudsman handles {guide.name} complaints?
@@ -257,7 +223,6 @@ export default async function OrgGuidePage({ params }: { params: Params }) {
             </p>
           </div>
 
-          {/* Tips */}
           <div>
             <h2 className="mb-4 text-xl font-bold">Tips for complaining to {guide.name}</h2>
             <ul className="space-y-3">
@@ -270,7 +235,6 @@ export default async function OrgGuidePage({ params }: { params: Params }) {
             </ul>
           </div>
 
-          {/* Disclaimer */}
           <div className="rounded-md border border-blue-200 bg-blue-50 p-4 text-xs text-blue-800">
             <strong>Important:</strong> This guide is for general information only. Procedures and
             time limits can change. Always verify current requirements with the relevant ombudsman
@@ -286,7 +250,10 @@ export default async function OrgGuidePage({ params }: { params: Params }) {
             <p className="mt-1 text-sm text-muted-foreground">
               Based on real data from TheyPromised users.
             </p>
-            <Link className="mt-3 inline-block text-sm font-medium text-primary underline" href={`/companies/${guide.slug}`}>
+            <Link
+              className="mt-3 inline-block text-sm font-medium text-primary underline"
+              href={`/companies/${guide.slug}`}
+            >
               View Complaint Scorecard →
             </Link>
           </div>
@@ -302,7 +269,6 @@ export default async function OrgGuidePage({ params }: { params: Params }) {
         </div>
       </section>
 
-      {/* CTA */}
       <section className="border-t py-16">
         <div className="mx-auto max-w-2xl px-4 text-center">
           <h2 className="mb-3 text-2xl font-bold">
@@ -314,7 +280,7 @@ export default async function OrgGuidePage({ params }: { params: Params }) {
           </p>
           <Link
             className="inline-flex items-center gap-2 rounded-lg bg-primary px-6 py-3 font-semibold text-white hover:opacity-90"
-            href="/register"
+            href={`/cases/new?seoOrg=${encodeURIComponent(guide.slug)}`}
           >
             Start tracking your {guide.name} complaint — free
             <ArrowRight className="h-4 w-4" />

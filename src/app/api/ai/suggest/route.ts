@@ -3,6 +3,7 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 
 import { CLAUDE_MODEL, anthropic } from "@/lib/ai/client";
+import { traceAICall } from "@/lib/ai/trace";
 import { CASE_ANALYSIS_SYSTEM, buildCaseAnalysisPrompt } from "@/lib/ai/prompts";
 import { getMonthlyUsage, incrementMonthlyUsage } from "@/lib/ai/usage";
 import { AI_LIMITS } from "@/lib/ai/constants";
@@ -32,6 +33,7 @@ const suggestionResponseSchema = z.object({
 export type AiSuggestion = z.infer<typeof suggestionResponseSchema>;
 
 export async function POST(request: Request) {
+  let llmTracer: ReturnType<typeof traceAICall> | undefined;
   try {
     const supabase = await createClient();
     const {
@@ -186,7 +188,22 @@ export async function POST(request: Request) {
       })),
     });
 
-    // Call Claude
+    // Call Claude — with Opik tracing
+    llmTracer = traceAICall({
+      name: "case-analysis",
+      model: CLAUDE_MODEL,
+      input: {
+        systemPrompt: CASE_ANALYSIS_SYSTEM,
+        messages: [{ role: "user", content: prompt }],
+      },
+      metadata: {
+        caseId,
+        userId: user.id,
+        tier,
+      },
+      tags: ["case-analysis"],
+    });
+
     const message = await anthropic.messages.create({
       model: CLAUDE_MODEL,
       max_tokens: 1024,
@@ -196,6 +213,13 @@ export async function POST(request: Request) {
 
     const rawText =
       message.content[0]?.type === "text" ? message.content[0].text : "";
+
+    llmTracer.success({
+      content: rawText,
+      inputTokens: message.usage.input_tokens,
+      outputTokens: message.usage.output_tokens,
+      stopReason: message.stop_reason,
+    });
 
     // Parse and validate JSON response
     let parsed: AiSuggestion;
@@ -250,6 +274,9 @@ export async function POST(request: Request) {
         { status: 400 }
       );
     }
+    llmTracer?.error(
+      error instanceof Error ? error : new Error(String(error))
+    );
     console.error("[AI suggest error]", error);
     return NextResponse.json(
       { error: "AI analysis failed. Please try again." },

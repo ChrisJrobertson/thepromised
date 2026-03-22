@@ -1,5 +1,9 @@
+import { DISSOLVED_COMPANY_JOURNEY } from "./journey-dissolved-company";
+
 export type JourneyStepType =
   | "info"
+  | "checklist"
+  | "branch"
   | "action_log_interaction"
   | "action_draft_letter"
   | "action_send_letter"
@@ -19,10 +23,19 @@ export type JourneyStep = {
     interaction_channel?: string;
     escalation_stage?: string;
     wait_days?: number;
+    wait_message?: string;
     decision_yes_label?: string;
     decision_no_label?: string;
     decision_yes_next?: string;
     decision_no_next?: string;
+    /** Multi-option branch (replaces linear next_step_id for that step). */
+    branch_question?: string;
+    branch_options?: { label: string; next_step_id: string }[];
+    checklist_items?: string[];
+    checklist_tip?: string;
+    /** On final step: show link to record case outcome. */
+    suggest_outcome_link?: boolean;
+    letter_before_action?: boolean;
   };
   tips?: string[];
   legal_basis?: string;
@@ -636,6 +649,7 @@ export const JOURNEY_TEMPLATES: JourneyTemplate[] = [
       },
     ],
   },
+  DISSOLVED_COMPANY_JOURNEY as unknown as JourneyTemplate,
 ];
 
 export function getJourneyTemplate(id: string): JourneyTemplate | undefined {
@@ -652,4 +666,11 @@ export const JOURNEY_SECTORS = [
   { id: "travel", label: "Travel & Airlines", icon: "✈️" },
   { id: "finance", label: "Banking & Finance", icon: "🏦" },
   { id: "retail", label: "Retail & Products", icon: "🛍️" },
+  {
+    id: "fraud",
+    label: "Fraud & Dissolved Companies",
+    description:
+      "For situations where a company has been dissolved, is trading fraudulently, or has ceased to exist while owing you money or services.",
+    icon: "🛡️",
+  },
 ];

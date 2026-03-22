@@ -2,6 +2,8 @@ import { redirect } from "next/navigation";
 
 import { UpgradePrompt } from "@/components/ui/UpgradePrompt";
 import { resolveComplaintTemplateParam } from "@/lib/data/complaint-templates";
+import { getOrgGuide } from "@/lib/guides/organisations";
+import { organisationNameFromPageTitle } from "@/lib/seo/organisation-name";
 import { canCreateCase } from "@/lib/stripe/feature-gates";
 import { createClient } from "@/lib/supabase/server";
 
@@ -12,7 +14,7 @@ export const metadata = { title: "New Case | TheyPromised" };
 export default async function NewCasePage({
   searchParams,
 }: {
-  searchParams: Promise<{ template?: string }>;
+  searchParams: Promise<{ template?: string; seoOrg?: string }>;
 }) {
   const sp = await searchParams;
   const supabase = await createClient();
@@ -33,6 +35,22 @@ export default async function NewCasePage({
   const profile = profileData as import("@/types/database").Profile;
   const canCreate = canCreateCase(profile);
   const template = sp.template ? resolveComplaintTemplateParam(sp.template) : undefined;
+
+  let seoPreferredNames: string[] = [];
+  if (sp.seoOrg) {
+    const { data: seoRow } = await supabase
+      .from("seo_organisation_pages")
+      .select("page_title")
+      .eq("slug", sp.seoOrg)
+      .eq("status", "published")
+      .maybeSingle();
+    if (seoRow?.page_title) {
+      seoPreferredNames = [organisationNameFromPageTitle(seoRow.page_title)];
+    } else {
+      const legacy = getOrgGuide(sp.seoOrg);
+      if (legacy) seoPreferredNames = [legacy.name];
+    }
+  }
 
   return (
     <div className="mx-auto max-w-2xl space-y-6 pb-16">
@@ -59,6 +77,7 @@ export default async function NewCasePage({
                 }
               : undefined
           }
+          seoPreferredCompanyNames={seoPreferredNames}
         />
       ) : (
         <UpgradePrompt
