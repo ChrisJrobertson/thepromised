@@ -20,7 +20,7 @@ import { MarkResolvedButton } from "@/components/cases/MarkResolvedButton";
 import { ResponseTimer } from "@/components/cases/ResponseTimer";
 import { ShareCaseButton } from "@/components/cases/ShareCaseButton";
 import { Badge } from "@/components/ui/badge";
-import { buttonVariants } from "@/components/ui/button";
+import { buttonVariants } from "@/components/ui/button-variants";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { formatUkDate } from "@/lib/date";

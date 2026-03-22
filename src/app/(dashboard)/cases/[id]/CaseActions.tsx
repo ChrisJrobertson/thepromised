@@ -7,7 +7,7 @@ import { useState, useTransition } from "react";
 import { toast } from "sonner";
 
 import { OutcomeForm } from "@/components/cases/OutcomeForm";
-import { buttonVariants } from "@/components/ui/button";
+import { buttonVariants } from "@/components/ui/button-variants";
 import {
   DropdownMenu,
   DropdownMenuContent,

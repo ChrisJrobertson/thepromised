@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 
-import { buttonVariants } from "@/components/ui/button";
+import { buttonVariants } from "@/components/ui/button-variants";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { UpgradePrompt } from "@/components/ui/UpgradePrompt";
 import { canCreateCase } from "@/lib/stripe/feature-gates";

@@ -17,7 +17,8 @@ import { useState, useTransition } from "react";
 import { toast } from "sonner";
 
 import { Badge } from "@/components/ui/badge";
-import { Button, buttonVariants } from "@/components/ui/button";
+import { Button } from "@/components/ui/button";
+import { buttonVariants } from "@/components/ui/button-variants";
 import { advanceEscalationStage } from "@/lib/actions/cases";
 import type { Case, EscalationRule } from "@/types/database";
 
