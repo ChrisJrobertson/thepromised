@@ -38,6 +38,9 @@ yarn-error.log*
 # vercel
 .vercel
 
+# never track a nested clone of this repo (accidental duplicate checkout)
+/thepromised/
+
 # typescript
 *.tsbuildinfo
 next-env.d.ts
