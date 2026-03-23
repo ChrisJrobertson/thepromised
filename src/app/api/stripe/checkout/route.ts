@@ -1,24 +1,24 @@
 import { NextResponse } from "next/server";
 import Stripe from "stripe";
 import { z } from "zod";
-
 import { getOrCreateStripeCustomer, getStripeClient } from "@/lib/stripe/client";
 import { STRIPE_PRICE_IDS } from "@/lib/stripe/config";
 import { createCheckoutSessionWithCustomerRecovery } from "@/lib/stripe/checkout";
 import { createClient } from "@/lib/supabase/server";
 
-const inputSchema = z.object({
-  priceId: z.string().min(1),
-});
+// Allowlisted plan identifiers — client sends one of these, never a raw price ID
+const PLAN_TO_PRICE_ID: Record<string, string | undefined> = {
+  basic_monthly: STRIPE_PRICE_IDS.basic.monthly,
+  basic_annual: STRIPE_PRICE_IDS.basic.annual,
+  pro_monthly: STRIPE_PRICE_IDS.pro.monthly,
+  pro_annual: STRIPE_PRICE_IDS.pro.annual,
+};
 
-const ALLOWED_PRICE_IDS = new Set(
-  [
-    STRIPE_PRICE_IDS.basic.monthly,
-    STRIPE_PRICE_IDS.basic.annual,
-    STRIPE_PRICE_IDS.pro.monthly,
-    STRIPE_PRICE_IDS.pro.annual,
-  ].filter(Boolean),
-);
+const ALLOWED_PLANS = new Set(Object.keys(PLAN_TO_PRICE_ID));
+
+const inputSchema = z.object({
+  plan: z.string().min(1),
+});
 
 export async function POST(request: Request) {
   try {
@@ -62,12 +62,23 @@ export async function POST(request: Request) {
     }
 
     const json = await request.json();
-    const { priceId } = inputSchema.parse(json);
+    const { plan } = inputSchema.parse(json);
 
-    if (!ALLOWED_PRICE_IDS.has(priceId)) {
+    // Validate plan against allowlist
+    if (!ALLOWED_PLANS.has(plan)) {
       return NextResponse.json(
-        { error: "Invalid price selected" },
+        { error: "Invalid plan selected" },
         { status: 400 }
+      );
+    }
+
+    // Resolve price ID server-side — never trust the client to send this
+    const priceId = PLAN_TO_PRICE_ID[plan];
+    if (!priceId) {
+      console.error(`[Checkout] Price ID not configured for plan: ${plan}`);
+      return NextResponse.json(
+        { error: "Checkout is not available for this plan. Please contact support." },
+        { status: 503 }
       );
     }
 
@@ -92,6 +103,7 @@ export async function POST(request: Request) {
         supabase_user_id: user.id,
         userId: user.id,
         userEmail: user.email ?? "",
+        plan,
       },
       allow_promotion_codes: true,
       billing_address_collection: "required",
