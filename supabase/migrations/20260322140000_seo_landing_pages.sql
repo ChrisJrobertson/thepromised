@@ -1,6 +1,7 @@
 -- SEO landing pages: organisation complaint guides + consumer guides (public read when published)
+-- Idempotent: remote may already have these objects from dashboard / earlier applies without matching migration files.
 
-CREATE TABLE public.seo_organisation_pages (
+CREATE TABLE IF NOT EXISTS public.seo_organisation_pages (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   organisation_id UUID REFERENCES public.organisations(id) ON DELETE CASCADE,
   slug TEXT NOT NULL UNIQUE,
@@ -26,7 +27,7 @@ CREATE TABLE public.seo_organisation_pages (
   updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 
-CREATE TABLE public.seo_guide_pages (
+CREATE TABLE IF NOT EXISTS public.seo_guide_pages (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   slug TEXT NOT NULL UNIQUE,
   page_title TEXT NOT NULL,
@@ -50,26 +51,30 @@ CREATE TABLE public.seo_guide_pages (
   updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 
-CREATE INDEX idx_seo_org_pages_sector ON public.seo_organisation_pages(sector);
-CREATE INDEX idx_seo_org_pages_status ON public.seo_organisation_pages(status);
-CREATE INDEX idx_seo_guide_pages_status ON public.seo_guide_pages(status);
+CREATE INDEX IF NOT EXISTS idx_seo_org_pages_sector ON public.seo_organisation_pages(sector);
+CREATE INDEX IF NOT EXISTS idx_seo_org_pages_status ON public.seo_organisation_pages(status);
+CREATE INDEX IF NOT EXISTS idx_seo_guide_pages_status ON public.seo_guide_pages(status);
 
 ALTER TABLE public.seo_organisation_pages ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.seo_guide_pages ENABLE ROW LEVEL SECURITY;
 
+DROP POLICY IF EXISTS "Public can read published org pages" ON public.seo_organisation_pages;
 CREATE POLICY "Public can read published org pages"
   ON public.seo_organisation_pages FOR SELECT
   USING (status = 'published');
 
+DROP POLICY IF EXISTS "Public can read published guide pages" ON public.seo_guide_pages;
 CREATE POLICY "Public can read published guide pages"
   ON public.seo_guide_pages FOR SELECT
   USING (status = 'published');
 
+DROP POLICY IF EXISTS "Service role full access org pages" ON public.seo_organisation_pages;
 CREATE POLICY "Service role full access org pages"
   ON public.seo_organisation_pages FOR ALL
   USING (auth.role() = 'service_role')
   WITH CHECK (auth.role() = 'service_role');
 
+DROP POLICY IF EXISTS "Service role full access guide pages" ON public.seo_guide_pages;
 CREATE POLICY "Service role full access guide pages"
   ON public.seo_guide_pages FOR ALL
   USING (auth.role() = 'service_role')
