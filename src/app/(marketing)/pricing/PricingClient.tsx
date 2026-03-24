@@ -15,7 +15,7 @@ import { toast } from "sonner";
 
 import { Badge } from "@/components/ui/badge";
 import { COMPLAINT_PACKS } from "@/lib/packs/config";
-import { PLAN_PRICES, getPriceId, type BillingPeriod } from "@/lib/stripe/config";
+import { PLAN_PRICES, type BillingPeriod } from "@/lib/stripe/config";
 
 type PricingClientProps = {
   isLoggedIn: boolean;
@@ -131,13 +131,11 @@ export function PricingClient({ isLoggedIn }: PricingClientProps) {
       return;
     }
 
-    const priceId = getPriceId(tier, billingPeriod);
-    if (!priceId) {
-      toast.error(
-        "Checkout isn’t available: add your live Stripe Price IDs (STRIPE_PRICE_ID_BASIC_*, STRIPE_PRICE_ID_PRO_*) in Vercel. Test-mode prices don’t work with live keys."
-      );
-      return;
-    }
+    const plan = `${tier}_${billingPeriod}` as
+      | "basic_monthly"
+      | "basic_annual"
+      | "pro_monthly"
+      | "pro_annual";
 
     setLoadingPlan(tier);
 
@@ -145,7 +143,7 @@ export function PricingClient({ isLoggedIn }: PricingClientProps) {
       const response = await fetch("/api/stripe/checkout", {
         method: "POST",
         headers: { "content-type": "application/json" },
-        body: JSON.stringify({ priceId }),
+        body: JSON.stringify({ plan }),
       });
 
       const data = await response.json();
