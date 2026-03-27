@@ -101,7 +101,7 @@ export default async function LettersPage({
                         <p className="font-medium text-sm">{letter.subject}</p>
                         <p className="text-xs text-muted-foreground">
                           {LETTER_TYPE_LABELS[letter.letter_type] ?? letter.letter_type}
-                          {letter.ai_generated ? " · AI drafted" : ""}
+                          {letter.ai_generated ? " · Drafted" : ""}
                           {letter.recipient_name
                             ? ` · To: ${letter.recipient_name}`
                             : ""}
@@ -135,7 +135,7 @@ export default async function LettersPage({
           <FileText className="mb-3 h-10 w-10 text-muted-foreground/50" />
           <p className="font-medium">No letters yet</p>
           <p className="mt-1 text-sm text-muted-foreground">
-            Generate a professional complaint letter in seconds with AI.
+            Generate a professional complaint letter in seconds from your case.
           </p>
           <Link
             className={`mt-4 ${buttonVariants({ size: "sm" })}`}

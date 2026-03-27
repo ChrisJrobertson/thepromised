@@ -344,8 +344,8 @@ export default async function CasePage({
         {tier === "free" ? (
           <div className="rounded-lg border border-teal-200 bg-teal-50 p-4 text-sm text-teal-900">
             <p>
-              Need help with this case? Our Complaint Packs include AI letters,
-              case review, and ombudsman-ready exports.
+              Need help with this case? Our Complaint Packs include drafted
+              letters, case review, and ombudsman-ready exports.
             </p>
             {recommendedPack ? (
               <p className="mt-1 text-xs text-teal-800">
@@ -673,7 +673,7 @@ function LettersList({ caseId, letters }: { caseId: string; letters: Letter[] })
                 <p className="font-medium">{letter.subject}</p>
                 <p className="text-xs capitalize text-muted-foreground">
                   {letter.letter_type.replace(/_/g, " ")}
-                  {letter.ai_generated ? " · AI generated" : ""}
+                  {letter.ai_generated ? " · Drafted" : ""}
                 </p>
               </div>
               <Badge

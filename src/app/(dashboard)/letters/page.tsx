@@ -137,7 +137,7 @@ export default async function LettersPage({
           </CardHeader>
           <CardContent className="space-y-4">
             <p className="text-sm text-muted-foreground">
-              Open a case and use the AI letter drafter to generate a formal complaint, follow-up, or escalation letter.
+              Open a case and generate a formal complaint, follow-up, or escalation letter from your timeline.
             </p>
             <Link className={buttonVariants()} href="/cases">
               Go to Cases
@@ -181,7 +181,7 @@ export default async function LettersPage({
                     <TableCell className="text-sm">
                       {LETTER_TYPE_LABELS[letter.letter_type] ?? letter.letter_type}
                       {letter.ai_generated && (
-                        <span className="ml-1 text-xs text-muted-foreground">· AI</span>
+                        <span className="ml-1 text-xs text-muted-foreground">· Draft</span>
                       )}
                     </TableCell>
                     <TableCell className="max-w-[240px]">

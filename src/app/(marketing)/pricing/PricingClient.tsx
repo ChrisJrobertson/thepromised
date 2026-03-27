@@ -24,7 +24,7 @@ type PricingClientProps = {
 const FREE_FEATURES = [
   "1 active case",
   "3 AI suggestions per month",
-  "1 AI letter per month",
+  "1 letter draft per month",
   "All interaction channels",
   "Escalation guides (read-only)",
   "Evidence upload",
@@ -45,14 +45,14 @@ const BASIC_FEATURES = [
   "Email reminders & alerts",
   "Escalation progress tracking",
   "10 AI case analyses / month",
-  "5 AI-drafted letters / month",
+  "5 letter drafts / month",
 ];
 
 const PRO_FEATURES = [
   "Everything in Basic",
   "Full case file PDF (ombudsman-ready)",
   "50 AI case analyses / month",
-  "30 AI-drafted letters / month",
+  "30 letter drafts / month",
   "Voice memo recording",
   "Email forwarding parser",
   "AI auto-summary on all interactions",
@@ -75,7 +75,7 @@ const COMPARISON_ROWS: Array<{
   { feature: "Timeline PDF export", free: false, basic: true, pro: true },
   { feature: "Full case file PDF", free: false, basic: false, pro: true },
   { feature: "AI suggestions/month", free: "3", basic: "10", pro: "50" },
-  { feature: "AI letters/month", free: "1", basic: "5", pro: "30" },
+  { feature: "Letter drafts/month", free: "1", basic: "5", pro: "30" },
   { feature: "Response timer", free: false, basic: true, pro: true },
   { feature: "Shareable case links", free: false, basic: true, pro: true },
   { feature: "Priority support", free: false, basic: false, pro: true },
@@ -91,8 +91,8 @@ const FAQS: Array<{ q: string; a: string }> = [
     a: "Each complaint you're tracking is a case — for example, a billing dispute with British Gas is one case, and a PIP appeal with DWP is another. On the free plan, you can have 1 active case at a time.",
   },
   {
-    q: "Are AI credits shared between features?",
-    a: "No — AI case analyses and AI letter drafts have separate limits. Your credits reset on your billing date each month.",
+    q: "Are usage limits shared between features?",
+    a: "No — case analyses (suggestions) and letter drafts have separate limits. Your allowances reset on your billing date each month.",
   },
   {
     q: "Will my data be deleted if I downgrade?",
@@ -171,7 +171,7 @@ export function PricingClient({ isLoggedIn }: PricingClientProps) {
           For Consumers — Track Your Complaint
         </h1>
         <p className="max-w-3xl text-muted-foreground">
-          Start free, then upgrade for AI letters, exports, and guided escalation when
+          Start free, then upgrade for letter drafting, exports, and guided escalation when
           your case needs more firepower.
         </p>
 

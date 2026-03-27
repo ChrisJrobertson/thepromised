@@ -63,7 +63,7 @@ export default async function NewLetterPage({
       <div className="mx-auto max-w-2xl space-y-4 py-8">
         <h1 className="text-2xl font-semibold">Generate Letter</h1>
         <UpgradePrompt
-          description="AI letter drafting requires a Basic or Pro plan. Upgrade to draft professional complaint letters instantly."
+          description="Letter drafting on TheyPromised needs Basic or Pro. Upgrade to generate professional complaint letters from your case."
           requiredTier="basic"
           title="Letter drafting requires Basic or Pro"
         />

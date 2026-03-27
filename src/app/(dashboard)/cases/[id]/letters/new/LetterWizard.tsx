@@ -1,6 +1,6 @@
 "use client";
 
-import { AlertCircle, Check, Copy, Download, FileText, Loader2, Send, Sparkles } from "lucide-react";
+import { AlertCircle, Check, Copy, Download, FileText, Loader2, PenLine, Send } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { toast } from "sonner";
@@ -325,8 +325,8 @@ export function LetterWizard({
                 onClick={handleGenerate}
                 type="button"
               >
-                <Sparkles className="mr-2 h-4 w-4" />
-                Generate Letter with AI
+                <PenLine className="mr-2 h-4 w-4" />
+                Generate letter
               </Button>
             </div>
           </CardContent>
@@ -339,8 +339,8 @@ export function LetterWizard({
           <Loader2 className="h-10 w-10 animate-spin text-primary" />
           <p className="text-lg font-medium">Drafting your letter...</p>
           <p className="text-sm text-muted-foreground text-center max-w-sm">
-            Claude is reviewing your case history and crafting a professional
-            complaint letter. This takes about 10–20 seconds.
+            We&apos;re building your letter from your case timeline and details.
+            This usually takes about 10–20 seconds.
           </p>
         </div>
       )}
@@ -352,7 +352,7 @@ export function LetterWizard({
             <div>
               <h2 className="text-lg font-semibold">Review & Edit</h2>
               <p className="text-sm text-muted-foreground">
-                Review the AI-drafted letter. Edit freely before saving.
+                Review the draft carefully. Edit anything before saving.
               </p>
             </div>
             <div className="flex gap-2">
@@ -382,10 +382,10 @@ export function LetterWizard({
           </div>
 
           <div className="rounded-md border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-800">
-            <strong>Remember:</strong> AI-generated letters may contain errors. Always review before sending to ensure all facts are accurate.
+            <strong>Remember:</strong> Drafts may contain errors or miss context. Check every fact before you send.
           </div>
           <p className="text-xs italic text-muted-foreground text-center">
-            AI suggestions are for guidance only and do not constitute legal advice. Always verify information with the relevant ombudsman or a qualified adviser.
+            Content here is for guidance only and is not legal advice. Verify details with the relevant ombudsman or a qualified adviser.
           </p>
 
           <div className="flex gap-3">

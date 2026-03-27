@@ -68,7 +68,7 @@ export async function POST(request: Request) {
       return NextResponse.json(
         {
           error: "upgrade_required",
-          message: "AI letter drafting requires a Basic or Pro plan.",
+          message: "Letter drafting requires a Basic or Pro plan.",
           requiredTier: "basic",
         },
         { status: 403 }
@@ -82,7 +82,7 @@ export async function POST(request: Request) {
           {
             error: "letters_exhausted",
             message:
-              "You've used your free AI letter this month. Upgrade or purchase a complaint pack for more.",
+              "You've used your free letter draft this month. Upgrade or purchase a complaint pack for more.",
             requiredTier: "basic",
           },
           { status: 403 }
@@ -92,7 +92,7 @@ export async function POST(request: Request) {
       return NextResponse.json(
         {
           error: "letters_exhausted",
-          message: "Monthly AI credit limit reached. Upgrade your plan for more.",
+          message: "Monthly letter draft limit reached. Upgrade your plan for more.",
           requiredTier: "basic",
         },
         { status: 403 }
@@ -232,7 +232,7 @@ export async function POST(request: Request) {
 
     if (!letterBody) {
       return NextResponse.json(
-        { error: "AI returned an empty letter. Please try again." },
+        { error: "We couldn't produce a letter draft. Please try again." },
         { status: 500 }
       );
     }

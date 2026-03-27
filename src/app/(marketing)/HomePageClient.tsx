@@ -394,7 +394,7 @@ export default function HomePageClient() {
         </div>
       </section>
 
-      {/* ── AI SECTION ────────────────────────────────────────────────────────── */}
+      {/* ── Letter drafting & guidance ───────────────────────────────────────── */}
       <section className="bg-[#1e3a5f] py-20 md:py-28">
         <div className="mx-auto max-w-5xl px-4">
           <motion.div
@@ -408,19 +408,19 @@ export default function HomePageClient() {
             <motion.div variants={fadeUp}>
               <div className="mb-4 inline-flex items-center gap-2 rounded-full bg-white/10 px-4 py-1.5 text-sm text-teal-300">
                 <Sparkles className="h-3.5 w-3.5" />
-                AI-powered
+                Letter drafting
               </div>
               <h2 className="mb-4 text-3xl font-bold text-white md:text-4xl">
-                AI That Actually Helps
+                Professional letters from your case
               </h2>
               <p className="mb-6 leading-relaxed text-blue-200">
-                Our AI analyses your case and drafts professional complaint letters —
-                pre-populated with your timeline data, formatted to what ombudsmen and
-                solicitors expect.
+                TheyPromised turns your timeline into formal complaint and escalation
+                letters — pre-populated with what you&apos;ve logged, in a structure
+                ombudsmen and advisers expect.
               </p>
               <ul className="space-y-2 text-sm text-blue-100">
                 {[
-                  "Case strength analysis with next steps",
+                  "Guidance on case strength and next steps",
                   "Full-length letters in seconds",
                   "Evidence gap identification",
                   "Escalation timing recommendations",
@@ -437,7 +437,7 @@ export default function HomePageClient() {
               <div className="rounded-xl bg-white p-5 shadow-2xl">
                 <div className="mb-3 flex items-center justify-between">
                   <span className="text-xs font-semibold text-muted-foreground">
-                    AI-drafted letter
+                    Complaint letter draft
                   </span>
                   <span className="rounded-full bg-teal-50 px-2 py-0.5 text-xs font-medium text-teal-700">
                     Draft
@@ -521,8 +521,8 @@ export default function HomePageClient() {
           <h2 className="mb-3 text-2xl font-bold">Simple Pricing</h2>
           <div className="mx-auto max-w-2xl space-y-3 text-left text-sm text-slate-700">
             <p><strong>Free —</strong> Track 1 case, log interactions, upload evidence</p>
-            <p><strong>Basic £4.99/mo —</strong> AI letters, email sending, delivery tracking, PDF exports</p>
-            <p><strong>Pro £9.99/mo —</strong> Full case files, 50 AI suggestions, priority support</p>
+            <p><strong>Basic £4.99/mo —</strong> Letter drafting, email sending, delivery tracking, PDF exports</p>
+            <p><strong>Pro £9.99/mo —</strong> Full case files, 50 case insights per month, priority support</p>
             <p><strong>Packs from £29 —</strong> One-off help when you need it most</p>
           </div>
           <Link
