@@ -4,6 +4,8 @@ import { addDays } from "date-fns";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 
+import { z } from "zod";
+
 import { trackServerEvent } from "@/lib/analytics/posthog-server";
 import { createClient } from "@/lib/supabase/server";
 import { canCreateCase } from "@/lib/stripe/feature-gates";
@@ -53,6 +55,8 @@ export type CreateCaseInput = {
     next_steps?: string;
     mood?: InteractionInsert["mood"];
   } | null;
+  /** When set (from Guided Journeys → create case), link the new case to this journey. */
+  linkJourneyId?: string | null;
 };
 
 export async function createCase(input: CreateCaseInput) {
@@ -205,6 +209,23 @@ export async function createCase(input: CreateCaseInput) {
     category: input.category,
     priority: input.priority,
   });
+
+  const journeyIdParse = z.string().uuid().safeParse(input.linkJourneyId);
+  if (journeyIdParse.success) {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const { error: journeyLinkError } = await (supabase as any)
+      .from("user_journeys")
+      .update({ case_id: newCase.id })
+      .eq("id", journeyIdParse.data)
+      .eq("user_id", user.id);
+
+    if (!journeyLinkError) {
+      revalidatePath(`/journeys/${journeyIdParse.data}`);
+      revalidatePath("/journeys");
+      redirect(`/journeys/${journeyIdParse.data}`);
+    }
+  }
+
   redirect(`/cases/${newCase.id}?created=true`);
 }
 

@@ -101,11 +101,20 @@ export function JourneyWizard({ journey, template, cases }: Props) {
 
   function handleLinkCase(caseId: string | null) {
     if (!caseId) return;
+    if (caseId === "__new__") {
+      router.push(
+        `/cases/new?linkJourney=${encodeURIComponent(journey.id)}`,
+      );
+      return;
+    }
     setLinkedCaseId(caseId);
     startLinkingTransition(async () => {
       const result = await linkJourneyToCase(journey.id, caseId);
       if (result.error) toast.error(result.error);
-      else toast.success("Case linked to journey.");
+      else {
+        toast.success("Case linked to journey.");
+        router.refresh();
+      }
     });
   }
 

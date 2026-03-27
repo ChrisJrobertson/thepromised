@@ -14,7 +14,7 @@ export const metadata = { title: "New Case | TheyPromised" };
 export default async function NewCasePage({
   searchParams,
 }: {
-  searchParams: Promise<{ template?: string; seoOrg?: string }>;
+  searchParams: Promise<{ template?: string; seoOrg?: string; linkJourney?: string }>;
 }) {
   const sp = await searchParams;
   const supabase = await createClient();
@@ -77,6 +77,7 @@ export default async function NewCasePage({
                 }
               : undefined
           }
+          linkJourneyId={sp.linkJourney}
           seoPreferredCompanyNames={seoPreferredNames}
         />
       ) : (

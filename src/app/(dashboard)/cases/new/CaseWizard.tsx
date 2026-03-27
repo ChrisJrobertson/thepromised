@@ -86,9 +86,12 @@ type InitialTemplate = {
 
 export function CaseWizard({
   initialTemplate,
+  linkJourneyId,
   seoPreferredCompanyNames = [],
 }: {
   initialTemplate?: InitialTemplate;
+  /** Return user to this guided journey after creating the case. */
+  linkJourneyId?: string;
   seoPreferredCompanyNames?: string[];
 }) {
   const [step, setStep] = useState(0);
@@ -186,6 +189,7 @@ export function CaseWizard({
         desired_outcome: details.desired_outcome,
         priority: details.priority,
         first_contact_date: details.first_contact_date,
+        linkJourneyId: linkJourneyId ?? null,
         first_interaction:
           !interaction.skip && interaction.summary
             ? {
@@ -224,6 +228,12 @@ export function CaseWizard({
       {initialTemplate ? (
         <div className="rounded-md border border-blue-200 bg-blue-50 px-3 py-2 text-sm text-blue-800">
           Using template: <strong>{initialTemplate.title}</strong>. You can edit all fields.
+        </div>
+      ) : null}
+      {linkJourneyId ? (
+        <div className="rounded-md border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-900">
+          You&apos;re creating a case to link to your <strong>guided journey</strong>.
+          After you finish, we&apos;ll take you back to the journey.
         </div>
       ) : null}
       <div className="space-y-3">
