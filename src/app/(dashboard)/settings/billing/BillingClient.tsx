@@ -72,6 +72,7 @@ export function BillingClient({
 }: BillingClientProps) {
   const router = useRouter();
   const [isPortalPending, startPortalTransition] = useTransition();
+  const [isSyncPending, startSyncTransition] = useTransition();
 
   function handleManageSubscription() {
     startPortalTransition(async () => {
@@ -93,6 +94,36 @@ export function BillingClient({
         }
 
         window.location.href = data.url;
+      } catch {
+        toast.error("Network error. Please try again.");
+      }
+    });
+  }
+
+  function handleSyncFromStripe() {
+    startSyncTransition(async () => {
+      try {
+        const response = await fetch("/api/stripe/sync-profile", {
+          method: "POST",
+        });
+        const data = (await response.json()) as {
+          error?: string;
+          tier?: string;
+        };
+
+        if (!response.ok) {
+          toast.error(data.error ?? "Could not sync with Stripe.");
+          return;
+        }
+
+        const label =
+          data.tier === "pro"
+            ? "Pro"
+            : data.tier === "basic"
+              ? "Basic"
+              : "Free";
+        toast.success(`Your plan is now ${label}.`);
+        router.refresh();
       } catch {
         toast.error("Network error. Please try again.");
       }
@@ -161,6 +192,20 @@ export function BillingClient({
               </Button>
             )}
           </div>
+
+          {tier === "free" && hasStripeCustomer && (
+            <p className="text-xs text-muted-foreground border-t pt-3">
+              Paying in Stripe but still see Free here?{" "}
+              <button
+                className="font-medium text-primary underline-offset-2 hover:underline disabled:opacity-50"
+                disabled={isSyncPending}
+                onClick={handleSyncFromStripe}
+                type="button"
+              >
+                {isSyncPending ? "Syncing…" : "Sync plan from Stripe"}
+              </button>
+            </p>
+          )}
         </CardContent>
       </Card>
 

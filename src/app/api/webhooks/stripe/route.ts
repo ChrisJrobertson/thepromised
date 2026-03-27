@@ -4,7 +4,11 @@ import { NextResponse } from "next/server";
 import Stripe from "stripe";
 
 import { getStripeClient } from "@/lib/stripe/client";
-import { getTierFromSubscription } from "@/lib/stripe/webhooks";
+import {
+  getTierForCompletedCheckout,
+  getTierFromSubscription,
+  resolveTierWithCheckoutSessionFallback,
+} from "@/lib/stripe/webhooks";
 import { trackServerEvent } from "@/lib/analytics/posthog-server";
 import { createServiceRoleClient } from "@/lib/supabase/admin";
 
@@ -42,7 +46,14 @@ export async function POST(request: Request) {
   async function updateProfileFromSubscriptionEvent(
     subscription: Stripe.Subscription
   ) {
-    const tier = getTierFromSubscription(subscription);
+    let tier = getTierFromSubscription(subscription);
+    if (
+      tier === "free" &&
+      (subscription.status === "active" || subscription.status === "trialing")
+    ) {
+      const stripe = getStripeClient();
+      tier = await resolveTierWithCheckoutSessionFallback(stripe, subscription);
+    }
     const rawStatus = subscription.status;
     const status =
       rawStatus === "canceled"
@@ -251,7 +262,7 @@ export async function POST(request: Request) {
           session.subscription as string
         );
 
-        const tier = getTierFromSubscription(subscription);
+        const tier = getTierForCompletedCheckout(session, subscription);
         const now = new Date();
 
         const { error: checkoutUpdateError } = await supabase

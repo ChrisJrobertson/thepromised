@@ -113,6 +113,7 @@ export async function POST(request: Request) {
         metadata: {
           supabase_user_id: user.id,
           userId: user.id,
+          plan,
         },
       },
     };
