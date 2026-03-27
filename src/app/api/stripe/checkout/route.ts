@@ -98,7 +98,7 @@ export async function POST(request: Request) {
       success_url: `${appUrl}/dashboard?subscribed=true&session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${appUrl}/pricing`,
       customer: customerId,
-      customer_email: user.email ?? undefined,
+      // Do not send customer_email when customer is set — Stripe can reject mismatches; email is on the Customer.
       metadata: {
         supabase_user_id: user.id,
         userId: user.id,
@@ -135,12 +135,46 @@ export async function POST(request: Request) {
         "[Checkout error] Stripe",
         error.type,
         error.code,
-        error.message
+        error.param,
+        error.message,
+        "requestId=",
+        error.requestId
       );
+
+      if (error instanceof Stripe.errors.StripeAuthenticationError) {
+        return NextResponse.json(
+          {
+            error:
+              "Stripe API key is invalid or missing. Check STRIPE_SECRET_KEY in Vercel (live key for production).",
+            stripeCode: error.code ?? "authentication_error",
+          },
+          { status: 503 }
+        );
+      }
+
+      const param = error.param ?? "";
+      const msg = error.message.toLowerCase();
+      const looksLikeBadPrice =
+        error.code === "resource_missing" &&
+        (param.includes("price") || msg.includes("no such price"));
+      if (looksLikeBadPrice) {
+        return NextResponse.json(
+          {
+            error:
+              "Subscription prices are misconfigured for this environment. Check STRIPE_PRICE_ID_* in Vercel matches live-mode recurring prices.",
+            stripeCode: error.code,
+            stripeParam: error.param,
+          },
+          { status: 503 }
+        );
+      }
+
       return NextResponse.json(
         {
           error:
             "Payment provider rejected checkout. Please try again or contact support if this continues.",
+          stripeCode: error.code,
+          stripeParam: error.param,
         },
         { status: 502 }
       );

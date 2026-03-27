@@ -1,12 +1,18 @@
 import Stripe from "stripe";
 
-function isStripeResourceMissing(error: unknown): error is Stripe.errors.StripeError {
-  return (
-    typeof error === "object" &&
-    error !== null &&
-    "code" in error &&
-    error.code === "resource_missing"
-  );
+/** Only retry without `customer` when Stripe says the customer ID itself is missing (e.g. test/live mismatch). */
+function isStaleCheckoutCustomerMissing(
+  error: unknown,
+  params: Stripe.Checkout.SessionCreateParams
+): error is Stripe.errors.StripeError {
+  if (!params.customer) return false;
+  if (typeof error !== "object" || error === null || !("code" in error)) {
+    return false;
+  }
+  const stripeError = error as Stripe.errors.StripeError;
+  if (stripeError.code !== "resource_missing") return false;
+  const param = stripeError.param ?? "";
+  return param === "customer" || param.startsWith("customer");
 }
 
 /**
@@ -20,7 +26,7 @@ export async function createCheckoutSessionWithCustomerRecovery(
   try {
     return await stripe.checkout.sessions.create(params);
   } catch (error) {
-    if (isStripeResourceMissing(error) && params.customer) {
+    if (isStaleCheckoutCustomerMissing(error, params)) {
       console.warn(
         "[Stripe Checkout] Stored customer not found, creating new customer:",
         params.customer

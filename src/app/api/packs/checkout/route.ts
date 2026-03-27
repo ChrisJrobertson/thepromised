@@ -74,7 +74,6 @@ export async function POST(request: Request) {
       success_url: `${appUrl}/packs/success?session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${appUrl}/packs`,
       customer: customerId,
-      customer_email: user.email ?? undefined,
       metadata: {
         userId: user.id,
         userEmail: user.email ?? "",
