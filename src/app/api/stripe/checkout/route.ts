@@ -107,7 +107,8 @@ export async function POST(request: Request) {
       },
       allow_promotion_codes: true,
       billing_address_collection: "required",
-      tax_id_collection: { enabled: true },
+      // Omit tax_id_collection unless Stripe Tax / VAT collection is fully configured;
+      // enabling it without the right account setup causes Checkout session creation to fail.
       subscription_data: {
         metadata: {
           supabase_user_id: user.id,
@@ -127,6 +128,21 @@ export async function POST(request: Request) {
       return NextResponse.json(
         { error: "Invalid request", details: error.issues },
         { status: 400 }
+      );
+    }
+    if (error instanceof Stripe.errors.StripeError) {
+      console.error(
+        "[Checkout error] Stripe",
+        error.type,
+        error.code,
+        error.message
+      );
+      return NextResponse.json(
+        {
+          error:
+            "Payment provider rejected checkout. Please try again or contact support if this continues.",
+        },
+        { status: 502 }
       );
     }
     console.error("[Checkout error]", error);
