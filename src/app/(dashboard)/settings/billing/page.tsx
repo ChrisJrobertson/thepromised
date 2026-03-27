@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 
 import { createClient } from "@/lib/supabase/server";
 import { getStripeClient } from "@/lib/stripe/client";
+import { isStaleStripeCustomerError } from "@/lib/stripe/stale-customer";
 import { AI_LIMITS } from "@/lib/ai/client";
 import type { Profile } from "@/types/database";
 
@@ -44,6 +45,7 @@ export default async function BillingPage({
   // Fetch invoices if customer exists
   let invoices: Invoice[] = [];
   let nextBillingDate: string | null = null;
+  let stripeCustomerIdForUi = profile.stripe_customer_id;
 
   if (profile.stripe_customer_id) {
     try {
@@ -79,8 +81,16 @@ export default async function BillingPage({
           year: "numeric",
         });
       }
-    } catch {
-      // Stripe errors shouldn't break the page
+    } catch (err) {
+      if (isStaleStripeCustomerError(err)) {
+        await supabase
+          .from("profiles")
+          .update({ stripe_customer_id: null })
+          .eq("id", user.id);
+        stripeCustomerIdForUi = null;
+        console.warn("[Billing] Cleared stale stripe_customer_id after Stripe error");
+      }
+      // Other Stripe errors shouldn't break the page
     }
   }
 
@@ -105,7 +115,7 @@ export default async function BillingPage({
         aiCreditsLimit={aiLimit}
         invoices={invoices}
         nextBillingDate={nextBillingDate}
-        hasStripeCustomer={!!profile.stripe_customer_id}
+        hasStripeCustomer={!!stripeCustomerIdForUi}
         subscriptionStatus={profile.subscription_status}
         tier={tier}
       />

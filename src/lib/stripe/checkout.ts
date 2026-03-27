@@ -1,18 +1,18 @@
 import Stripe from "stripe";
 
-/** Only retry without `customer` when Stripe says the customer ID itself is missing (e.g. test/live mismatch). */
-function isStaleCheckoutCustomerMissing(
+import { isStaleStripeCustomerError } from "@/lib/stripe/stale-customer";
+
+export type CheckoutRecoveryOptions = {
+  /** Called after a successful retry without the stored customer id (e.g. clear Supabase `stripe_customer_id`). */
+  onStaleCustomerRecovered?: (staleCustomerId: string) => Promise<void>;
+};
+
+function shouldRetryCheckoutWithoutCustomer(
   error: unknown,
   params: Stripe.Checkout.SessionCreateParams
 ): error is Stripe.errors.StripeError {
   if (!params.customer) return false;
-  if (typeof error !== "object" || error === null || !("code" in error)) {
-    return false;
-  }
-  const stripeError = error as Stripe.errors.StripeError;
-  if (stripeError.code !== "resource_missing") return false;
-  const param = stripeError.param ?? "";
-  return param === "customer" || param.startsWith("customer");
+  return isStaleStripeCustomerError(error);
 }
 
 /**
@@ -21,15 +21,20 @@ function isStaleCheckoutCustomerMissing(
  */
 export async function createCheckoutSessionWithCustomerRecovery(
   stripe: Stripe,
-  params: Stripe.Checkout.SessionCreateParams
+  params: Stripe.Checkout.SessionCreateParams,
+  options?: CheckoutRecoveryOptions
 ) {
   try {
     return await stripe.checkout.sessions.create(params);
   } catch (error) {
-    if (isStaleCheckoutCustomerMissing(error, params)) {
+    if (shouldRetryCheckoutWithoutCustomer(error, params)) {
+      const staleId =
+        typeof params.customer === "string" ? params.customer : "";
       console.warn(
-        "[Stripe Checkout] Stored customer not found, creating new customer:",
-        params.customer
+        "[Stripe Checkout] Retrying without stale customer:",
+        staleId,
+        (error as Stripe.errors.StripeError).code,
+        (error as Stripe.errors.StripeError).message
       );
 
       const paramsWithoutCustomer: Stripe.Checkout.SessionCreateParams = {
@@ -45,10 +50,16 @@ export async function createCheckoutSessionWithCustomerRecovery(
             ? metadataEmail
             : undefined;
 
-      return await stripe.checkout.sessions.create({
+      const session = await stripe.checkout.sessions.create({
         ...paramsWithoutCustomer,
         ...(email ? { customer_email: email } : {}),
       });
+
+      if (staleId && options?.onStaleCustomerRecovered) {
+        await options.onStaleCustomerRecovered(staleId);
+      }
+
+      return session;
     }
 
     throw error;

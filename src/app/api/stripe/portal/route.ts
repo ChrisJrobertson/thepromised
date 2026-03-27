@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 
 import { getStripeClient } from "@/lib/stripe/client";
+import { isStaleStripeCustomerError } from "@/lib/stripe/stale-customer";
 import { createClient } from "@/lib/supabase/server";
 import type { Profile } from "@/types/database";
 
@@ -44,14 +45,10 @@ export async function POST() {
   } catch (error: unknown) {
     console.error("[Portal error]", error);
     const errMsg = error instanceof Error ? error.message : String(error);
-    const stripeError =
-      typeof error === "object" && error !== null && "code" in error
-        ? (error as { code?: string })
-        : null;
 
-    if (stripeError?.code === "resource_missing") {
+    if (isStaleStripeCustomerError(error)) {
       console.error(
-        "[Stripe Portal] Customer not found in current Stripe mode:",
+        "[Stripe Portal] Stale or invalid Stripe customer; clearing profile link:",
         errMsg
       );
       const {

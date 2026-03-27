@@ -87,7 +87,15 @@ export async function POST(request: Request) {
 
     const session = await createCheckoutSessionWithCustomerRecovery(
       stripe,
-      sessionParams
+      sessionParams,
+      {
+        onStaleCustomerRecovered: async () => {
+          await supabase
+            .from("profiles")
+            .update({ stripe_customer_id: null })
+            .eq("id", user.id);
+        },
+      }
     );
 
     return NextResponse.json({ url: session.url });
