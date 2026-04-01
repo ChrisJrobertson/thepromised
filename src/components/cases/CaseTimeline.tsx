@@ -597,10 +597,10 @@ export function CaseTimeline({
                       )}
                     </div>
 
-                    {/* AI Summary */}
+                    {/* Auto summary */}
                     {interaction.ai_summary && (
                       <div className="mt-2 rounded-md bg-muted/50 px-3 py-2 text-xs text-muted-foreground">
-                        <span className="font-medium">AI summary: </span>
+                        <span className="font-medium">Summary: </span>
                         {interaction.ai_summary}
                       </div>
                     )}

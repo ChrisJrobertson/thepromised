@@ -23,16 +23,16 @@ const TIER_FEATURES: Record<"basic" | "pro", string[]> = {
     "Unlimited cases",
     "Timeline & letters PDF export",
     "Email reminders and alerts",
-    "10 AI case analyses per month",
-    "5 AI-drafted letters per month",
+    "10 case insights per month",
+    "5 letter drafts per month",
   ],
   pro: [
     "Full case file PDF (ombudsman-ready)",
-    "50 AI case analyses per month",
-    "30 AI-drafted letters per month",
+    "50 case insights per month",
+    "30 letter drafts per month",
     "Voice memo recording",
     "Email forwarding parser",
-    "AI auto-summaries on all interactions",
+    "Auto-summaries on all interactions",
   ],
 };
 

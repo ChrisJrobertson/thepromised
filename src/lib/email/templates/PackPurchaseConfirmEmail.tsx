@@ -26,12 +26,12 @@ type PackPurchaseConfirmEmailProps = {
 const PACK_FEATURES: Record<string, string[]> = {
   starter: [
     "7 days of Pro-tier access for your case",
-    "AI case analysis and letter drafting",
+    "Case insights and letter drafting",
     "PDF export of your full case file",
   ],
   escalation: [
     "Everything in the Starter Pack, plus:",
-    "AI-drafted escalation letters",
+    "Drafted escalation letters",
     "Ombudsman referral letter",
     "Full escalation guidance",
   ],

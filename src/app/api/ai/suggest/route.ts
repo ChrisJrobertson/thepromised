@@ -74,7 +74,7 @@ export async function POST(request: Request) {
       return NextResponse.json(
         {
           error: "upgrade_required",
-          message: "AI case analysis is not available on your plan. Upgrade to Basic or Pro.",
+          message: "Case insights are not available on your plan. Upgrade to Basic or Pro.",
           requiredTier: "basic",
         },
         { status: 403 }
@@ -88,7 +88,7 @@ export async function POST(request: Request) {
           {
             error: "suggestions_exhausted",
             message:
-              "You've used your 3 free AI suggestions this month. Upgrade for unlimited suggestions, or wait until next month.",
+              "You've used your 3 free case insights this month. Upgrade for more, or wait until next month.",
             requiredTier: "basic",
           },
           { status: 403 }
@@ -98,7 +98,7 @@ export async function POST(request: Request) {
       return NextResponse.json(
         {
           error: "suggestions_exhausted",
-          message: "Monthly AI credit limit reached. Upgrade your plan for more.",
+          message: "Monthly case insight limit reached. Upgrade your plan for more.",
           requiredTier: "basic",
         },
         { status: 403 }
@@ -232,7 +232,7 @@ export async function POST(request: Request) {
       // If Claude didn't return valid JSON, build a safe fallback
       parsed = {
         assessment:
-          "We were unable to parse the AI response. Please try again.",
+          "We couldn't format that response. Please try again.",
         nextStep: rawText.slice(0, 200),
         deadlines: [],
         evidenceNeeded: [],
@@ -279,7 +279,7 @@ export async function POST(request: Request) {
     );
     console.error("[AI suggest error]", error);
     return NextResponse.json(
-      { error: "AI analysis failed. Please try again." },
+      { error: "Case insights couldn't be generated. Please try again." },
       { status: 500 }
     );
   }

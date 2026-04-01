@@ -258,7 +258,7 @@ export function EscalationGuide({
         <p>
           <strong>Important:</strong> This guide is for general information only.
           Time limits vary — always check the official regulator&apos;s website for the most current
-          rules. AI suggestions are for guidance only. Always verify with official sources.
+          rules. Suggestions are for guidance only. Always verify with official sources.
         </p>
       </div>
     </div>

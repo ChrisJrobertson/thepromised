@@ -23,7 +23,7 @@ type PricingClientProps = {
 
 const FREE_FEATURES = [
   "1 active case",
-  "3 AI suggestions per month",
+  "3 case insights per month",
   "1 letter draft per month",
   "All interaction channels",
   "Escalation guides (read-only)",
@@ -34,7 +34,7 @@ const FREE_FEATURES = [
 const FREE_NOT_INCLUDED = [
   "PDF export",
   "Email reminders",
-  "Unlimited AI (more cases & letters)",
+  "Higher insight & letter limits",
   "Voice memos",
 ];
 
@@ -44,18 +44,18 @@ const BASIC_FEATURES = [
   "Timeline & letters PDF export",
   "Email reminders & alerts",
   "Escalation progress tracking",
-  "10 AI case analyses / month",
+  "10 case insights / month",
   "5 letter drafts / month",
 ];
 
 const PRO_FEATURES = [
   "Everything in Basic",
   "Full case file PDF (ombudsman-ready)",
-  "50 AI case analyses / month",
+  "50 case insights / month",
   "30 letter drafts / month",
   "Voice memo recording",
   "Email forwarding parser",
-  "AI auto-summary on all interactions",
+  "Auto-summary on all interactions",
   "Priority email support",
 ];
 
@@ -74,7 +74,7 @@ const COMPARISON_ROWS: Array<{
   { feature: "Delivery tracking", free: false, basic: true, pro: true },
   { feature: "Timeline PDF export", free: false, basic: true, pro: true },
   { feature: "Full case file PDF", free: false, basic: false, pro: true },
-  { feature: "AI suggestions/month", free: "3", basic: "10", pro: "50" },
+  { feature: "Case insights/month", free: "3", basic: "10", pro: "50" },
   { feature: "Letter drafts/month", free: "1", basic: "5", pro: "30" },
   { feature: "Response timer", free: false, basic: true, pro: true },
   { feature: "Shareable case links", free: false, basic: true, pro: true },

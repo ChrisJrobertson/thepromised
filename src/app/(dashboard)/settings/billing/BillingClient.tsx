@@ -212,7 +212,7 @@ export function BillingClient({
       {/* Free tier upgrade prompt */}
       {tier === "free" && (
         <UpgradePrompt
-          description="Upgrade to Basic for unlimited cases, PDF export, email reminders, and 10 AI case analyses per month."
+          description="Upgrade to Basic for unlimited cases, PDF export, email reminders, and 10 case insights per month."
           requiredTier="basic"
           title="Unlock the full TheyPromised experience"
         />
@@ -239,7 +239,7 @@ export function BillingClient({
               value={(aiCreditsUsed / aiCreditsLimit) * 100}
             />
             <p className="text-xs text-muted-foreground">
-              Credits include AI case analyses and letter drafts. Reset on your
+              Credits include case insights and letter drafts. Reset on your
               monthly billing date.
             </p>
             {tier === "basic" && (

@@ -51,7 +51,7 @@ export async function POST(request: Request) {
     const limits = tierLimits[profile.subscription_tier] ?? tierLimits.free;
     if (limits.suggestions === 0 || profile.ai_suggestions_used >= limits.suggestions) {
       return NextResponse.json(
-        { error: "Monthly AI credit limit reached. Upgrade your plan for more." },
+        { error: "Monthly insight limit reached. Upgrade your plan for more." },
         { status: 403 }
       );
     }
@@ -77,7 +77,7 @@ export async function POST(request: Request) {
         return NextResponse.json(
           {
             error:
-              "Pack-scoped AI summarisation requires a linked case context.",
+              "Summarisation requires a linked case for this pack.",
           },
           { status: 403 },
         );

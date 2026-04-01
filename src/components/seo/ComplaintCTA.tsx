@@ -53,7 +53,7 @@ export function ComplaintCTA({
           <li>No credit card required</li>
         </ul>
         <p className="mt-4 text-xs text-slate-500">
-          AI suggestions are for guidance only. Always verify with official sources.
+          Suggestions are for guidance only. Always verify with official sources.
         </p>
       </div>
     </section>

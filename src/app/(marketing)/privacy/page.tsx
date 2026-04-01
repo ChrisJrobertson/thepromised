@@ -43,7 +43,7 @@ export default function PrivacyPage() {
             content: (
               <ul className="space-y-2 text-sm text-muted-foreground">
                 <li>✓ To provide and improve the TheyPromised service</li>
-                <li>✓ To generate AI-assisted letters and case analysis using your case data</li>
+                <li>✓ To generate drafted letters and case insights from your case data</li>
                 <li>✓ To send email reminders and alerts you have configured</li>
                 <li>✓ To process subscription payments through Stripe</li>
                 <li>✓ To comply with legal obligations</li>
@@ -57,8 +57,8 @@ export default function PrivacyPage() {
               <div className="space-y-3 text-sm text-muted-foreground">
                 <p><strong className="text-foreground">Supabase</strong> — Database and file storage. Data hosted in the EU (Ireland region). <a className="text-primary underline" href="https://supabase.com/privacy" target="_blank" rel="noopener noreferrer">Privacy policy</a></p>
                 <p><strong className="text-foreground">Stripe</strong> — Payment processing. Your card data is processed by Stripe and never stored on our servers. <a className="text-primary underline" href="https://stripe.com/privacy" target="_blank" rel="noopener noreferrer">Privacy policy</a></p>
-                <p><strong className="text-foreground">Anthropic (Claude API)</strong> — AI letter drafting and case analysis. Your case data is sent to Anthropic to generate content. Anthropic does not use API inputs to train their models. <a className="text-primary underline" href="https://anthropic.com/privacy" target="_blank" rel="noopener noreferrer">Privacy policy</a></p>
-                <p><strong className="text-foreground">Hugging Face</strong> — AI text summarisation and classification. Used for quick summaries of interaction text. <a className="text-primary underline" href="https://huggingface.co/privacy" target="_blank" rel="noopener noreferrer">Privacy policy</a></p>
+                <p><strong className="text-foreground">Anthropic (Claude API)</strong> — Letter drafting and case insights. Your case data is sent to Anthropic to generate content. Anthropic does not use API inputs to train their models. <a className="text-primary underline" href="https://anthropic.com/privacy" target="_blank" rel="noopener noreferrer">Privacy policy</a></p>
+                <p><strong className="text-foreground">Hugging Face</strong> — Text summarisation and classification for interaction summaries. <a className="text-primary underline" href="https://huggingface.co/privacy" target="_blank" rel="noopener noreferrer">Privacy policy</a></p>
                 <p><strong className="text-foreground">Resend</strong> — Transactional email delivery. Used to send reminders and notifications. <a className="text-primary underline" href="https://resend.com/privacy" target="_blank" rel="noopener noreferrer">Privacy policy</a></p>
                 <p><strong className="text-foreground">Vercel</strong> — Hosting and deployment. <a className="text-primary underline" href="https://vercel.com/legal/privacy-policy" target="_blank" rel="noopener noreferrer">Privacy policy</a></p>
                 <p><strong className="text-foreground">PostHog</strong> — Product analytics. Anonymised usage data with opt-in analytics. Self-hosted or EU-region option. <a className="text-primary underline" href="https://posthog.com/privacy" target="_blank" rel="noopener noreferrer">Privacy policy</a></p>

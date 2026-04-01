@@ -56,7 +56,7 @@ async function setup() {
   const proProduct = await stripe.products.create({
     name: "TheyPromised Pro",
     description:
-      "AI-powered complaint guidance, letter drafting, and full case exports",
+      "Complaint guidance, letter drafting, case insights, and full case exports",
     metadata: { tier: "pro" },
   });
   console.log(`✓ Pro product: ${proProduct.id}`);

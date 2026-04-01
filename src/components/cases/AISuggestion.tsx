@@ -109,7 +109,7 @@ export function AISuggestion({ caseId, tier = "free" }: AISuggestionProps) {
 
       if (!response.ok) {
         setErrorType(data.error ?? null);
-        setError(data.message ?? "AI analysis failed. Please try again.");
+        setError(data.message ?? "We couldn't load case insights. Please try again.");
         return;
       }
 
@@ -133,12 +133,12 @@ export function AISuggestion({ caseId, tier = "free" }: AISuggestionProps) {
         <CardTitle className="flex items-center justify-between text-sm font-semibold">
           <span className="flex items-center gap-2">
             <Sparkles className="h-4 w-4 text-amber-500" />
-            AI Case Analysis
+            Case insights
           </span>
           {(creditsInfo || usageLabel) && (
             <span className="text-xs font-normal text-muted-foreground">
               {creditsInfo
-                ? `${creditsInfo.used}/${creditsInfo.limit} ${tier === "free" ? "this month" : "analyses"}`
+                ? `${creditsInfo.used}/${creditsInfo.limit} ${tier === "free" ? "this month" : "insights"}`
                 : usageLabel}
             </span>
           )}
@@ -148,7 +148,7 @@ export function AISuggestion({ caseId, tier = "free" }: AISuggestionProps) {
         {!result && !loading && !error && (
           <div className="space-y-3">
             <p className="text-xs text-muted-foreground">
-              Get AI-powered analysis of your case: strength rating, next steps, deadlines, and evidence recommendations.
+              Strength rating, next steps, deadlines, and evidence to gather — based on your case timeline.
             </p>
             <Button
               className="w-full"
@@ -157,7 +157,7 @@ export function AISuggestion({ caseId, tier = "free" }: AISuggestionProps) {
               type="button"
             >
               <Sparkles className="mr-2 h-4 w-4" />
-              Analyse Case
+              Get case insights
             </Button>
           </div>
         )}
@@ -174,10 +174,10 @@ export function AISuggestion({ caseId, tier = "free" }: AISuggestionProps) {
                 requiredTier="basic"
                 title={
                   errorType === "suggestions_exhausted"
-                    ? "Free suggestions used this month"
+                    ? "Free insights used this month"
                     : errorType === "upgrade_required"
                       ? "Upgrade required"
-                      : "Analysis limit reached"
+                      : "Insight limit reached"
                 }
               />
             ) : (
@@ -298,11 +298,11 @@ export function AISuggestion({ caseId, tier = "free" }: AISuggestionProps) {
               variant="outline"
             >
               <RefreshCw className="mr-2 h-3.5 w-3.5" />
-              Regenerate analysis
+              Refresh insights
             </Button>
 
             <p className="text-[10px] italic text-muted-foreground text-center leading-tight">
-              AI suggestions are for guidance only and do not constitute legal advice. Always verify information with the relevant ombudsman or a qualified adviser.
+              Insights are for guidance only and do not constitute legal advice. Always verify information with the relevant ombudsman or a qualified adviser.
             </p>
           </div>
         )}

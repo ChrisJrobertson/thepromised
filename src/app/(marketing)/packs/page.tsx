@@ -5,7 +5,7 @@ import { PacksCheckoutClient } from "@/components/marketing/PacksCheckoutClient"
 export const metadata = {
   title: "Complaint Packs — Professional Case Building | TheyPromised",
   description:
-    "One-off complaint support packs from £29. Get AI letters, escalation guidance, and ombudsman-ready exports without a subscription.",
+    "One-off complaint support packs from £29. Get drafted letters, escalation guidance, and ombudsman-ready exports without a subscription.",
 };
 
 type CaseOption = {

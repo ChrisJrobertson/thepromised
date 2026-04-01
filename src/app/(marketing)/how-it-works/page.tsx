@@ -274,18 +274,18 @@ export default function HowItWorksPage() {
         </div>
       </section>
 
-      {/* AI section */}
+      {/* Paid plans — insights & letters */}
       <section className="border-t bg-slate-50 py-16">
         <div className="mx-auto max-w-3xl px-4 text-center">
           <div className="mb-4 inline-flex items-center gap-2 rounded-full bg-amber-100 px-4 py-1.5 text-sm font-medium text-amber-800">
             <Sparkles className="h-3.5 w-3.5" />
             Basic &amp; Pro plans
           </div>
-          <h2 className="text-2xl font-bold">Plus AI-powered assistance</h2>
+          <h2 className="text-2xl font-bold">Plus drafting &amp; case insights</h2>
           <p className="mt-3 text-muted-foreground">
-            Upgrade to unlock AI case analysis, letter drafting, and automated
-            summaries. Claude analyses your entire case history and drafts
-            professional letters pre-populated with your timeline data.
+            Upgrade to unlock case insights, professional letter drafting from your
+            timeline, and interaction summaries — so you spend less time writing and
+            more time getting resolution.
           </p>
         </div>
       </section>

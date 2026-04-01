@@ -5,7 +5,7 @@ import { PricingClient } from "./PricingClient";
 export const metadata = {
   title: "Pricing — Plans for Consumers and Business | TheyPromised",
   description:
-    "Track complaints free or upgrade for AI letters, exports, and guided escalation. One-off packs from £29. Business complaint intelligence from £500/month.",
+    "Track complaints free or upgrade for letter drafting, case insights, exports, and guided escalation. One-off packs from £29. Business complaint intelligence from £500/month.",
 };
 
 const FAQ_SCHEMA = {
@@ -30,10 +30,10 @@ const FAQ_SCHEMA = {
     },
     {
       "@type": "Question",
-      name: "Are AI credits shared between features?",
+      name: "Are usage limits shared between features?",
       acceptedAnswer: {
         "@type": "Answer",
-        text: "No — AI case analyses and AI letter drafts have separate limits. Your credits reset on your billing date each month.",
+        text: "No — case insights and letter drafts have separate limits. Your allowances reset on your billing date each month.",
       },
     },
     {

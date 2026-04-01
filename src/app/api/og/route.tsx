@@ -81,7 +81,7 @@ export async function GET() {
               lineHeight: "1.4",
             }}
           >
-            The UK&apos;s consumer complaint tracker. Log every interaction, generate AI letters,
+            The UK&apos;s consumer complaint tracker. Log every interaction, draft professional letters,
             and escalate to the ombudsman with confidence.
           </div>
         </div>
